@@ -1,0 +1,16 @@
+body {
+    background-color: #2b2a33;
+    color: #cccccc;
+    font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+#settings {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#settings > div > div {
+    line-height: 30px;
+}

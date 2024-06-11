@@ -1,0 +1,32 @@
+body {
+    background-color: #2b2a33;
+    font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.file {
+    opacity: 0;
+}
+
+.file-input label {
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    border-radius: 25px;
+    background: linear-gradient(40deg,#ff6ec4,#7873f5);
+    box-shadow: 0 4px 7px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    transition: transform .2s ease-out;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto
+}
+
+input:hover + label, input:focus + label {
+    transform: scale(1.02);
+}
