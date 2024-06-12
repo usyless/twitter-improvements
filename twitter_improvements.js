@@ -110,7 +110,7 @@
                 return (_, observer) => {
                     observer.disconnect();
                     for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                    setTimeout(() => observer.observe(document.body, observerSettings), 50);
+                    observer.observe(document.body, observerSettings);
                 }
             };
         (new MutationObserver(getCallback())).observe(document.body, observerSettings);
