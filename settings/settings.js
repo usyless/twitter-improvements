@@ -4,31 +4,76 @@ if (typeof browser === "undefined") {
 
 const DIV = document.getElementById("settings");
 
-const main = [
-    {
-        name: "vx_button",
-        description: "Enable Share as VX Button",
-        default: true
-    },
-    {
-        name: "video_button",
-        description: "Enable Video/GIF Download Buttons",
-        default: true
-    },
-    {
-        name: "image_button",
-        description: "Show Image Download Buttons",
-        default: true
-    },
-    {
-        name: "show_hidden",
-        description: "Automatically show all hidden media",
-        default: false
-    }
-]
-
 const options = {
-    General: main
+    General: [
+        {
+            name: "vx_button",
+            description: "Enable Share as VX Button",
+            default: true
+        },
+        {
+            name: "video_button",
+            description: "Enable Video/GIF Download Buttons",
+            default: true
+        },
+        {
+            name: "image_button",
+            description: "Show Image Download Buttons",
+            default: true
+        },
+        {
+            name: "show_hidden",
+            description: "Automatically show all hidden media",
+            default: false
+        }
+    ],
+    "Hide Sections": [
+        {
+            name: "hide_notifications",
+            description: "Hide Notifications button",
+            default: false
+        },
+        {
+            name: "hide_messages",
+            description: "Hide Messages button",
+            default: false
+        },
+        {
+            name: "hide_grok",
+            description: "Hide Grok button",
+            default: false
+        },
+        {
+            name: "hide_lists",
+            description: "Hide Lists button",
+            default: false
+        },
+        {
+            name: "hide_communities",
+            description: "Hide Communities button",
+            default: false
+        },
+        {
+            name: "hide_premium",
+            description: "Hide Premium button and additional Premium ads",
+            default: false
+        },
+        {
+            name: "hide_verified_orgs",
+            description: "Hide Verified Orgs button",
+            default: false
+        },
+        {
+            name: "hide_whats_happening",
+            description: "Hide the Whats Happening tab (imperfect)",
+            default: false
+        },
+        {
+            name: "hide_who_to_follow",
+            description: "Hide the Who To Follow tab (imperfect)",
+            default: false
+        },
+    ]
 }
 
 for (const section in options) {

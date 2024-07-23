@@ -68,6 +68,12 @@
         }
     }
 
+    class Remove {
+        static Node(node) {
+            node.remove();
+        }
+    }
+
     class Button { // Button functions
         static newButton(shareButton, path, clickCallback) {
             shareButton = shareButton.cloneNode(true);
@@ -100,13 +106,22 @@
     if (Settings.tweetObservingEnabled()) { // Run the extension
         const observerSettings = {subtree: true, childList: true},
             callbackMappings = {
-                vx_button: {s: 'article:not([usy])', f: Tweet.addVXButton},
-                video_button: {s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton},
-                image_button: {s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton},
-                show_hidden: {s: 'button[type="button"]', f: Button.showHidden}
+                vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
+                video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
+                image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
+                show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}],
+                hide_notifications: [{s: 'a[aria-label="Notifications"]', f: Remove.Node}],
+                hide_messages: [{s: 'a[aria-label="Direct Messages"]', f: Remove.Node}],
+                hide_grok: [{s: 'a[aria-label="Grok"]', f: Remove.Node}],
+                hide_lists: [{s: 'a[aria-label="Lists"]', f: Remove.Node}],
+                hide_communities: [{s: 'a[aria-label="Communities"]', f: Remove.Node}],
+                hide_premium: [{s: 'a[aria-label="Premium"]', f: Remove.Node}, {s: 'aside[aria-label="Subscribe to Premium"]', f: Remove.Node}],
+                hide_verified_orgs: [{s: 'a[aria-label="Verified Orgs"]', f: Remove.Node}],
+                hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]', f: Remove.Node}],
+                hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]', f: Remove.Node}, {s: 'aside[aria-label="Relevant people"]', f: Remove.Node}],
             }, getCallback = () => {
                 const callbacks = [];
-                for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(callbackMappings[m]);
+                for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
                 return (_, observer) => {
                     observer.disconnect();
                     for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
@@ -123,6 +138,15 @@
                 video_button: true,
                 image_button: true,
                 show_hidden: false,
+                hide_notifications: false,
+                hide_messages: false,
+                hide_grok: false,
+                hide_lists: false,
+                hide_communities: false,
+                hide_premium: false,
+                hide_verified_orgs: false,
+                hide_whats_happening: false,
+                hide_who_to_follow: false,
             }
 
             tweetObservingEnabled() {

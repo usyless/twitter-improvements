@@ -14,6 +14,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 	- Uses the cobalt.tools API! Do note that this will not allow you to download tweets with sensitive media
 - Auto unspoiler hidden media
 	- For if twitter once again introduces forced spoilers
+- Hide various unnecessary buttons or tabs (such as premium, verified orgs, etc.)
 - **All of the above are togglable with the extensions settings**
 - Saved Image/Video Reversing
 	- Allows you to upload any image or video saved by this extension and retrieve the original tweet it was saved from.
