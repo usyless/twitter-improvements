@@ -65,7 +65,7 @@ async function download_cobalt(url) {
         },
         body: JSON.stringify(data)
     };
-    const response = await fetch("https://co.wuk.sh/api/json", requestOptions);
+    const response = await fetch("https://api.cobalt.tools/api/json", requestOptions);
     if (response.status === 200) {
         const filename = getFileName(url);
         const json = await response.json();
