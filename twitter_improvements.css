@@ -1,3 +1,7 @@
 .usybuttonclickdiv:active > div > button > div > div > div {
     background-color: rgba(29, 155, 240, 0.2);
 }
+
+.hidden {
+    display: none;
+}

@@ -44,6 +44,11 @@ const options = {
             default: false
         },
         {
+            name: "hide_jobs",
+            description: "Hide Jobs button",
+            default: false
+        },
+        {
             name: "hide_lists",
             description: "Hide Lists button",
             default: false

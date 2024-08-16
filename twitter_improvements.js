@@ -70,7 +70,7 @@
 
     class Remove {
         static Node(node) {
-            node.remove();
+            node.classList.add('hidden');
         }
     }
 
@@ -113,6 +113,7 @@
                 hide_notifications: [{s: 'a[aria-label="Notifications"]', f: Remove.Node}],
                 hide_messages: [{s: 'a[aria-label="Direct Messages"]', f: Remove.Node}],
                 hide_grok: [{s: 'a[aria-label="Grok"]', f: Remove.Node}],
+                hide_jobs: [{s: 'a[aria-label="Jobs"]', f: Remove.Node}],
                 hide_lists: [{s: 'a[aria-label="Lists"]', f: Remove.Node}],
                 hide_communities: [{s: 'a[aria-label="Communities"]', f: Remove.Node}],
                 hide_premium: [{s: 'a[aria-label="Premium"]', f: Remove.Node}, {s: 'aside[aria-label="Subscribe to Premium"]', f: Remove.Node}],
@@ -141,6 +142,7 @@
                 hide_notifications: false,
                 hide_messages: false,
                 hide_grok: false,
+                hide_jobs: false,
                 hide_lists: false,
                 hide_communities: false,
                 hide_premium: false,
