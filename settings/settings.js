@@ -69,6 +69,16 @@ const options = {
             default: false
         },
         {
+            name: "hide_monetization",
+            description: "Hide Monetization button",
+            default: false
+        },
+        {
+            name: "hide_ads_button",
+            description: "Hide Ads button",
+            default: false
+        },
+        {
             name: "hide_whats_happening",
             description: "Hide the Whats Happening tab (imperfect)",
             default: false
