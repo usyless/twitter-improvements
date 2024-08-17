@@ -13,13 +13,13 @@ const options = {
         },
         {
             name: "video_button",
-            description: "Enable Video/GIF Download Buttons",
-            default: true
+            description: "Enable Video/GIF Download Buttons (Doesn't work on mobile)",
+            default: !/Android/i.test(navigator.userAgent)
         },
         {
             name: "image_button",
-            description: "Show Image Download Buttons",
-            default: true
+            description: "Show Image Download Buttons (Doesn't work on mobile)",
+            default: !/Android/i.test(navigator.userAgent)
         },
         {
             name: "show_hidden",

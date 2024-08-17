@@ -99,43 +99,63 @@
         }
     }
 
-    if (Settings.tweetObservingEnabled()) { // Run the extension
-        const observerSettings = {subtree: true, childList: true},
-            callbackMappings = {
-                vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
-                video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
-                image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
-                show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}],
-                hide_notifications: [{s: 'a[href="/notifications"]:not(.hidden)', f: Remove.Node}],
-                hide_messages: [{s: 'a[href="/messages"]:not(.hidden)', f: Remove.Node}],
-                hide_grok: [{s: 'a[href="/i/grok"]:not(.hidden)', f: Remove.Node}],
-                hide_jobs: [{s: 'a[href="/jobs"]:not(.hidden)', f: Remove.Node}],
-                hide_lists: [{s: 'a[href*="/lists"]:not(.hidden)', f: Remove.Node}],
-                hide_communities: [{s: 'a[href*="/communities"]:not(.hidden)', f: Remove.Node}],
-                hide_premium: [{s: 'a[href="/i/premium_sign_up"]', f: Remove.Node}, {s: 'aside[aria-label="Subscribe to Premium"]:not(.hidden)', f: Remove.Node}],
-                hide_verified_orgs: [{s: 'a[href="/i/verified-orgs-signup"]:not(.hidden)', f: Remove.Node}],
-                hide_monetization: [{s: 'a[href="/settings/monetization"]:not(.hidden)', f: Remove.Node}],
-                hide_ads_button: [{s: 'a[href*="https://ads.x.com"]:not(.hidden)', f: Remove.Node}],
-                hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]:not(.hidden)', f: Remove.Node}],
-                hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]:not(.hidden)', f: Remove.Node}, {s: 'aside[aria-label="Relevant people"]', f: Remove.Node}],
-            }, getCallback = () => {
-                const callbacks = [];
-                for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
-                return (_, observer) => {
-                    observer.disconnect();
-                    for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                    observer.observe(document.body, observerSettings);
-                }
-            };
-        (new MutationObserver(getCallback())).observe(document.body, observerSettings);
+    const observer = {
+        observer: null,
+        start: () => {
+            if (Settings.tweetObservingEnabled()) { // Run the extension
+                const observerSettings = {subtree: true, childList: true},
+                    callbackMappings = {
+                        vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
+                        video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
+                        image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
+                        show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}],
+                        hide_notifications: [{s: 'a[href="/notifications"]:not(.hidden)', f: Remove.Node}],
+                        hide_messages: [{s: 'a[href="/messages"]:not(.hidden)', f: Remove.Node}],
+                        hide_grok: [{s: 'a[href="/i/grok"]:not(.hidden)', f: Remove.Node}],
+                        hide_jobs: [{s: 'a[href="/jobs"]:not(.hidden)', f: Remove.Node}],
+                        hide_lists: [{s: 'a[href*="/lists"]:not(.hidden)', f: Remove.Node}],
+                        hide_communities: [{s: 'a[href*="/communities"]:not(.hidden)', f: Remove.Node}],
+                        hide_premium: [{s: 'a[href="/i/premium_sign_up"]', f: Remove.Node}, {s: 'aside[aria-label="Subscribe to Premium"]:not(.hidden)', f: Remove.Node}],
+                        hide_verified_orgs: [{s: 'a[href="/i/verified-orgs-signup"]:not(.hidden)', f: Remove.Node}],
+                        hide_monetization: [{s: 'a[href="/settings/monetization"]:not(.hidden)', f: Remove.Node}],
+                        hide_ads_button: [{s: 'a[href*="https://ads.x.com"]:not(.hidden)', f: Remove.Node}],
+                        hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]:not(.hidden)', f: Remove.Node}],
+                        hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]:not(.hidden)', f: Remove.Node}, {s: 'aside[aria-label="Relevant people"]', f: Remove.Node}],
+                    }, getCallback = () => {
+                        const callbacks = [];
+                        for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
+                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                        return (_, observer) => {
+                            observer.disconnect();
+                            for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                            observer.observe(document.body, observerSettings);
+                        }
+                    };
+                this.observer = new MutationObserver(getCallback());
+                this.observer.observe(document.body, observerSettings);
+            }
+        },
+        stop: () => {
+            if (this.observer != null) this.observer.disconnect();
+        }
     }
+
+    observer.start();
+
+    chrome.storage.onChanged.addListener(async (_, namespace) => {
+        if (namespace === 'local') {
+            await Settings.loadSettings()
+            observer.stop();
+            observer.start();
+        }
+    });
 
     async function getSettings() { // Setting handling
         class Settings {
             setting = {
                 vx_button: true,
-                video_button: true,
-                image_button: true,
+                video_button: !/Android/i.test(navigator.userAgent),
+                image_button: !/Android/i.test(navigator.userAgent),
                 show_hidden: false,
                 hide_notifications: false,
                 hide_messages: false,
