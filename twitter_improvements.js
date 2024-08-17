@@ -31,12 +31,8 @@
         }
 
         static nearestTweet(elem) {
-            let anchor;
-            while (elem) {
-                anchor = elem.querySelector('article');
-                if (anchor) return anchor;
-                elem = elem.parentElement;
-            }
+            if (elem.nodeName.toLowerCase() === 'article') return elem;
+            return elem.closest('article');
         }
     }
 
