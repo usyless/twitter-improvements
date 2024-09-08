@@ -52,13 +52,14 @@
         }
 
         static respectiveURL(image) {
-            let url = window.location.href;
-            if (url.includes('/photo/')) return url;
+            let url;
             while (image) {
                 url = image.href;
                 if (url) return url;
                 image = image.parentElement;
             }
+            url = window.location.href;
+            if (url.includes('/photo/')) return url;
         }
     }
 
