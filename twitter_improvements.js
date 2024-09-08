@@ -18,7 +18,7 @@
             try {
                 videoComponent.setAttribute('usy', '');
                 const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
-                a.after(Button.newButton(a, download_button_path, () => chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)})));
+                if (!article.querySelector('.usybuttonclickdiv[usy-video]')) a.after(Button.newButton(a, download_button_path, () => chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}), "usy-video"));
             } catch {videoComponent.removeAttribute('usy')}
         }
 
@@ -75,9 +75,10 @@
     }
 
     class Button { // Button functions
-        static newButton(shareButton, path, clickCallback) {
+        static newButton(shareButton, path, clickCallback, attribute) {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
+            if (attribute != null) shareButton.setAttribute(attribute, "");
             shareButton.querySelector('path').setAttribute("d", path);
             const bc = shareButton.querySelector('button').firstElementChild;
             shareButton.addEventListener('mouseover', () => Button.onhover(bc));
