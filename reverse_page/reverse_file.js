@@ -17,7 +17,7 @@ document.addEventListener('drop', (e) => {
 });
 
 function reverseFiles(dataTransfer) {
-    for (const item of dataTransfer.items) if (item.kind === 'file' && item.type.includes('image/')) reverseFile(item.getAsFile());
+    for (const item of dataTransfer.items) if (item.kind === 'file' && (item.type.includes('image/') || item.type.includes('video/'))) reverseFile(item.getAsFile());
 }
 
 function reverseFile(file) {
