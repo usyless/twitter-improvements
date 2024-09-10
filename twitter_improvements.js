@@ -5,6 +5,9 @@
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z",
         Settings = await getSettings();
 
+    // Fallbacks for when button cannot be found
+    let fallbackButton;
+
     class Tweet { // Tweet functions
         static addVXButton(article) {
             try {
@@ -23,7 +26,13 @@
         }
 
         static anchor(article) {
-            return article.querySelector('button[aria-label="Share post"]').parentElement.parentElement;
+            const anchor = article.querySelector('button[aria-label="Share post"]').parentElement.parentElement;
+            if (!fallbackButton) fallbackButton = anchor;
+            return anchor;
+        }
+
+        static anchorWithFallback(article) {
+            try {return Tweet.anchor(article);} catch {return fallbackButton;}
         }
 
         static url(article) {
@@ -44,7 +53,7 @@
         static addImageButton(image) {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchor(Tweet.nearestTweet(image)), download_button_path, (e) => {
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => {
                     e.preventDefault();
                     chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
                 }));
