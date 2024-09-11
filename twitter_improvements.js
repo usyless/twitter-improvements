@@ -13,7 +13,10 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                a.after(Button.newButton(a, vx_button_path, () => navigator.clipboard.writeText(URL.vxIfy(Tweet.url(article)))));
+                a.after(Button.newButton(a, vx_button_path, () => {
+                    try {navigator.clipboard.writeText(URL.vxIfy(Tweet.url(article))).then(() => {Notification.create('Copied URL to clipboard');});}
+                    catch {Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');}
+                }));
             } catch {article.removeAttribute('usy')}
         }
 
@@ -37,6 +40,7 @@
 
         static url(article) {
             for (const a of article.querySelectorAll('a')) if (a.firstElementChild && a.firstElementChild.nodeName === 'TIME') return a.href;
+            throw new TypeError("No URL Found");
         }
 
         static nearestTweet(elem) {
@@ -111,6 +115,30 @@
 
         static showHidden(b) {
             if (b.innerText === 'Show' || b.innerText === 'View') b.click();
+        }
+    }
+
+    class Notification {
+        static create(text) {
+            let outer = document.querySelector('div.usyNotificationOuter'), inner;
+            if (outer != null) inner = outer.firstElementChild;
+            else {
+                outer = document.createElement('div');
+                inner = document.createElement('div');
+                outer.appendChild(inner);
+                outer.classList.add('usyNotificationOuter');
+                inner.classList.add('usyNotificationInner');
+                document.body.appendChild(outer);
+                let timer;
+                outer.startTimer = () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        outer.remove();
+                    }, 5000);
+                }
+            }
+            inner.textContent = text;
+            outer.startTimer();
         }
     }
 
