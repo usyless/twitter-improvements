@@ -124,25 +124,20 @@
 
     class Notification {
         static create(text) {
-            let outer = document.querySelector('div.usyNotificationOuter'), inner;
-            if (outer != null) inner = outer.firstElementChild;
-            else {
-                outer = document.createElement('div');
-                inner = document.createElement('div');
-                outer.appendChild(inner);
-                outer.classList.add('usyNotificationOuter');
-                inner.classList.add('usyNotificationInner');
-                document.body.appendChild(outer);
-                let timer;
-                outer.startTimer = () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        outer.remove();
-                    }, 5000);
-                }
-            }
+            document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
+            const outer = document.createElement('div');
+            const inner = document.createElement('div');
+            outer.appendChild(inner);
+            outer.classList.add('usyNotificationOuter');
+            inner.classList.add('usyNotificationInner');
             inner.textContent = text;
-            outer.startTimer();
+            document.body.appendChild(outer);
+            setTimeout(() => {
+                inner.classList.add('usyFadeOut');
+                inner.addEventListener('transitionend', () => {
+                    outer.remove();
+                });
+            }, 5000);
         }
     }
 
