@@ -24,7 +24,10 @@
             try {
                 videoComponent.setAttribute('usy', '');
                 const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
-                if (!article.querySelector('.usybuttonclickdiv[usy-video]')) a.after(Button.newButton(a, download_button_path, () => chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}), "usy-video"));
+                if (!article.querySelector('.usybuttonclickdiv[usy-video]')) a.after(Button.newButton(a, download_button_path, () => {
+                    Notification.create('Saving Tweet Video(s)');
+                    chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)});
+                }, "usy-video"));
             } catch {videoComponent.removeAttribute('usy')}
         }
 
@@ -59,6 +62,7 @@
                 image.setAttribute('usy', '');
                 image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => {
                     e.preventDefault();
+                    Notification.create('Saving Image');
                     chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
                 }));
             } catch {image.removeAttribute('usy')}
