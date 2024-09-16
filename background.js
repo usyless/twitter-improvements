@@ -3,9 +3,10 @@ const requestMap = {
     video: download_cobalt
 }
 
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     const f = requestMap[request.type];
-    if (f) f(request.url, request.sourceURL);
+    if (f) f(request.url, request.sourceURL).then((r) => sendResponse(r));
+    return true;
 });
 
 chrome.contextMenus.create(
@@ -31,8 +32,9 @@ function download(url, name) {
     chrome.downloads.download({url: url, filename: name});
 }
 
-function saveImage(url, sourceURL) {
+async function saveImage(url, sourceURL) {
     download(sourceURL.replace(/name=[^&]*/, "name=orig"), getFileName(url) + "." + getImageFileType(sourceURL));
+    return true;
 }
 
 function getFileName(url) { // [twitter] <Username> - <Tweet ID> - <Number>
@@ -51,7 +53,7 @@ function getVideoFileType(url) {
     else return ".gif";
 }
 
-async function download_cobalt(url) {
+async function download_cobalt(url, count=0) {
     const data = {
         vQuality: "max",
         filenamePattern: "nerdy",
@@ -60,8 +62,8 @@ async function download_cobalt(url) {
     }, requestOptions = {
         method: 'POST',
         headers: {
-            Accept: "application/json",
-            'Content-Type': "application/json"
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify(data)
     };
@@ -76,5 +78,10 @@ async function download_cobalt(url) {
             download(d.url, filename + id + getVideoFileType(d.url));
             ++id;
         }
+        return true;
+    } else if (response.status === 400) {
+        if (count < 5) setTimeout(() => download_cobalt(url, ++count), 100);
+        else return false;
     }
+    else return false;
 }
