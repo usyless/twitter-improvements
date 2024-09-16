@@ -23,7 +23,8 @@
         static addVideoButton(videoComponent) {
             try {
                 videoComponent.setAttribute('usy', '');
-                const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
+                const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article), quote_tweet = article.querySelector('div[id] > div[id]');
+                if (quote_tweet != null && quote_tweet.contains(videoComponent)) return;
                 if (!article.querySelector('.usybuttonclickdiv[usy-video]')) a.after(Button.newButton(a, download_button_path, () => {
                     Notification.create('Saving Tweet Video(s)');
                     chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}).then((r) => {
