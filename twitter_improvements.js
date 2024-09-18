@@ -36,7 +36,7 @@
         }
 
         static anchor(article) {
-            const anchor = article.querySelector('button[aria-label="Share post"]').parentElement.parentElement;
+            const anchor = article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
             if (!fallbackButton) fallbackButton = anchor;
             return anchor;
         }
@@ -101,6 +101,7 @@
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             if (attribute != null) shareButton.setAttribute(attribute, "");
+            shareButton.querySelector('button[aria-label="Share post"]').setAttribute('usy', '');
             shareButton.querySelector('path').setAttribute("d", path);
             const bc = shareButton.querySelector('button').firstElementChild;
             shareButton.addEventListener('mouseover', () => Button.onhover(bc));
