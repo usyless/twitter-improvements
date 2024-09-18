@@ -13,25 +13,17 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                a.after(Button.newButton(a, vx_button_path, () => {
-                    try {navigator.clipboard.writeText(URL.vxIfy(Tweet.url(article))).then(() => {Notification.create('Copied URL to clipboard');});}
-                    catch {Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');}
-                }));
-            } catch {article.removeAttribute('usy')}
+                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article)));
+            } catch {article.removeAttribute('usy');}
         }
 
         static addVideoButton(videoComponent) {
             try {
                 videoComponent.setAttribute('usy', '');
                 const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article), quote_tweet = article.querySelector('div[id] > div[id]');
-                if (quote_tweet != null && quote_tweet.contains(videoComponent)) return;
-                if (!article.querySelector('.usybuttonclickdiv[usy-video]')) a.after(Button.newButton(a, download_button_path, () => {
-                    Notification.create('Saving Tweet Video(s)');
-                    chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}).then((r) => {
-                        if (r) Notification.create('Successfully Downloaded Video(s)');
-                        else Notification.create('Failed to download video(s), please try again (cobalt error)');
-                    });
-                }, "usy-video"));
+                if (!(quote_tweet != null && quote_tweet.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
+                    a.after(Button.newButton(a, download_button_path, () => Tweet.videoButtonCallback(article), "usy-video"));
+                }
             } catch {videoComponent.removeAttribute('usy')}
         }
 
@@ -58,17 +50,26 @@
                 elem = elem.parentElement;
             }
         }
+
+        static vxButtonCallback(article) {
+            try {navigator.clipboard.writeText(URL.vxIfy(Tweet.url(article))).then(() => {Notification.create('Copied URL to clipboard');});}
+            catch {Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');}
+        }
+
+        static videoButtonCallback(article) {
+            Notification.create('Saving Tweet Video(s)');
+            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}).then((r) => {
+                if (r) Notification.create('Successfully Downloaded Video(s)');
+                else Notification.create('Failed to download video(s), please try again (cobalt error)');
+            });
+        }
     }
 
     class Image { // Image element functions
         static addImageButton(image) {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => {
-                    e.preventDefault();
-                    Notification.create('Saving Image');
-                    chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
-                }));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image)));
             } catch {image.removeAttribute('usy')}
         }
 
@@ -81,6 +82,12 @@
             }
             url = window.location.href;
             if (url.includes('/photo/')) return url;
+        }
+
+        static imageButtonCallback(e, image) {
+            e.preventDefault();
+            Notification.create('Saving Image');
+            chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
         }
     }
 
