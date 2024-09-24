@@ -38,7 +38,7 @@
         }
 
         static url(article) {
-            for (const a of article.querySelectorAll('a')) if (a.firstElementChild && a.firstElementChild.nodeName === 'TIME') return a.href;
+            for (const a of article.querySelectorAll('a')) if (a.querySelector('time')) return a.href.replace(/\/history$/, "");
             throw new TypeError("No URL Found");
         }
 
