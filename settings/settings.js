@@ -24,12 +24,6 @@ const options = {
             default: !/Android/i.test(navigator.userAgent)
         },
         {
-            name: "cobalt_url",
-            description: "Set the cobalt api provider (default: https://api.cobalt.tools/api/json)",
-            default: 'https://api.cobalt.tools/api/json',
-            type: 'text',
-        },
-        {
             name: "image_button",
             description: "Show Image Download Buttons (Doesn't work on mobile)",
             default: !/Android/i.test(navigator.userAgent)
@@ -100,6 +94,14 @@ const options = {
             name: "hide_who_to_follow",
             description: "Hide the Who To Follow tab (imperfect)",
             default: false
+        },
+    ],
+    Advanced: [
+        {
+            name: "cobalt_url",
+            description: "Set the cobalt api provider (default: https://api.cobalt.tools/api/json)",
+            default: 'https://api.cobalt.tools/api/json',
+            type: 'text',
         },
     ]
 }
