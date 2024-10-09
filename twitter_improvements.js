@@ -100,12 +100,6 @@
         }
     }
 
-    class Remove {
-        static Node(node) {
-            node.classList.add('hidden');
-        }
-    }
-
     class Button { // Button functions
         static newButton(shareButton, path, clickCallback, attribute) {
             shareButton = shareButton.cloneNode(true);
@@ -166,27 +160,46 @@
                         video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
                         image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
                         show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}],
-                        hide_notifications: [{s: 'a[href="/notifications"]:not(.hidden)', f: Remove.Node}],
-                        hide_messages: [{s: 'a[href="/messages"]:not(.hidden)', f: Remove.Node}],
-                        hide_grok: [{s: 'a[href="/i/grok"]:not(.hidden)', f: Remove.Node}],
-                        hide_jobs: [{s: 'a[href="/jobs"]:not(.hidden)', f: Remove.Node}],
-                        hide_lists: [{s: 'a[href*="/lists"]:not(.hidden)', f: Remove.Node}],
-                        hide_communities: [{s: 'a[href*="/communities"]:not(.hidden)', f: Remove.Node}],
-                        hide_premium: [{s: 'a[href="/i/premium_sign_up"]', f: Remove.Node}, {s: 'aside[aria-label="Subscribe to Premium"]:not(.hidden)', f: Remove.Node}],
-                        hide_verified_orgs: [{s: 'a[href="/i/verified-orgs-signup"]:not(.hidden)', f: Remove.Node}],
-                        hide_monetization: [{s: 'a[href="/settings/monetization"]:not(.hidden)', f: Remove.Node}],
-                        hide_ads_button: [{s: 'a[href*="https://ads.x.com"]:not(.hidden)', f: Remove.Node}],
-                        hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]:not(.hidden)', f: Remove.Node}],
-                        hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]:not(.hidden)', f: Remove.Node}, {s: 'aside[aria-label="Relevant people"]', f: Remove.Node}],
+                        hide_notifications: [{s: 'a[href="/notifications"]', style: true}],
+                        hide_messages: [{s: 'a[href="/messages"]', style: true}],
+                        hide_grok: [{s: 'a[href="/i/grok"]', style: true}],
+                        hide_jobs: [{s: 'a[href="/jobs"]', style: true}],
+                        hide_lists: [{s: 'a[href*="/lists"]', style: true}],
+                        hide_communities: [{s: 'a[href*="/communities"]', style: true}],
+                        hide_premium: [{s: 'a[href="/i/premium_sign_up"]', style: true}, {s: 'aside[aria-label="Subscribe to Premium"]', style: true}],
+                        hide_verified_orgs: [{s: 'a[href="/i/verified-orgs-signup"]', style: true}],
+                        hide_monetization: [{s: 'a[href="/settings/monetization"]', style: true}],
+                        hide_ads_button: [{s: 'a[href*="https://ads.x.com"]', style: true}],
+                        hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]', style: true}],
+                        hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]', style: true}, {s: 'aside[aria-label="Relevant people"]', style: true}],
                     }, getCallback = () => {
                         const callbacks = [];
-                        for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
-                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                        return (_, observer) => {
-                            observer.disconnect();
-                            for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                            observer.observe(document.body, observerSettings);
+                        const style = {
+                            style: '',
+                            hideSelector: (selector) => style.style += `${selector} {display:none;}`,
+                            applyStyle: () => {
+                                if (style.style.length > 0) {
+                                    const s = document.createElement('style');
+                                    s.setAttribute('usyStyle', '');
+                                    s.appendChild(document.createTextNode(style.style));
+                                    document.head.appendChild(s);
+                                }
+                            }
                         }
+                        for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) {
+                            if (cb.style) style.hideSelector(cb.s);
+                            else callbacks.push(cb);
+                        }
+                        style.applyStyle();
+                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                        if (callbacks.length > 0) {
+                            return (_, observer) => {
+                                observer.disconnect();
+                                for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                                observer.observe(document.body, observerSettings);
+                            }
+                        }
+                        return (_, __) => observer.disconnect();
                     };
                 this.observer = new MutationObserver(getCallback());
                 this.observer.observe(document.body, observerSettings);
@@ -203,6 +216,7 @@
         if (namespace === 'local') {
             await Settings.loadSettings()
             observer.stop();
+            document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
             observer.start();
         }
     });
