@@ -199,7 +199,7 @@
                                 observer.observe(document.body, observerSettings);
                             }
                         }
-                        return (_, __) => observer.disconnect();
+                        return (_, observer) => observer.disconnect();
                     };
                 this.observer = new MutationObserver(getCallback());
                 this.observer.observe(document.body, observerSettings);
