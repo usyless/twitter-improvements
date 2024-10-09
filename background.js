@@ -79,6 +79,7 @@ async function download_cobalt(url, count=0, cobalt_url, sendResponse) {
                 ++id;
             }
             sendResponse({status: 'success'});
+            return;
         } else {
             if (count < 5) setTimeout(() => download_cobalt(url, ++count), 100);
         }

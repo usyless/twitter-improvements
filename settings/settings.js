@@ -12,9 +12,22 @@ const options = {
             default: true
         },
         {
+            name: "url_prefix",
+            description: "Set url prefix provider",
+            default: 'vx',
+            type: 'choice',
+            choices: [{name: 'VXTwitter (fixvx/vxtwitter)', type: 'vx'}, {name: 'FXTwitter (fixupx/fxtwitter)', type: 'fx'}]
+        },
+        {
             name: "video_button",
             description: "Enable Video/GIF Download Buttons (Doesn't work on mobile)",
             default: !/Android/i.test(navigator.userAgent)
+        },
+        {
+            name: "cobalt_url",
+            description: "Set the cobalt api provider (default: https://api.cobalt.tools/api/json)",
+            default: 'https://api.cobalt.tools/api/json',
+            type: 'text',
         },
         {
             name: "image_button",
@@ -95,21 +108,59 @@ for (const section in options) {
     const outer = document.createElement("div"), h = document.createElement("h2");
     h.innerText = section + ":";
     outer.appendChild(h);
-    for (const inner in options[section]) create_button(options[section][inner]).then(node => outer.appendChild(node));
+    for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
     DIV.appendChild(outer);
 }
 
-async function create_button(button) {
+function create(elem) {
+    if (elem.type == null) return create_button(elem);
+    else if (elem.type === 'choice') return create_choice(elem);
+    else if (elem.type === 'text') return create_text(elem);
+}
+
+function create_button(e) {
     const outer = document.createElement("div"),
         label = document.createElement("label"),
         checkbox = document.createElement("input");
-    label.innerText = button.description;
-    label.setAttribute("for", button.name);
+    label.textContent = e.description;
+    label.setAttribute("for", e.name);
     checkbox.setAttribute("type", "checkbox");
-    checkbox.id = button.name;
-    checkbox.checked = await get_value(button.name, button.default);
+    checkbox.id = e.name;
+    get_value(e.name, e.default).then(v => checkbox.checked = v);
     outer.append(label, checkbox);
     checkbox.addEventListener('change', toggle_value)
+    return outer;
+}
+
+function create_choice(e) {
+    const outer = document.createElement("div"),
+        label = document.createElement("label"),
+        select = document.createElement("select");
+    label.textContent = e.description;
+    label.setAttribute("for", e.name);
+    select.id = e.name;
+    for (const opt of e.choices) {
+        const o = document.createElement('option');
+        o.setAttribute("value", opt.type);
+        o.textContent = opt.name;
+        select.appendChild(o);
+    }
+    get_value(e.name, e.default).then(v => select.value = v);
+    outer.append(label, select);
+    select.addEventListener('change', update_value);
+    return outer;
+}
+
+function create_text(e) {
+    const outer = document.createElement("div"),
+        label = document.createElement("label"),
+        input = document.createElement("input");
+    label.textContent = e.description;
+    label.setAttribute("for", e.name);
+    input.id = e.name;
+    get_value(e.name, e.default).then(v => input.value = v);
+    outer.append(label, input);
+    input.addEventListener('change', update_value);
     return outer;
 }
 
@@ -122,5 +173,11 @@ async function get_value(value, def) {
 function toggle_value(e) {
     const data = {};
     data[e.target.id] = e.target.checked;
+    chrome.storage.local.set(data);
+}
+
+function update_value(e) {
+    const data = {};
+    data[e.target.id] = e.target.value;
     chrome.storage.local.set(data);
 }
