@@ -58,9 +58,12 @@
 
         static videoButtonCallback(article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article)}).then((r) => {
-                if (r) Notification.create('Successfully Downloaded Video(s)');
-                else Notification.create('Failed to download video(s), please try again (cobalt error)');
+            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preference.cobalt_url}).then((r) => {
+                if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
+                else {
+                    navigator.clipboard.writeText(r.copy);
+                    Notification.create('Copied file name to clipboard, use cobalt website to download or update cobalt API url');
+                }
             });
         }
     }
@@ -93,7 +96,7 @@
 
     class URL { // URL modification functions
         static vxIfy(url) {
-            return `https://fixvx.com/${url.substring(14)}`;
+            return `https://${Settings.preference.url_prefix === 'vx' ? 'fixv' : 'fixup'}x.com/${url.substring(14)}`;
         }
     }
 
@@ -225,6 +228,11 @@
                 hide_who_to_follow: false,
             }
 
+            preference = {
+                cobalt_url: 'https://api.cobalt.tools/api/json',
+                url_prefix: 'vx'
+            }
+
             tweetObservingEnabled() {
                 for (const s in this.setting) if (this.setting[s]) return true;
             }
@@ -232,6 +240,7 @@
             async loadSettings() {
                 const data = await Settings.getStorage();
                 for (const s in this.setting) if (data[s] != null) this.setting[s] = data[s];
+                for (const s in this.preference) if (data[s] != null) this.preference[s] = data[s];
             }
 
             static async getStorage() {

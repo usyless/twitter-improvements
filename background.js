@@ -5,7 +5,7 @@ const requestMap = {
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     const f = requestMap[request.type];
-    if (f) f(request.url, request.sourceURL).then((r) => sendResponse(r));
+    if (f) f(request.url, request.sourceURL, request.cobalt_url, sendResponse);
     return true;
 });
 
@@ -32,9 +32,8 @@ function download(url, name) {
     chrome.downloads.download({url: url, filename: name});
 }
 
-async function saveImage(url, sourceURL) {
+function saveImage(url, sourceURL) {
     download(sourceURL.replace(/name=[^&]*/, "name=orig"), getFileName(url) + "." + getImageFileType(sourceURL));
-    return true;
 }
 
 function getFileName(url) { // [twitter] <Username> - <Tweet ID> - <Number>
@@ -53,7 +52,7 @@ function getVideoFileType(url) {
     else return ".gif";
 }
 
-async function download_cobalt(url, count=0) {
+async function download_cobalt(url, count=0, cobalt_url, sendResponse) {
     const data = {
         vQuality: "max",
         filenamePattern: "nerdy",
@@ -67,21 +66,26 @@ async function download_cobalt(url, count=0) {
         },
         body: JSON.stringify(data)
     };
-    const response = await fetch("https://api.cobalt.tools/api/json", requestOptions);
-    if (response.status === 200) {
-        const filename = getFileName(url);
-        const json = await response.json();
-        let picker = json.picker;
-        if (!picker) picker = [{url: json.url}];
-        let id = 1;
-        for (const d of picker) {
-            download(d.url, filename + id + getVideoFileType(d.url));
-            ++id;
+    const filename = getFileName(url);
+    try {
+        const response = await fetch(cobalt_url, requestOptions);
+        if (response.status === 200) {
+            const json = await response.json();
+            let picker = json.picker;
+            if (!picker) picker = [{url: json.url}];
+            let id = 1;
+            for (const d of picker) {
+                download(d.url, filename + id + getVideoFileType(d.url));
+                ++id;
+            }
+            sendResponse({status: 'success'});
+        } else {
+            if (count < 5) setTimeout(() => download_cobalt(url, ++count), 100);
         }
-        return true;
-    } else if (response.status === 400) {
-        if (count < 5) setTimeout(() => download_cobalt(url, ++count), 100);
-        else return false;
+    } finally {
+        sendResponse({status: 'newpage', copy: filename});
+        chrome.tabs.create({
+            url: `https://cobalt.tools/#${url}`
+        });
     }
-    else return false;
 }
