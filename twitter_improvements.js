@@ -21,7 +21,7 @@
             try {
                 videoComponent.setAttribute('usy', '');
                 const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article), quote_tweet = article.querySelector('div[id] > div[id]');
-                if (!(quote_tweet != null && quote_tweet.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
+                if (!(quote_tweet?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
                     a.after(Button.newButton(a, download_button_path, () => Tweet.videoButtonCallback(article), "usy-video"));
                 }
             } catch {videoComponent.removeAttribute('usy')}
@@ -58,7 +58,7 @@
 
         static videoButtonCallback(article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preference.cobalt_url}).then((r) => {
+            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preferences.cobalt_url}).then((r) => {
                 if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
                 else {
                     navigator.clipboard.writeText(r.copy);
@@ -96,7 +96,7 @@
 
     class URL { // URL modification functions
         static vxIfy(url) {
-            return `https://${Settings.preference.url_prefix === 'vx' ? 'fixv' : 'fixup'}x.com/${url.substring(14)}`;
+            return `https://${Settings.preferences.url_prefix === 'vx' ? 'fixv' : 'fixup'}x.com/${url.substring(14)}`;
         }
     }
 
@@ -153,60 +153,59 @@
     const observer = {
         observer: null,
         start: () => {
-            if (Settings.tweetObservingEnabled()) { // Run the extension
-                const observerSettings = {subtree: true, childList: true},
-                    callbackMappings = {
-                        vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
-                        video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
-                        image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
-                        show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}],
-                        hide_notifications: [{s: 'a[href="/notifications"]', style: true}],
-                        hide_messages: [{s: 'a[href="/messages"]', style: true}],
-                        hide_grok: [{s: 'a[href="/i/grok"]', style: true}],
-                        hide_jobs: [{s: 'a[href="/jobs"]', style: true}],
-                        hide_lists: [{s: 'a[href*="/lists"]', style: true}],
-                        hide_communities: [{s: 'a[href*="/communities"]', style: true}],
-                        hide_premium: [{s: 'a[href="/i/premium_sign_up"]', style: true}, {s: 'aside[aria-label="Subscribe to Premium"]', style: true}],
-                        hide_verified_orgs: [{s: 'a[href="/i/verified-orgs-signup"]', style: true}],
-                        hide_monetization: [{s: 'a[href="/settings/monetization"]', style: true}],
-                        hide_ads_button: [{s: 'a[href*="https://ads.x.com"]', style: true}],
-                        hide_whats_happening: [{s: 'div[aria-label="Timeline: Trending now"]', style: true}],
-                        hide_who_to_follow: [{s: 'aside[aria-label="Who to follow"]', style: true}, {s: 'aside[aria-label="Relevant people"]', style: true}],
-                    }, getCallback = () => {
-                        const callbacks = [];
-                        const style = {
-                            style: '',
-                            hideSelector: (selector) => style.style += `${selector} {display:none;}`,
-                            applyStyle: () => {
-                                if (style.style.length > 0) {
-                                    const s = document.createElement('style');
-                                    s.setAttribute('usyStyle', '');
-                                    s.appendChild(document.createTextNode(style.style));
-                                    document.head.appendChild(s);
-                                }
-                            }
+            const observerSettings = {subtree: true, childList: true},
+                callbackMappings = {
+                    vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
+                    video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
+                    image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
+                    show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}]
+                }, getCallback = () => {
+                    const callbacks = [];
+                    for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
+                    for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                    if (callbacks.length > 0) {
+                        return (_, observer) => {
+                            observer.disconnect();
+                            for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                            observer.observe(document.body, observerSettings);
                         }
-                        for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) {
-                            if (cb.style) style.hideSelector(cb.s);
-                            else callbacks.push(cb);
-                        }
-                        style.applyStyle();
-                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                        if (callbacks.length > 0) {
-                            return (_, observer) => {
-                                observer.disconnect();
-                                for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                                observer.observe(document.body, observerSettings);
-                            }
-                        }
-                        return (_, observer) => observer.disconnect();
-                    };
-                this.observer = new MutationObserver(getCallback());
-                this.observer.observe(document.body, observerSettings);
+                    }
+                    return (_, observer) => observer.disconnect();
+                };
+            this.observer = new MutationObserver(getCallback());
+            this.observer.observe(document.body, observerSettings);
+
+            // Style stuff
+            const styleMapping = {
+                hide_notifications: ['a[href="/notifications"]'],
+                hide_messages: ['a[href="/messages"]'],
+                hide_grok: ['a[href="/i/grok"]'],
+                hide_jobs: ['a[href="/jobs"]'],
+                hide_lists: ['a[href*="/lists"]'],
+                hide_communities: ['a[href*="/communities"]'],
+                hide_premium: ['a[href="/i/premium_sign_up"]', 'aside[aria-label="Subscribe to Premium"]'],
+                hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
+                hide_monetization: ['a[href="/settings/monetization"]'],
+                hide_ads_button: ['a[href*="https://ads.x.com"]'],
+                hide_whats_happening: ['div[aria-label="Timeline: Trending now"]'],
+                hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]'],
+            }, style = {
+                style: '',
+                hideSelector: (selector) => style.style += `${selector} {display:none;}`,
+                applyStyle: () => {
+                    if (style.style.length > 0) {
+                        const s = document.createElement('style');
+                        s.setAttribute('usyStyle', '');
+                        s.appendChild(document.createTextNode(style.style));
+                        document.head.appendChild(s);
+                    }
+                }
             }
+            for (const setting in Settings.style) if (Settings.style[setting]) for (const selector of styleMapping[setting]) style.hideSelector(selector);
+            style.applyStyle();
         },
         stop: () => {
-            if (this.observer != null) this.observer.disconnect();
+            this.observer?.disconnect();
         }
     }
 
@@ -228,6 +227,9 @@
                 video_button: !/Android/i.test(navigator.userAgent),
                 image_button: !/Android/i.test(navigator.userAgent),
                 show_hidden: false,
+            }
+
+            style = {
                 hide_notifications: false,
                 hide_messages: false,
                 hide_grok: false,
@@ -242,23 +244,14 @@
                 hide_who_to_follow: false,
             }
 
-            preference = {
+            preferences = {
                 cobalt_url: 'https://api.cobalt.tools/api/json',
                 url_prefix: 'vx'
             }
 
-            tweetObservingEnabled() {
-                for (const s in this.setting) if (this.setting[s]) return true;
-            }
-
             async loadSettings() {
-                const data = await Settings.getStorage();
-                for (const s in this.setting) if (data[s] != null) this.setting[s] = data[s];
-                for (const s in this.preference) if (data[s] != null) this.preference[s] = data[s];
-            }
-
-            static async getStorage() {
-                return await chrome.storage.local.get();
+                const data = await chrome.storage.local.get(), settings = ['setting', 'style', 'preferences'];
+                for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
             }
         }
 
