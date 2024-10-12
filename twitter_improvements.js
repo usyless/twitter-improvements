@@ -134,6 +134,10 @@
         static showHidden(b) {
             if (b.innerText === 'Show' || b.innerText === 'View') b.click();
         }
+
+        static removeAll() {
+            document.querySelectorAll('div.usybuttonclickdiv').forEach(b => b.remove());
+        }
     }
 
     class Notification {
@@ -221,6 +225,8 @@
             await Settings.loadSettings()
             observer.stop();
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
+            document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
+            Button.removeAll();
             observer.start();
         }
     });
