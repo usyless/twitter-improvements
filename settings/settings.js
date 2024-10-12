@@ -14,9 +14,9 @@ const options = {
         {
             name: "url_prefix",
             description: "Set url prefix provider",
-            default: 'vx',
+            default: 'fixvx.com',
             type: 'choice',
-            choices: [{name: 'VXTwitter (fixvx/vxtwitter)', type: 'vx'}, {name: 'FXTwitter (fixupx/fxtwitter)', type: 'fx'}]
+            choices: [{name: 'VXTwitter (fixvx/vxtwitter)', type: 'fixvx.com'}, {name: 'FXTwitter (fixupx/fxtwitter)', type: 'fixupx.com'}, {name: 'Custom (Enter in advanced)', type: 'x.com'}]
         },
         {
             name: "video_button",
@@ -101,6 +101,12 @@ const options = {
             name: "cobalt_url",
             description: "Set the cobalt api provider (default: https://api.cobalt.tools/api/json)",
             default: 'https://api.cobalt.tools/api/json',
+            type: 'text',
+        },
+        {
+            name: "custom_url",
+            description: "Set custom copy link url (make sure to set prefix to 'Custom' above) format as: fixupx.com for fxtwitter manually",
+            default: '',
             type: 'text',
         },
     ]

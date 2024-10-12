@@ -96,7 +96,12 @@
 
     class URL { // URL modification functions
         static vxIfy(url) {
-            return `https://${Settings.preferences.url_prefix === 'vx' ? 'fixv' : 'fixup'}x.com/${url.substring(14)}`;
+            return `https://${URL.getPrefix()}/${url.substring(14)}`;
+        }
+
+        static getPrefix() {
+            if (Settings.preferences.url_prefix === 'x.com') return Settings.preferences.custom_url;
+            return Settings.preferences.url_prefix;
         }
     }
 
@@ -246,12 +251,16 @@
 
             preferences = {
                 cobalt_url: 'https://api.cobalt.tools/api/json',
-                url_prefix: 'vx'
+                url_prefix: 'fixvx.com',
+                custom_url: ''
             }
 
             async loadSettings() {
                 const data = await chrome.storage.local.get(), settings = ['setting', 'style', 'preferences'];
                 for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
+                // Fix for past changes
+                this.preferences.url_prefix === 'vx' && (this.preferences.url_prefix = 'fixvx.com');
+                this.preferences.url_prefix === 'fx' && (this.preferences.url_prefix = 'fixupx.com');
             }
         }
 
