@@ -166,13 +166,13 @@ const options = {
                 i.id = 'download_history_files_input';
                 i.hidden = true;
                 i.multiple = true;
-                i.accept = 'image/*,video/*';
+                i.accept = 'image/*';
                 i.addEventListener('change', async (e) => {
                     const result = {};
                     let accepted = 0;
                     for (const file of e.target.files) {
                         const n = file.name.split('-');
-                        if (n[0].includes('twitter')) try {result[`${n[1].trim()}-${n[2].split('.')[0].trim()}`] = true;++accepted;} catch {}
+                        if (n[0].includes('twitter')) try {result[`${n[1].replace(/\D/g, '')}-${n[2].split('.')[0].replace(/\D/g, '')[0]}`] = true;++accepted;} catch {}
                     }
                     setStorage({download_history: {...(await get_value('download_history', {}, true)), ...result}});
                     alert(`Successfully imported ${accepted} files!`);
