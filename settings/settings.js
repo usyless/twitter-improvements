@@ -125,11 +125,31 @@ const options = {
         },
         {
             name: "import_download_history",
-            description: "Import downloaded image history",
+            description: "Import downloaded image history (formatted as {tweet id}-{image number} deliminated by spaces, without curly brackets)",
             type: 'button',
             button: 'Import History',
             onclick: () => {
-
+                document.getElementById('download_history_input').click();
+            },
+            init: () => {
+                const i = document.createElement('input');
+                i.type = 'file';
+                i.id = 'download_history_input';
+                i.hidden = true;
+                i.accept = '.twitterimprovements';
+                i.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (r) => {
+                            const items = r.target.result.split(' '), result = {};
+                            for (const i of items) result[i] = true;
+                            setStorage({download_history: result});
+                            alert("Successfully imported!");
+                        };
+                        reader.readAsText(file);
+                });
+                document.body.appendChild(i);
             }
         },
         {
@@ -137,8 +157,12 @@ const options = {
             description: "Export downloaded image history",
             type: 'button',
             button: 'Export History',
-            onclick: () => {
-
+            onclick: async () => {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(new Blob([Object.keys(await get_value('download_history', {}, true)).join(" ")], { type: "text/plain" }));
+                link.download = 'export.twitterimprovements';
+                link.click();
+                URL.revokeObjectURL(link.href);
             }
         }
     ]
@@ -148,6 +172,7 @@ const typeMap = {
     text: create_text,
     button: create_button,
 }
+let values;
 for (const section in options) {
     const outer = document.createElement("div"), h = document.createElement("h2");
     h.innerText = section + ":";
@@ -157,6 +182,7 @@ for (const section in options) {
 }
 
 function create(elem) {
+    elem.init?.();
     return typeMap[elem.type]?.(elem) ?? create_checkbox(elem);
 }
 
@@ -219,10 +245,9 @@ function create_button(e) {
     return outer;
 }
 
-async function get_value(value, def) {
-    let enabled = (await browser.storage.local.get([value]))[value];
-    if (enabled == null) enabled = def;
-    return enabled;
+async function get_value(value, def, refresh=false) {
+    if (!values || refresh) values = await browser.storage.local.get();
+    return values[value] ?? def;
 }
 
 function toggle_value(e) {

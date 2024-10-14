@@ -106,7 +106,7 @@
         static removeImageDownloadCallback(e, image) {
             e.preventDefault();
             Notification.create('Removing image from saved');
-            const [id, url] = Image.idWithNumber(image);
+            const [id] = Image.idWithNumber(image);
             delete Settings.preferences.download_history[id];
             Settings.saveDownloadHistory();
         }
