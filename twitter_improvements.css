@@ -2,6 +2,10 @@
     background-color: rgba(29, 155, 240, 0.2);
 }
 
+.usybuttonclickdiv, .usybuttonclickdiv * {
+    cursor: pointer;
+}
+
 .hidden {
     display: none;
 }

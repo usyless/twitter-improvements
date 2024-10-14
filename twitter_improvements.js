@@ -110,11 +110,12 @@
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             if (attribute != null) shareButton.setAttribute(attribute, "");
-            shareButton.querySelector('button[aria-label="Share post"]').setAttribute('usy', '');
+            const button = shareButton.querySelector('button');
+            button.setAttribute('usy', '');
+            button.disabled = false;
             shareButton.querySelector('path').setAttribute("d", path);
-            const bc = shareButton.querySelector('button').firstElementChild;
-            shareButton.addEventListener('mouseover', () => Button.onhover(bc));
-            shareButton.addEventListener('mouseout', () => Button.stophover(bc));
+            shareButton.addEventListener('mouseover', () => Button.onhover(button.firstElementChild));
+            shareButton.addEventListener('mouseout', () => Button.stophover(button.firstElementChild));
             shareButton.addEventListener('click', clickCallback);
             return shareButton;
         }
