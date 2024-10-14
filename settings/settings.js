@@ -141,10 +141,10 @@ const options = {
                         const file = e.target.files[0];
                         if (!file) return;
                         const reader = new FileReader();
-                        reader.onload = (r) => {
+                        reader.onload = async (r) => {
                             const items = r.target.result.split(' '), result = {};
                             for (const i of items) result[i] = true;
-                            setStorage({download_history: result});
+                            setStorage({download_history: {...(await get_value('download_history', {}, true)), ...result}});
                             alert("Successfully imported!");
                         };
                         reader.readAsText(file);
@@ -167,14 +167,14 @@ const options = {
                 i.hidden = true;
                 i.multiple = true;
                 i.accept = 'image/*,video/*';
-                i.addEventListener('change', (e) => {
+                i.addEventListener('change', async (e) => {
                     const result = {};
                     let accepted = 0;
                     for (const file of e.target.files) {
                         const n = file.name.split('-');
                         if (n[0].includes('twitter')) try {result[`${n[1].trim()}-${n[2].split('.')[0].trim()}`] = true;++accepted;} catch {}
                     }
-                    setStorage({download_history: result});
+                    setStorage({download_history: {...(await get_value('download_history', {}, true)), ...result}});
                     alert(`Successfully imported ${accepted} files!`);
                 });
                 document.body.appendChild(i);
