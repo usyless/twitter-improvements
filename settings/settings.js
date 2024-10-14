@@ -153,6 +153,34 @@ const options = {
             }
         },
         {
+            name: "import_download_history_from_files",
+            description: "Import download history from files",
+            type: 'button',
+            button: 'Import History From Files',
+            onclick: () => {
+                document.getElementById('download_history_files_input').click();
+            },
+            init: () => {
+                const i = document.createElement('input');
+                i.type = 'file';
+                i.id = 'download_history_files_input';
+                i.hidden = true;
+                i.multiple = true;
+                i.accept = 'image/*,video/*';
+                i.addEventListener('change', (e) => {
+                    const result = {};
+                    let accepted = 0;
+                    for (const file of e.target.files) {
+                        const n = file.name.split('-');
+                        if (n[0].includes('twitter')) try {result[`${n[1].trim()}-${n[2].split('.')[0].trim()}`] = true;++accepted;} catch {}
+                    }
+                    setStorage({download_history: result});
+                    alert(`Successfully imported ${accepted} files!`);
+                });
+                document.body.appendChild(i);
+            }
+        },
+        {
             name: "export_download_history",
             description: "Export downloaded image history",
             type: 'button',
