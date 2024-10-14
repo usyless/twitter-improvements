@@ -6,6 +6,10 @@
     cursor: pointer;
 }
 
+.usyMarked, .usyMarked * {
+    color: green;
+}
+
 .hidden {
     display: none;
 }

@@ -32,6 +32,11 @@ const options = {
             name: "show_hidden",
             description: "Automatically show all hidden media",
             default: false
+        },
+        {
+            name: "download_history_enabled",
+            description: "Store image download history (local)",
+            default: true
         }
     ],
     "Hide Sections": [
@@ -109,9 +114,40 @@ const options = {
             default: '',
             type: 'text',
         },
+        {
+            name: "clear_download_history",
+            description: "Clear downloaded image history",
+            type: 'button',
+            button: 'Clear History',
+            onclick: () => {
+                if (confirm("Are you sure you want to clear your image download history?")) setStorage({download_history: {}});
+            }
+        },
+        {
+            name: "import_download_history",
+            description: "Import downloaded image history",
+            type: 'button',
+            button: 'Import History',
+            onclick: () => {
+
+            }
+        },
+        {
+            name: "export_download_history",
+            description: "Export downloaded image history",
+            type: 'button',
+            button: 'Export History',
+            onclick: () => {
+
+            }
+        }
     ]
 }
-
+const typeMap = {
+    choice: create_choice,
+    text: create_text,
+    button: create_button,
+}
 for (const section in options) {
     const outer = document.createElement("div"), h = document.createElement("h2");
     h.innerText = section + ":";
@@ -121,12 +157,10 @@ for (const section in options) {
 }
 
 function create(elem) {
-    if (elem.type == null) return create_button(elem);
-    else if (elem.type === 'choice') return create_choice(elem);
-    else if (elem.type === 'text') return create_text(elem);
+    return typeMap[elem.type]?.(elem) ?? create_checkbox(elem);
 }
 
-function create_button(e) {
+function create_checkbox(e) {
     const outer = document.createElement("div"),
         label = document.createElement("label"),
         checkbox = document.createElement("input");
@@ -172,6 +206,19 @@ function create_text(e) {
     return outer;
 }
 
+function create_button(e) {
+    const outer = document.createElement("div"),
+        label = document.createElement("label"),
+        button = document.createElement("button");
+    label.textContent = e.description;
+    label.setAttribute("for", e.name);
+    button.id = e.name;
+    outer.append(label, button);
+    button.textContent = e.button;
+    button.addEventListener('click', e.onclick);
+    return outer;
+}
+
 async function get_value(value, def) {
     let enabled = (await browser.storage.local.get([value]))[value];
     if (enabled == null) enabled = def;
@@ -181,11 +228,15 @@ async function get_value(value, def) {
 function toggle_value(e) {
     const data = {};
     data[e.target.id] = e.target.checked;
-    chrome.storage.local.set(data);
+    setStorage(data);
 }
 
 function update_value(e) {
     const data = {};
     data[e.target.id] = e.target.value;
-    chrome.storage.local.set(data);
+    setStorage(data);
+}
+
+function setStorage(data) {
+    chrome.storage.local.set(data)
 }

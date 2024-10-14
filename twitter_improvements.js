@@ -4,6 +4,7 @@
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z",
         Settings = await getSettings();
+    let downloadHistoryEnabled = Settings.preferences.download_history_enabled;
 
     // Fallbacks for when button cannot be found
     let fallbackButton;
@@ -20,9 +21,11 @@
         static addVideoButton(videoComponent) {
             try {
                 videoComponent.setAttribute('usy', '');
-                const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article), quote_tweet = article.querySelector('div[id] > div[id]');
-                if (!(quote_tweet?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    a.after(Button.newButton(a, download_button_path, () => Tweet.videoButtonCallback(article), "usy-video"));
+                const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
+                // checks if quote tweet contains specific video component (don't show button)
+                // doesn't affect a video QRT as each video checked separately
+                if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
+                    a.after(Button.newButton(a, download_button_path, () => Tweet.videoButtonCallback(article), false, "usy-video"));
                 }
             } catch {videoComponent.removeAttribute('usy')}
         }
@@ -72,7 +75,7 @@
         static addImageButton(image) {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image)));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), downloadHistoryEnabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image)[0])), null, (e) => Image.removeImageDownloadCallback(e, image)));
             } catch {image.removeAttribute('usy')}
         }
 
@@ -87,10 +90,25 @@
             if (url.includes('/photo/')) return url;
         }
 
+        static idWithNumber(image) {
+            const url = Image.respectiveURL(image), a = Image.respectiveURL(image).split("/").slice(-3);
+            return [`${a[0]}-${a[2]}`, url];
+        }
+
         static imageButtonCallback(e, image) {
             e.preventDefault();
             Notification.create('Saving Image');
-            chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
+            const [id, url] = Image.idWithNumber(image);
+            chrome.runtime.sendMessage({type: 'image', url: url, sourceURL: image.src});
+            downloadHistoryEnabled && (Settings.preferences.download_history[id] = true, Settings.saveDownloadHistory());
+        }
+
+        static removeImageDownloadCallback(e, image) {
+            e.preventDefault();
+            Notification.create('Removing image from saved');
+            const [id, url] = Image.idWithNumber(image);
+            delete Settings.preferences.download_history[id];
+            Settings.saveDownloadHistory();
         }
     }
 
@@ -106,10 +124,11 @@
     }
 
     class Button { // Button functions
-        static newButton(shareButton, path, clickCallback, attribute) {
+        static newButton(shareButton, path, clickCallback, marked, attribute, rightClickCallback) {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             if (attribute != null) shareButton.setAttribute(attribute, "");
+            if (marked) shareButton.classList.add('usyMarked');;
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
@@ -117,6 +136,7 @@
             shareButton.addEventListener('mouseover', () => Button.onhover(button.firstElementChild));
             shareButton.addEventListener('mouseout', () => Button.stophover(button.firstElementChild));
             shareButton.addEventListener('click', clickCallback);
+            if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
             return shareButton;
         }
 
@@ -223,7 +243,8 @@
 
     chrome.storage.onChanged.addListener(async (_, namespace) => {
         if (namespace === 'local') {
-            await Settings.loadSettings()
+            await Settings.loadSettings();
+            downloadHistoryEnabled = Settings.preferences.download_history_enabled;
             observer.stop();
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
             document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
@@ -259,7 +280,9 @@
             preferences = {
                 cobalt_url: 'https://api.cobalt.tools/api/json',
                 url_prefix: 'fixvx.com',
-                custom_url: ''
+                custom_url: '',
+                download_history_enabled: true,
+                download_history: {}
             }
 
             async loadSettings() {
@@ -268,6 +291,10 @@
                 // Fix for past changes
                 this.preferences.url_prefix === 'vx' && (this.preferences.url_prefix = 'fixvx.com');
                 this.preferences.url_prefix === 'fx' && (this.preferences.url_prefix = 'fixupx.com');
+            }
+
+            saveDownloadHistory() {
+                chrome.storage.local.set({download_history: this.preferences.download_history});
             }
         }
 
