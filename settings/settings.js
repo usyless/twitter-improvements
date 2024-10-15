@@ -35,8 +35,13 @@ const options = {
         },
         {
             name: "download_history_enabled",
-            description: "Store image download history (local)",
+            description: "Store image download history (local), right click on a download button to remove from history",
             default: true
+        },
+        {
+            name: "download_history_prevent_download",
+            description: "Prevent downloading of previously downloaded items",
+            default: false
         }
     ],
     "Hide Sections": [

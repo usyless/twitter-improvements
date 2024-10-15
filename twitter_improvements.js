@@ -95,10 +95,16 @@
             return [`${a[0]}-${a[2]}`, url];
         }
 
+        static getRespectiveButton(image) {
+            return image.parentElement.querySelector('div.usybuttonclickdiv');
+        }
+
         static imageButtonCallback(e, image) {
             e.preventDefault();
-            Notification.create('Saving Image');
-            chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
+            if (!Button.isMarked(Image.getRespectiveButton(image))) {
+                Notification.create('Saving Image');
+                chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
+            } else Notification.create('Image is already saved, save using right click menu, or remove from saved to override');
         }
 
         static removeImageDownloadCallback(e, image) {
@@ -126,7 +132,7 @@
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             if (attribute != null) shareButton.setAttribute(attribute, "");
-            if (marked) shareButton.classList.add('usyMarked');;
+            if (marked) shareButton.classList.add('usyMarked');
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
@@ -136,6 +142,10 @@
             shareButton.addEventListener('click', clickCallback);
             if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
             return shareButton;
+        }
+
+        static isMarked(button) {
+            return button.classList.contains('usyMarked');
         }
 
         static onhover(bc) {
@@ -286,6 +296,7 @@
                 url_prefix: 'fixvx.com',
                 custom_url: '',
                 download_history_enabled: true,
+                download_history_prevent_download: false,
                 download_history: {}
             }
 

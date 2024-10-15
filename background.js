@@ -38,7 +38,7 @@ function sendToTab(message) {
     });
 }
 
-function saveImage(request, sendResponse) {
+function saveImage(request) {
     let filename = getFileName(request.url);
     download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), filename + "." + getImageFileType(request.sourceURL));
     filename = filename.split("-");
