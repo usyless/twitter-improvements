@@ -61,7 +61,7 @@
 
         static videoButtonCallback(article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preferences.cobalt_url}).then((r) => {
+            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preferences.cobalt_url, cobalt_api_key: Settings.preferences.cobalt_api_key}).then((r) => {
                 if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
                 else {
                     navigator.clipboard.writeText(r.copy);
@@ -279,6 +279,7 @@
 
             preferences = {
                 cobalt_url: 'https://api.cobalt.tools/api/json',
+                cobalt_api_key: '',
                 url_prefix: 'fixvx.com',
                 custom_url: '',
                 download_history_enabled: true,

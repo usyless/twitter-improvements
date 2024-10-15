@@ -101,13 +101,21 @@ const options = {
             default: false
         },
     ],
-    Advanced: [
+    Cobalt: [
         {
             name: "cobalt_url",
-            description: "Set the cobalt api provider (default: https://api.cobalt.tools/api/json)",
+            description: "Set the cobalt api provider, must be cobalt 10 (default: https://api.cobalt.tools/api/json)",
             default: 'https://api.cobalt.tools/api/json',
             type: 'text',
         },
+        {
+            name: "cobalt_api_key",
+            description: "Set the Api-Key authorization for cobalt (blank for none)",
+            default: '',
+            type: 'text',
+        },
+    ],
+    Advanced: [
         {
             name: "custom_url",
             description: "Set custom copy link url (make sure to set prefix to 'Custom' above) format as: fixupx.com for fxtwitter manually",
