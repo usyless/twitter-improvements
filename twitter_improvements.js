@@ -75,7 +75,7 @@
         static addImageButton(image) {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), downloadHistoryEnabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image)[0])), null, (e) => Image.removeImageDownloadCallback(e, image)));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), downloadHistoryEnabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image))), null, (e) => Image.removeImageDownloadCallback(e, image)));
             } catch {image.removeAttribute('usy')}
         }
 
@@ -91,8 +91,8 @@
         }
 
         static idWithNumber(image) {
-            const url = Image.respectiveURL(image), a = Image.respectiveURL(image).split("/").slice(-3);
-            return [`${a[0]}-${a[2]}`, url];
+            const a = Image.respectiveURL(image).split("/").slice(-3);
+            return `${a[0]}-${a[2]}`;
         }
 
         static getRespectiveButton(image) {
@@ -112,8 +112,7 @@
         static removeImageDownloadCallback(e, image) {
             e.preventDefault();
             Notification.create('Removing image from saved');
-            const [id] = Image.idWithNumber(image);
-            delete Settings.preferences.download_history[id];
+            delete Settings.preferences.download_history[Image.idWithNumber(image)];
             Settings.saveDownloadHistory();
         }
     }
