@@ -237,26 +237,15 @@ function create(elem) {
 }
 
 function create_checkbox(e) {
-    const outer = document.createElement("div"),
-        label = document.createElement("label"),
-        checkbox = document.createElement("input");
-    label.textContent = e.description;
-    label.setAttribute("for", e.name);
+    const [outer, checkbox] = get_generic_setting(e, "input");
     checkbox.setAttribute("type", "checkbox");
-    checkbox.id = e.name;
     get_value(e.name, e.default).then(v => checkbox.checked = v);
-    outer.append(label, checkbox);
     checkbox.addEventListener('change', toggle_value)
     return outer;
 }
 
 function create_choice(e) {
-    const outer = document.createElement("div"),
-        label = document.createElement("label"),
-        select = document.createElement("select");
-    label.textContent = e.description;
-    label.setAttribute("for", e.name);
-    select.id = e.name;
+    const [outer, select] = get_generic_setting(e, "select");
     for (const opt of e.choices) {
         const o = document.createElement('option');
         o.setAttribute("value", opt.type);
@@ -264,39 +253,35 @@ function create_choice(e) {
         select.appendChild(o);
     }
     get_value(e.name, e.default).then(v => select.value = v);
-    outer.append(label, select);
     select.addEventListener('change', update_value);
     return outer;
 }
 
 function create_text(e) {
-    const outer = document.createElement("div"),
-        label = document.createElement("label"),
-        input = document.createElement("input");
-    label.textContent = e.description;
-    label.setAttribute("for", e.name);
-    input.id = e.name;
+    const [outer, input] = get_generic_setting(e, "input");
     get_value(e.name, e.default).then(v => input.value = v);
-    outer.append(label, input);
     input.addEventListener('change', update_value);
     return outer;
 }
 
 function create_button(e) {
-    const outer = document.createElement("div"),
-        label = document.createElement("label"),
-        button = document.createElement("button");
-    label.textContent = e.description;
-    label.setAttribute("for", e.name);
-    button.id = e.name;
-    outer.append(label, button);
+    const [outer, button] = get_generic_setting(e, "button");
     button.textContent = e.button;
     button.addEventListener('click', e.onclick);
     return outer;
 }
 
-function create_break(e) {
+function create_break() {
     return document.createElement("br");
+}
+
+function get_generic_setting(e, element) {
+    const outer = document.createElement("div"), label = document.createElement("label"), elem = document.createElement(element);
+    label.textContent = e.description;
+    label.setAttribute("for", e.name);
+    elem.id = e.name;
+    outer.append(label, elem);
+    return [outer, elem];
 }
 
 async function get_value(value, def, refresh=false) {
@@ -317,5 +302,5 @@ function update_value(e) {
 }
 
 function setStorage(data) {
-    chrome.storage.local.set(data)
+    chrome.storage.local.set(data);
 }
