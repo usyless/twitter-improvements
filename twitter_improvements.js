@@ -101,10 +101,12 @@
 
         static imageButtonCallback(e, image) {
             e.preventDefault();
-            if (!Button.isMarked(Image.getRespectiveButton(image))) {
+            if (Settings.preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
+                Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
+            } else {
                 Notification.create('Saving Image');
                 chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
-            } else Notification.create('Image is already saved, save using right click menu, or remove from saved to override');
+            }
         }
 
         static removeImageDownloadCallback(e, image) {
