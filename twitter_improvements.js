@@ -98,9 +98,7 @@
         static imageButtonCallback(e, image) {
             e.preventDefault();
             Notification.create('Saving Image');
-            const [id, url] = Image.idWithNumber(image);
-            chrome.runtime.sendMessage({type: 'image', url: url, sourceURL: image.src});
-            downloadHistoryEnabled && (Settings.preferences.download_history[id] = true, Settings.saveDownloadHistory());
+            chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
         }
 
         static removeImageDownloadCallback(e, image) {
@@ -252,6 +250,11 @@
             observer.start();
         }
     });
+
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.store) downloadHistoryEnabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
+    });
+
 
     async function getSettings() { // Setting handling
         class Settings {

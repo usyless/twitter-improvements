@@ -32,8 +32,17 @@ function download(url, name) {
     chrome.downloads.download({url: url, filename: name});
 }
 
-function saveImage(request) {
-    download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), getFileName(request.url) + "." + getImageFileType(request.sourceURL));
+function sendToTab(message) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, message);
+    });
+}
+
+function saveImage(request, sendResponse) {
+    let filename = getFileName(request.url);
+    download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), filename + "." + getImageFileType(request.sourceURL));
+    filename = filename.split("-");
+    sendToTab({store: `${filename[1].trim()}-${filename[2].trim()}`});
 }
 
 function getFileName(url) { // [twitter] <Username> - <Tweet ID> - <Number>
