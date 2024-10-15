@@ -1,6 +1,10 @@
 body {
   background-color: #2b2a33;
   font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  row-gap: 4px;
 }
 
 .settings-button {
@@ -27,6 +31,9 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+
+  min-width: fit-content;
+  min-height: fit-content;
 }
 
 .settings-button:hover,
