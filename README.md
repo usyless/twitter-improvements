@@ -5,13 +5,17 @@ A simple web extension which brings a few quality of life features to twitter/X.
 
 ## Features
 
-- Copy as VX Button
-	- Each tweet will display a button to copy the link to the tweet directly using the "vx" prefix to twitter to allow for better embedding when sending on other platforms.
+- Copy as VX/FX/Custom Button
+	- Each tweet will display a button to copy the link to the tweet directly using VXTwitter, FXTwitter, or a custom prefix to allow for better embedding when sending on other platforms.
 - Image Save Button
 	- Shows a download button in the top left corner of each image, which saves the image in the highest quality available and with a file name that can lead you back to the original tweet.
+- Image Download History
+	- Can keep track of downloaded files, and even prevent you from re-saving them if enabled!
+	- Can import previously downloaded files to keep track, and export downloaded files list to re-import
 - Video Download Button
 	- Displays next to the Copy as VX button on each tweet with a video or a gif, and clicking it allows you to save all media in that tweet with the same good naming scheme!
 	- ~~Uses the cobalt.tools API!~~ (Currently unavailable)
+  	- Can set a custom cobalt.tools instance URL, with Api-key authentication supported.
     - Will open the video in a new tab to save through cobalt.tools, and copy the filename, unless a custom URL is provided
 - Auto unspoiler hidden media
 	- For if twitter once again introduces forced spoilers
