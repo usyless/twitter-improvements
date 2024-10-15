@@ -8,6 +8,11 @@
 
 .usyMarked, .usyMarked * {
     color: green;
+    transition: 230ms;
+}
+
+.usyMarked:hover, .usyMarked:hover * {
+    color: #529a52;
 }
 
 .hidden {
