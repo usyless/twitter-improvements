@@ -20,7 +20,7 @@ chrome.contextMenus.create(
 );
 
 chrome.contextMenus.onClicked.addListener((info) => {
-    if (info.menuItemId === "save-image") saveImage(getCorrespondingUrl(info), info.srcUrl);
+    if (info.menuItemId === "save-image") saveImage({url: getCorrespondingUrl(info), sourceURL: info.srcUrl});
 });
 
 function getCorrespondingUrl(info) {
