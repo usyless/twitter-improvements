@@ -60,12 +60,12 @@
 
         static videoButtonCallback(article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), cobalt_url: Settings.preferences.cobalt_url, cobalt_api_key: Settings.preferences.cobalt_api_key}).then((r) => {
+            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), video_download_fallback: Settings.preferences.video_download_fallback, cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)}).then((r) => {
                 if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
-                else {
+                else if (r.status === 'newpage') {
                     navigator.clipboard.writeText(r.copy);
-                    Notification.create('Copied file name to clipboard, use cobalt website to download or update cobalt API url');
-                }
+                    Notification.create('Error occured downloading video, copied file name to clipboard, use cobalt.tools website to download', 10000);
+                } else Notification.create('Error occured downloading video, not opening cobalt.tools website as configured in settings');
             });
         }
     }
@@ -177,7 +177,7 @@
     }
 
     class Notification {
-        static create(text) {
+        static create(text, timeout=5000) {
             document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
             const outer = document.createElement('div'), inner = document.createElement('div');
             outer.appendChild(inner);
@@ -190,7 +190,7 @@
                 inner.addEventListener('transitionend', () => {
                     outer.remove();
                 });
-            }, 5000);
+            }, timeout);
         }
     }
 
@@ -278,7 +278,7 @@
         class Settings {
             setting = {
                 vx_button: true,
-                video_button: !/Android/i.test(navigator.userAgent),
+                video_button: true,
                 image_button: !/Android/i.test(navigator.userAgent),
                 show_hidden: false,
             }
@@ -299,9 +299,8 @@
             }
 
             preferences = {
-                cobalt_url: 'https://api.cobalt.tools/api/json',
-                cobalt_api_key: '',
                 url_prefix: 'fixvx.com',
+                video_download_fallback: true,
                 custom_url: '',
                 download_history_enabled: true,
                 download_history_prevent_download: false,

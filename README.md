@@ -14,9 +14,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 	- Can import previously downloaded files to keep track, and export downloaded files list to re-import
 - Video Download Button
 	- Displays next to the Copy as VX button on each tweet with a video or a gif, and clicking it allows you to save all media in that tweet with the same good naming scheme!
-	- ~~Uses the cobalt.tools API!~~ (Currently unavailable)
-  	- Can set a custom cobalt.tools instance URL, with Api-key authentication supported.
-    - Will open the video in a new tab to save through cobalt.tools, and copy the filename, unless a custom URL is provided
+    - Downloads videos locally with a fallback to opening them in a cobalt.tools tab if it fails.
 - Auto unspoiler hidden media
 	- For if twitter once again introduces forced spoilers
 - Hide various unnecessary buttons or tabs (such as premium, verified orgs, etc.)
