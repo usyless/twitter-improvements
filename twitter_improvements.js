@@ -166,6 +166,7 @@
         }
 
         static showHidden(b) {
+            b.setAttribute('usy', '');
             if (b.innerText === 'Show' || b.innerText === 'View') b.click();
         }
 
@@ -204,7 +205,7 @@
                     vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
                     video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
                     image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
-                    show_hidden: [{s: 'button[type="button"]', f: Button.showHidden}]
+                    show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}]
                 }, getCallback = () => {
                     const callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
