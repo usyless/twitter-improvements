@@ -225,9 +225,7 @@
             observer.observer = new MutationObserver(getCallback());
             observer.observer.observe(document.body, observerSettings);
         }
-    }
-
-    const styles = {
+    }, styles = {
         styleMap: {
             hide_notifications: ['a[href="/notifications"]'],
             hide_messages: ['a[href="/messages"]'],
@@ -254,9 +252,7 @@
                 document.head.appendChild(s);
             }
         }
-    }
-
-    const extension = {
+    }, extension = {
         start: () => {
             observer.start();
             styles.start();
