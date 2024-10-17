@@ -71,11 +71,8 @@ const fieldToggles = JSON.stringify({"withArticleRichContentState":true,"withArt
 const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
 const defaultHeaders = {
     'authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
-    'x-twitter-client-language': 'en',
-    'x-twitter-active-user': 'yes',
-    'accept-language': 'en',
-    'content-type': 'application/json',
-    'X-Twitter-Auth-Type': 'OAuth2Session',
+    'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en',
+    'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session',
 }
 async function download_cobalt(request, sendResponse) {
     const filename = getFileName(request.url);
