@@ -13,7 +13,7 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article)));
+                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article), false, "usy-copy"));
             } catch {article.removeAttribute('usy');}
         }
 
@@ -74,7 +74,7 @@
         static addImageButton(image) {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image))), null, (e) => Image.removeImageDownloadCallback(e, image)));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
             } catch {image.removeAttribute('usy')}
         }
 
@@ -114,6 +114,11 @@
             delete Settings.preferences.download_history[Image.idWithNumber(image)];
             Settings.saveDownloadHistory();
         }
+
+        static resetAll() {
+            document.querySelectorAll('div[usy-image].usybuttonclickdiv').forEach((e) => e.remove());
+            document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
+        }
     }
 
     class URL { // URL modification functions
@@ -131,7 +136,7 @@
         static newButton(shareButton, path, clickCallback, marked, attribute, rightClickCallback) {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
-            if (attribute != null) shareButton.setAttribute(attribute, "");
+            shareButton.setAttribute(attribute, "");
             if (marked) shareButton.classList.add('usyMarked');
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
@@ -164,8 +169,9 @@
             if (b.innerText === 'Show' || b.innerText === 'View') b.click();
         }
 
-        static removeAll() {
+        static resetAll() {
             document.querySelectorAll('div.usybuttonclickdiv').forEach(b => b.remove());
+            document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
         }
     }
 
@@ -187,10 +193,12 @@
         }
     }
 
-    let previousURL = window.location.href;
     const observer = {
         observer: null,
+        previousURL: window.location.href,
         start: () => {
+            observer.observer?.disconnect();
+            Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
                 callbackMappings = {
                     vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
@@ -206,67 +214,63 @@
                             o.disconnect();
                             const newUrl = window.location.href;
                             // Fix green button on switching image
-                            if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) {
-                                previousURL = newUrl;
-                                observer.reload();
-                            } else {
-                                previousURL = newUrl;
-                                for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                                o.observe(document.body, observerSettings);
-                            }
+                            if (observer.previousURL.includes("/photo/") && newUrl !== observer.previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
+                            observer.previousURL = newUrl;
+                            for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                            o.observe(document.body, observerSettings);
                         }
                     }
                     return (_, observer) => observer.disconnect();
                 };
             observer.observer = new MutationObserver(getCallback());
             observer.observer.observe(document.body, observerSettings);
-
-            // Style stuff
-            const styleMapping = {
-                hide_notifications: ['a[href="/notifications"]'],
-                hide_messages: ['a[href="/messages"]'],
-                hide_grok: ['a[href="/i/grok"]'],
-                hide_jobs: ['a[href="/jobs"]'],
-                hide_lists: ['a[href*="/lists"]'],
-                hide_communities: ['a[href*="/communities"]'],
-                hide_premium: ['a[href="/i/premium_sign_up"]', 'aside[aria-label="Subscribe to Premium"]'],
-                hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
-                hide_monetization: ['a[href="/settings/monetization"]'],
-                hide_ads_button: ['a[href*="https://ads.x.com"]'],
-                hide_whats_happening: ['div[aria-label="Timeline: Trending now"]'],
-                hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]'],
-            }, style = {
-                style: '',
-                hideSelector: (selector) => style.style += `${selector} {display:none;}`,
-                applyStyle: () => {
-                    if (style.style.length > 0) {
-                        const s = document.createElement('style');
-                        s.setAttribute('usyStyle', '');
-                        s.appendChild(document.createTextNode(style.style));
-                        document.head.appendChild(s);
-                    }
-                }
-            }
-            for (const setting in Settings.style) if (Settings.style[setting]) for (const selector of styleMapping[setting]) style.hideSelector(selector);
-            style.applyStyle();
-        },
-        stop: () => {
-            observer.observer?.disconnect();
-            document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
-            document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
-            Button.removeAll();
-        },
-        reload: async () => {
-            await Settings.loadSettings();
-            observer.stop();
-            observer.start();
         }
     }
 
-    observer.start();
+    const styles = {
+        styleMap: {
+            hide_notifications: ['a[href="/notifications"]'],
+            hide_messages: ['a[href="/messages"]'],
+            hide_grok: ['a[href="/i/grok"]'],
+            hide_jobs: ['a[href="/jobs"]'],
+            hide_lists: ['a[href*="/lists"]'],
+            hide_communities: ['a[href*="/communities"]'],
+            hide_premium: ['a[href="/i/premium_sign_up"]', 'aside[aria-label="Subscribe to Premium"]'],
+            hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
+            hide_monetization: ['a[href="/settings/monetization"]'],
+            hide_ads_button: ['a[href*="https://ads.x.com"]'],
+            hide_whats_happening: ['div[aria-label="Timeline: Trending now"]'],
+            hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]'],
+        },
+        style: '',
+        start: () => {
+            document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
+            styles.style = '';
+            for (const setting in Settings.style) if (Settings.style[setting]) for (const selector of styles.styleMap[setting]) styles.style += `${selector} {display:none;}`;
+            if (styles.style.length > 0) {
+                const s = document.createElement('style');
+                s.setAttribute('usyStyle', '');
+                s.appendChild(document.createTextNode(styles.style));
+                document.head.appendChild(s);
+            }
+        }
+    }
 
-    chrome.storage.onChanged.addListener((_, namespace) => {
-        if (namespace === 'local') observer.reload();
+    const extension = {
+        start: () => {
+            observer.start();
+            styles.start();
+        }
+    }
+
+    // Starts extension
+    extension.start();
+
+    chrome.storage.onChanged.addListener(async (_, namespace) => {
+        if (namespace === 'local') {
+            await Settings.loadSettings();
+            extension.start();
+        }
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
