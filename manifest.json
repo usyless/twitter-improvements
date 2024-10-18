@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Twitter Improvements",
-    "version": "1.0.9.2",
+    "version": "1.0.9.4",
   
     "description": "Various helpful twitter improvements",
   
@@ -20,11 +20,8 @@
       "downloads",
       "clipboardWrite",
       "storage",
+      "webRequest",
       "https://x.com/*"
-    ],
-
-    "optional_permissions": [
-      "webRequest"
     ],
 
     "background": {

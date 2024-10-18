@@ -35,22 +35,6 @@ const options = {
             name: "video_download_fallback",
             description: "Fallback to opening video in new cobalt.tools tab if local download fails",
             default: true,
-        },
-        {
-            name: "video_download_auto_updater",
-            description: "Auto update video downloading URL's and authentication (requires webRequest permission, will be asked for it when clicking the button)",
-            type: 'button',
-            button: 'Enable Permission',
-            post: () => {
-                chrome.permissions.contains({permissions: ['webRequest']}, (result) => {if (result) {
-                    const b = document.getElementById('video_download_auto_updater');
-                    b.textContent = 'Permission Granted';
-                    b.disabled = true;
-                }});
-            },
-            onclick:  () => {
-                chrome.permissions.request({permissions: ['webRequest']}, (granted) => {if (granted) options['Video/GIF Saving'][2].post();});
-            }
         }
     ],
     "Image Saving": [
