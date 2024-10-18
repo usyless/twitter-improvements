@@ -64,8 +64,8 @@
                 if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
                 else if (r.status === 'newpage') {
                     navigator.clipboard.writeText(r.copy);
-                    Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download', 10000);
-                } else Notification.create('Error occurred downloading video, try clicking on tweet to fix, not opening cobalt.tools website as configured in settings', 10000);
+                    Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, alternatively turn on auto update downloading in settings', 10000);
+                } else Notification.create('Error occurred downloading video, try clicking on tweet to fix if enabled auto update downloading in settings', 10000);
             });
         }
     }
