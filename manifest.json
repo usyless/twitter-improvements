@@ -24,6 +24,10 @@
       "https://x.com/*"
     ],
 
+    "optional_permissions": [
+      "webRequest"
+    ],
+
     "background": {
       "scripts": ["background.js"],
       "persistent": false

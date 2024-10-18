@@ -23,6 +23,10 @@
       "webRequest"
     ],
 
+    "optional_permissions": [
+      "webRequest"
+    ],
+
     "background": {
       "service_worker": "background.js"
     },

@@ -35,6 +35,22 @@ const options = {
             name: "video_download_fallback",
             description: "Fallback to opening video in new cobalt.tools tab if local download fails",
             default: true,
+        },
+        {
+            name: "video_download_auto_updater",
+            description: "Auto update video downloading URL's and authentication (requires webRequest permission, will be asked for it when clicking the button)",
+            type: 'button',
+            button: 'Enable Permission',
+            post: () => {
+                chrome.permissions.contains({permissions: ['webRequest']}, (result) => {if (result) {
+                    const b = document.getElementById('video_download_auto_updater');
+                    b.textContent = 'Permission Granted';
+                    b.disabled = true;
+                }});
+            },
+            onclick:  () => {
+                chrome.permissions.request({permissions: ['webRequest']}, (granted) => {if (granted) options['Video/GIF Saving'][2].post();});
+            }
         }
     ],
     "Image Saving": [
@@ -204,6 +220,19 @@ const options = {
             description: "Automatically show all hidden media",
             default: false
         },
+        {
+            name: "reset_all_settings",
+            description: "Reset this extensions settings to their defaults (and remove extra permissions)",
+            type: 'button',
+            button: 'RESET SETTINGS',
+            onclick: () => {
+                if (confirm("Are you sure you want to RESET this extensions settings?")) {
+                    clearStorage();
+                    chrome.permissions.remove({permissions: ['webRequest']});
+                    window.location.reload();
+                }
+            }
+        }
     ]
 }
 const typeMap = {
@@ -217,7 +246,10 @@ for (const section in options) {
     const outer = document.createElement("div"), h = document.createElement("h2");
     h.innerText = section + ":";
     outer.appendChild(h);
-    for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
+    for (const inner in options[section]) {
+        outer.appendChild(create(options[section][inner]));
+        options[section][inner].post?.();
+    }
     DIV.appendChild(outer);
 }
 
@@ -293,4 +325,8 @@ function update_value(e) {
 
 function setStorage(data) {
     chrome.storage.local.set(data);
+}
+
+function clearStorage() {
+    chrome.storage.local.clear();
 }

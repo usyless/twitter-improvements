@@ -9,6 +9,10 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     return true;
 });
 
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')})
+});
+
 chrome.contextMenus.create(
     {
         id: "save-image",
@@ -61,24 +65,26 @@ function getVideoFileType(url) {
     else return ".gif";
 }
 
-chrome.webRequest.onSendHeaders.addListener((details) => {
-        const url = new URL(decodeURIComponent(details.url));
-        const params = new URLSearchParams(url.search);
-        const authorization = details.requestHeaders?.find(a => a.name === 'authorization');
-        if (params.get('variables') && params.get('features') && params.get('fieldToggles') && authorization.value) {
-            sendToTab({
-                type: 'downloadDetails',
-                detailsURL: `${url.origin}${url.pathname}`,
-                features: params.get('features'),
-                fieldToggles: params.get('fieldToggles'),
-                variables: params.get('variables'),
-                authorization: authorization.value
-            });
-        }
-    },
-    { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] },
-    ["requestHeaders"]
-);
+chrome.permissions.contains({permissions: ['webRequest']}, (result) => {
+    if (result) {
+        chrome.webRequest.onSendHeaders.addListener((details) => {
+            const url = new URL(decodeURIComponent(details.url));
+            const params = new URLSearchParams(url.search);
+            const authorization = details.requestHeaders?.find(a => a.name === 'authorization');
+            if (params.get('variables') && params.get('features') && params.get('fieldToggles') && authorization.value) {
+                sendToTab({
+                    type: 'downloadDetails',
+                    detailsURL: `${url.origin}${url.pathname}`,
+                    features: params.get('features'),
+                    fieldToggles: params.get('fieldToggles'),
+                    variables: params.get('variables'),
+                    authorization: authorization.value
+                });
+            }
+        }, { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] }, ["requestHeaders"]);
+    }
+});
+
 
 const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => Number(x?.bitrate) > Number(y?.bitrate) ? x : y).url;
 const defaultHeaders = {
