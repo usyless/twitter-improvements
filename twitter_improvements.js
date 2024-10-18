@@ -263,16 +263,29 @@
     // Starts extension
     extension.start();
 
-    chrome.storage.onChanged.addListener(async (_, namespace) => {
+    chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
-            await Settings.loadSettings();
-            extension.start();
+            for (const key in changes) {
+                if (Settings.videoDownloading.hasOwnProperty(key)) continue;
+                else {
+                    await Settings.loadSettings();
+                    extension.start();
+                    break;
+                }
+            }
         }
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.store) Settings.preferences.download_history_enabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
-        if (message.type === 'downloadDetails') for (const n in message) if (Settings.videoDownloading[n]) Settings.videoDownloading[n] = message[n];
+        if (message.type === 'downloadDetails') {
+            let changeMade = false;
+            for (const n in message) if (Settings.videoDownloading[n] && Settings.videoDownloading[n] !== message[n]) {
+                Settings.videoDownloading[n] = message[n];
+                changeMade = true;
+            }
+            changeMade && Settings.saveVideoDownloadInfo();
+        }
     });
 
     async function getSettings() { // Setting handling
@@ -310,9 +323,6 @@
 
             videoDownloading = {
                 detailsURL: 'https://x.com/i/api/graphql/nBS-WpgA6ZG0CyNHD517JQ/TweetDetail',
-                features: '{"rweb_tipjar_consumption_enabled":true,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"articles_preview_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"creator_subscriptions_quote_tweet_preview_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"rweb_video_timestamps_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_enhance_cards_enabled":false}',
-                fieldToggles: '{"withArticleRichContentState":true,"withArticlePlainText":false,"withGrokAnalyze":false,"withDisallowedReplyControls":false}',
-                variables: '{"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true}',
                 authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
             }
 
@@ -326,6 +336,10 @@
 
             saveDownloadHistory() {
                 chrome.storage.local.set({download_history: this.preferences.download_history});
+            }
+
+            saveVideoDownloadInfo() {
+                chrome.storage.local.set(this.videoDownloading);
             }
         }
 
