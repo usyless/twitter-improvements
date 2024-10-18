@@ -65,21 +65,20 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
         const url = new URL(decodeURIComponent(details.url));
         const params = new URLSearchParams(url.search);
         const authorization = details.requestHeaders?.find(a => a.name === 'authorization');
-        if (params.get('variables') && params.get('features') && params.get('fieldToggles') && authorization) {
+        if (params.get('variables') && params.get('features') && params.get('fieldToggles') && authorization.value) {
             sendToTab({
                 type: 'downloadDetails',
                 detailsURL: `${url.origin}${url.pathname}`,
                 features: params.get('features'),
                 fieldToggles: params.get('fieldToggles'),
                 variables: params.get('variables'),
-                authorization: authorization
+                authorization: authorization.value
             });
         }
     },
     { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] },
     ["requestHeaders"]
 );
-
 
 const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => Number(x?.bitrate) > Number(y?.bitrate) ? x : y).url;
 const defaultHeaders = {
@@ -94,9 +93,9 @@ async function download_cobalt(request, sendResponse) {
         tweetDetailsURL.searchParams.set('variables', JSON.stringify({...JSON.parse(request.variables), "focalTweetId": id}));
         tweetDetailsURL.searchParams.set('features', request.features);
         tweetDetailsURL.searchParams.set('fieldToggles', request.fieldToggles);
-        const headers = {'user-agent': navigator.userAgent, 'x-csrf-token': request.cookie, 'authorization': request.authorization.value, ...defaultHeaders}; // Cookie sent by browser so no need to set myself
+        const headers = {'user-agent': navigator.userAgent, 'x-csrf-token': request.cookie, 'authorization': request.authorization, ...defaultHeaders}; // Cookie sent by browser so no need to set myself
         const json = await (await fetch(tweetDetailsURL, { headers })).json();
-        const urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
+        let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
             ?.find(a => a?.type === "TimelineAddEntries")?.entries?.find(a => a?.entryId.includes(id))?.content
             ?.itemContent?.tweet_results?.result?.legacy?.entities?.media
             ?.filter(m => ["video", "animated_gif"].includes(m?.type))?.map(m => getBestQuality(m?.video_info?.variants));
@@ -104,9 +103,32 @@ async function download_cobalt(request, sendResponse) {
             urls.forEach((url, i) => download(url, `${filename}${i + 1}${getVideoFileType(url)}`));
             sendResponse({status: 'success'});
         } else {
-            void(0);
+            // Try to brute force it
+            urls = []
+            for (const tweet of findAllPotentialTweetsById(json, id)) {
+                const grouped = Array.from(findBitrateUrlPairs(json)).map(pair => JSON.parse(pair)).reduce((acc, item) => {
+                    const idMatch = item.url.match(/ext_tw_video\/(\d+)\//);
+                    if (idMatch) {
+                        const id = idMatch[1];
+                        if (!acc[id]) acc[id] = [];
+                        acc[id].push(item);
+                    }
+                    return acc;
+                }, {});
+                for (const key in grouped) {
+                    const url = getBestQuality(grouped[key]);
+                    if (url) urls.push(url);
+                }
+                if (urls.length > 0) {
+                    urls.forEach((url, i) => download(url, `${filename}${i + 1}${getVideoFileType(url)}`));
+                    sendResponse({status: 'success'});
+                    break;
+                }
+            }
+            if (urls.length <= 0) throw new Error("failed to download");
         }
-    } catch {
+    } catch (error) {
+        console.log(error);
         if (request.video_download_fallback) {
             sendResponse({status: 'newpage', copy: filename});
             chrome.tabs.create({
@@ -114,4 +136,31 @@ async function download_cobalt(request, sendResponse) {
             });
         } else sendResponse({status: 'error'});
     }
+}
+
+function findAllPotentialTweetsById(data, id, results=[]) {
+    if (Array.isArray(data)) for (const item of data) findAllPotentialTweetsById(item, id, results);
+    else if (typeof data === 'object' && data != null) {
+        for (const val of Object.values(data)) {
+            if (val.includes?.(id)) {
+                results.push(data);
+                break;
+            }
+        }
+        for (const key in data) findAllPotentialTweetsById(data[key], id, results);
+    }
+    return results;
+}
+
+function findBitrateUrlPairs(data, results = new Set()) {
+    if (Array.isArray(data)) for (const item of data) findBitrateUrlPairs(item, results);
+    else if (typeof data === 'object' && data !== null) {
+        if (Array.isArray(data?.variants)) {
+            data.variants.forEach(variant => {
+                if (variant.bitrate && variant.url && variant?.content_type === "video/mp4") results.add(JSON.stringify(variant));
+            });
+        }
+        for (const key in data) findBitrateUrlPairs(data[key], results);
+    }
+    return results;
 }
