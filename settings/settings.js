@@ -235,10 +235,7 @@ for (const section in options) {
     const outer = document.createElement("div"), h = document.createElement("h2");
     h.innerText = section + ":";
     outer.appendChild(h);
-    for (const inner in options[section]) {
-        outer.appendChild(create(options[section][inner]));
-        options[section][inner].post?.();
-    }
+    for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
     DIV.appendChild(outer);
 }
 
