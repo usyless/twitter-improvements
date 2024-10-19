@@ -138,6 +138,7 @@
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
             if (marked) shareButton.classList.add('usyMarked');
+            if (attribute === "usy-image" && !Settings.preferences.long_image_button) shareButton.style.maxWidth = 'fit-content';
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
@@ -315,6 +316,7 @@
             preferences = {
                 url_prefix: 'fixvx.com',
                 video_download_fallback: true,
+                long_image_button: false,
                 custom_url: '',
                 download_history_enabled: true,
                 download_history_prevent_download: false,

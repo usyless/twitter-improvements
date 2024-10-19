@@ -44,6 +44,11 @@ const options = {
             default: !/Android/i.test(navigator.userAgent)
         },
         {
+            name: "long_image_button",
+            description: "Stretch image download button across width of image",
+            default: false,
+        },
+        {
             name: "download_history_enabled",
             description: "Store image download history (local), right click on a download button to remove from history",
             default: true
