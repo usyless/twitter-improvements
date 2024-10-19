@@ -142,6 +142,7 @@
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
+            button.classList.remove('r-icoktb'); // private tweet buttons more visible
             shareButton.querySelector('path').setAttribute("d", path);
             shareButton.addEventListener('mouseover', () => Button.onhover(button.firstElementChild));
             shareButton.addEventListener('mouseout', () => Button.stophover(button.firstElementChild));
