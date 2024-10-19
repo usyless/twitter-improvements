@@ -86,7 +86,7 @@ async function download_video(request, sendResponse) {
         const headers = {'user-agent': navigator.userAgent, 'x-csrf-token': request.cookie, 'authorization': request.authorization, ...defaultHeaders}; // Cookie sent by browser so no need to set myself
         const json = await (await fetch(tweetDetailsURL, { headers })).json();
         let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
-            ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId.includes(id))?.content
+            ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId?.includes?.(id))?.content
             ?.itemContent?.tweet_results?.result?.legacy?.entities?.media
             ?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))?.map?.(m => getBestQuality(m?.video_info?.variants));
         if (urls?.length > 0) {
@@ -97,7 +97,7 @@ async function download_video(request, sendResponse) {
             console.log("Attempting to brute force video download");
             urls = []
             for (const tweet of findAllPotentialTweetsById(json, id)) {
-                const videos = findVideoVariants(tweet);
+                const videos = findVideos(tweet);
                 for (const key in videos) urls.push(videos[key].url);
                 if (urls.length > 0) {
                     downloadVideos(urls, filename);
@@ -134,14 +134,14 @@ function findAllPotentialTweetsById(data, id, results=[]) {
     return results;
 }
 
-function findVideoVariants(data, results = {}) {
-    if (Array.isArray(data)) for (const item of data) findVideoVariants(item, results);
+function findVideos(data, results = {}) {
+    if (Array.isArray(data)) for (const item of data) findVideos(item, results);
     else if (typeof data === 'object' && data != null) {
         if (Array.isArray(data.variants)) for (const variant of data.variants) if (variant.bitrate && variant.url && variant.content_type === "video/mp4") {
             const id = variant.url.match(/ext_tw_video\/(\d+)\//)?.[1];
             if (id) results[id] = Number(results[id]?.bitrate) > variant?.bitrate ? results[id] : variant;
         }
-        for (const key in data) findVideoVariants(data[key], results);
+        for (const key in data) findVideos(data[key], results);
     }
     return results;
 }
