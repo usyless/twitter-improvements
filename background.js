@@ -97,19 +97,8 @@ async function download_video(request, sendResponse) {
             console.log("Attempting to brute force video download");
             urls = []
             for (const tweet of findAllPotentialTweetsById(json, id)) {
-                const grouped = Array.from(findBitrateUrlPairs(json)).map(pair => JSON.parse(pair)).reduce((acc, item) => {
-                    const idMatch = item.url.match(/ext_tw_video\/(\d+)\//);
-                    if (idMatch) {
-                        const id = idMatch[1];
-                        if (!acc[id]) acc[id] = [];
-                        acc[id].push(item);
-                    }
-                    return acc;
-                }, {});
-                for (const key in grouped) {
-                    const url = getBestQuality(grouped[key]);
-                    if (url) urls.push(url);
-                }
+                const videos = findVideoVariants(tweet);
+                for (const key in videos) urls.push(videos[key].url);
                 if (urls.length > 0) {
                     downloadVideos(urls, filename);
                     sendResponse({status: 'success'});
@@ -145,15 +134,14 @@ function findAllPotentialTweetsById(data, id, results=[]) {
     return results;
 }
 
-function findBitrateUrlPairs(data, results = new Set()) {
-    if (Array.isArray(data)) for (const item of data) findBitrateUrlPairs(item, results);
-    else if (typeof data === 'object' && data !== null) {
-        if (Array.isArray(data?.variants)) {
-            data.variants.forEach(variant => {
-                if (variant.bitrate && variant.url && variant?.content_type === "video/mp4") results.add(JSON.stringify(variant));
-            });
+function findVideoVariants(data, results = {}) {
+    if (Array.isArray(data)) for (const item of data) findVideoVariants(item, results);
+    else if (typeof data === 'object' && data != null) {
+        if (Array.isArray(data.variants)) for (const variant of data.variants) if (variant.bitrate && variant.url && variant.content_type === "video/mp4") {
+            const id = variant.url.match(/ext_tw_video\/(\d+)\//)?.[1];
+            if (id) results[id] = Number(results[id]?.bitrate) > variant?.bitrate ? results[id] : variant;
         }
-        for (const key in data) findBitrateUrlPairs(data[key], results);
+        for (const key in data) findVideoVariants(data[key], results);
     }
     return results;
 }
