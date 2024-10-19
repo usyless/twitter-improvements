@@ -279,7 +279,10 @@
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.store) Settings.preferences.download_history_enabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
+        if (message.store) {
+            Settings.preferences.download_history_enabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
+            Notification.create("Saving Image");
+        }
         if (message.type === 'downloadDetails') {
             let changeMade = false;
             for (const n in message) if (Settings.videoDownloading[n] && Settings.videoDownloading[n] !== message[n]) {
