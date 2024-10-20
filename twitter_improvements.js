@@ -144,8 +144,8 @@
             button.disabled = false;
             button.classList.remove('r-icoktb'); // private tweet buttons more visible
             shareButton.querySelector('path').setAttribute("d", path);
-            shareButton.addEventListener('mouseover', () => Button.onhover(button.firstElementChild));
-            shareButton.addEventListener('mouseout', () => Button.stophover(button.firstElementChild));
+            shareButton.addEventListener('pointerover', () => Button.onhover(button.firstElementChild));
+            shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild));
             shareButton.addEventListener('click', clickCallback);
             if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
             return shareButton;
