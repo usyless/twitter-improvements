@@ -35,6 +35,11 @@ const options = {
             name: "video_download_fallback",
             description: "Fallback to opening video in new cobalt.tools tab if local download fails",
             default: true,
+        },
+        {
+            name: "video_download_picker",
+            description: "Show the picker to choose which video to download for tweets with more than one video",
+            default: true
         }
     ],
     "Image Saving": [

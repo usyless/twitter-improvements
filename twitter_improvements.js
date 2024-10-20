@@ -60,13 +60,16 @@
 
         static videoButtonCallback(article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({type: 'video', url: Tweet.url(article), video_download_fallback: Settings.preferences.video_download_fallback, cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading}).then((r) => {
-                if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
-                else if (r.status === 'newpage') {
-                    navigator.clipboard.writeText(r.copy);
-                    Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, alternatively turn on auto update downloading in settings', 10000);
-                } else Notification.create('Error occurred downloading video, try clicking on tweet to fix if enabled auto update downloading in settings', 10000);
-            });
+            chrome.runtime.sendMessage({...Settings.preferences, type: 'video', url: Tweet.url(article), cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading}).then(Tweet.videoResponseHandler);
+        }
+
+        static videoResponseHandler(r) {
+            if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
+            else if (r.status === 'choice') Notification.createVideoChoice(r.choices);
+            else if (r.status === 'newpage') {
+                navigator.clipboard.writeText(r.copy);
+                Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, alternatively turn on auto update downloading in settings', 10000);
+            } else Notification.create('Error occurred downloading video, try clicking on tweet to fix if enabled auto update downloading in settings', 10000);
         }
     }
 
@@ -176,11 +179,20 @@
             document.querySelectorAll('div.usybuttonclickdiv').forEach(b => b.remove());
             document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
         }
+
+        static getNotificationButton(text, onclick) {
+            const b = document.createElement('button'), t = document.createElement('b');
+            b.classList.add('usyDownloadChoiceButton');
+            t.textContent = text;
+            b.appendChild(t);
+            if (onclick != null) b.addEventListener('click', onclick);
+            return b;
+        }
     }
 
     class Notification {
         static create(text, timeout=5000) {
-            document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
+            Notification.clear();
             const outer = document.createElement('div'), inner = document.createElement('div');
             outer.appendChild(inner);
             outer.classList.add('usyNotificationOuter');
@@ -193,6 +205,35 @@
                     outer.remove();
                 });
             }, timeout);
+        }
+
+        static clear() {
+            document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
+        }
+
+        static createVideoChoice(choices) {
+            const fullscreen = document.createElement('div'),
+                popup = document.createElement('div');
+            fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
+            popup.classList.add('usyDownloadChoicePopup');
+            fullscreen.addEventListener('click', () => {
+                fullscreen.remove();
+                Notification.create("Cancelled Video Saving");
+            });
+
+            popup.appendChild(Button.getNotificationButton('Cancel'));
+            let video_id = 1;
+            for (const _ of choices.urls) {
+                popup.appendChild(Button.getNotificationButton(`Video ${video_id++}`, (e) => {
+                    chrome.runtime.sendMessage({type: 'videoChoice', choice: parseInt(e.target.textContent.split(" ")[1]) - 1, choices}).then(Tweet.videoResponseHandler);
+                }));
+            }
+            popup.appendChild(Button.getNotificationButton('Download All', () => {
+                chrome.runtime.sendMessage({type: 'videoChoice', choices}).then(Tweet.videoResponseHandler);
+            }));
+
+            fullscreen.appendChild(popup);
+            document.body.appendChild(fullscreen);
         }
     }
 
@@ -320,6 +361,7 @@
             preferences = {
                 url_prefix: 'fixvx.com',
                 video_download_fallback: true,
+                video_download_picker: true,
                 long_image_button: false,
                 custom_url: '',
                 download_history_enabled: true,

@@ -1,6 +1,7 @@
 const requestMap = {
     image: saveImage,
-    video: download_video
+    video: download_video,
+    videoChoice: download_video_from_choices
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -92,8 +93,10 @@ async function download_video(request, sendResponse) {
         urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
             ?.map?.(m => getBestQuality(m?.video_info?.variants));
         if (urls?.length > 0) {
-            downloadVideos(urls, filename);
-            sendResponse({status: 'success'});
+            if (urls.length === 1 || !request.video_download_picker) {
+                downloadVideos(urls, filename);
+                sendResponse({status: 'success'});
+            } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
         } else {
             console.log("Attempting to brute force video download");
             urls = []
@@ -101,8 +104,10 @@ async function download_video(request, sendResponse) {
                 const videos = findVideos(tweet);
                 for (const key in videos) urls.push(videos[key].url);
                 if (urls.length > 0) {
-                    downloadVideos(urls, filename);
-                    sendResponse({status: 'success'});
+                    if (urls.length === 1 || !request.video_download_picker) {
+                        downloadVideos(urls, filename);
+                        sendResponse({status: 'success'});
+                    } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
                     break;
                 }
             }
@@ -117,8 +122,15 @@ async function download_video(request, sendResponse) {
     }
 }
 
-function downloadVideos(urls, filename) {
-    urls.forEach((url, i) => download(url, `${filename}${i + 1}${getVideoFileType(url)}`));
+function download_video_from_choices(request, sendResponse) {
+    const choices = request.choices;
+    if (request.choice != null) downloadVideos([choices.urls[request.choice]], choices.filename, request.choice + 1);
+    else downloadVideos(choices.urls, choices.filename);
+    sendResponse({status: 'success'});
+}
+
+function downloadVideos(urls, filename, id_override) {
+    urls.forEach((url, i) => download(url, `${filename}${id_override ?? i + 1}${getVideoFileType(url)}`));
 }
 
 function findAllPotentialTweetsById(data, id, results=[]) {
