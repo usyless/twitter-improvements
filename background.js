@@ -87,13 +87,14 @@ async function download_video(request, sendResponse) {
         const json = await (await fetch(tweetDetailsURL, { headers })).json();
         let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
             ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId?.includes?.(id))?.content
-            ?.itemContent?.tweet_results?.result?.legacy?.entities?.media
-            ?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))?.map?.(m => getBestQuality(m?.video_info?.variants));
+            ?.itemContent?.tweet_results?.result;
+        urls = urls?.tweet ?? urls;
+        urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
+            ?.map?.(m => getBestQuality(m?.video_info?.variants));
         if (urls?.length > 0) {
             downloadVideos(urls, filename);
             sendResponse({status: 'success'});
         } else {
-            // Try to brute force it
             console.log("Attempting to brute force video download");
             urls = []
             for (const tweet of findAllPotentialTweetsById(json, id)) {
