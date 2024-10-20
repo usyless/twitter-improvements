@@ -24,7 +24,7 @@
                 // checks if quote tweet contains specific video component (don't show button)
                 // doesn't affect a video QRT as each video checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    a.after(Button.newButton(a, download_button_path, () => Tweet.videoButtonCallback(article), false, "usy-video"));
+                    a.after(Button.newButton(a, download_button_path, (e) => Tweet.videoButtonCallback(e, article), false, "usy-video"));
                 }
             } catch {videoComponent.removeAttribute('usy')}
         }
@@ -58,14 +58,14 @@
             catch {Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');}
         }
 
-        static videoButtonCallback(article) {
+        static videoButtonCallback(event, article) {
             Notification.create('Saving Tweet Video(s)');
-            chrome.runtime.sendMessage({...Settings.preferences, type: 'video', url: Tweet.url(article), cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading}).then(Tweet.videoResponseHandler);
+            chrome.runtime.sendMessage({...Settings.preferences, type: 'video', url: Tweet.url(article), cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading}).then((r) => Tweet.videoResponseHandler(event, r));
         }
 
-        static videoResponseHandler(r) {
+        static videoResponseHandler(event, r) {
             if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
-            else if (r.status === 'choice') Notification.createVideoChoice(r.choices);
+            else if (r.status === 'choice') Notification.createVideoChoice(r.choices, event);
             else if (r.status === 'newpage') {
                 navigator.clipboard.writeText(r.copy);
                 Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, alternatively turn on auto update downloading in settings', 10000);
@@ -211,12 +211,14 @@
             document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
         }
 
-        static createVideoChoice(choices) {
+        static createVideoChoice(choices, event) {
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
-            fullscreen.addEventListener('click', () => {
+            popup.style.top = `${event.y}px`;
+            popup.style.left = `${event.x}px`;
+            fullscreen.addEventListener('click', (e) => {
                 fullscreen.remove();
                 Notification.create("Cancelled Video Saving");
             });
@@ -225,11 +227,11 @@
             let video_id = 1;
             for (const _ of choices.urls) {
                 popup.appendChild(Button.getNotificationButton(`Video ${video_id++}`, (e) => {
-                    chrome.runtime.sendMessage({type: 'videoChoice', choice: parseInt(e.target.textContent.split(" ")[1]) - 1, choices}).then(Tweet.videoResponseHandler);
+                    chrome.runtime.sendMessage({type: 'videoChoice', choice: parseInt(e.target.textContent.split(" ")[1]) - 1, choices}).then((r) => Tweet.videoResponseHandler(null, r));
                 }));
             }
             popup.appendChild(Button.getNotificationButton('Download All', () => {
-                chrome.runtime.sendMessage({type: 'videoChoice', choices}).then(Tweet.videoResponseHandler);
+                chrome.runtime.sendMessage({type: 'videoChoice', choices}).then((r) => Tweet.videoResponseHandler(null, r));
             }));
 
             fullscreen.appendChild(popup);

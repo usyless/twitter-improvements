@@ -77,9 +77,6 @@ body {
 /*video download choice popup stuff*/
 .usyNotificationOuter.usyFullscreen {
     pointer-events: all;
-    backdrop-filter: blur(10px);
-    justify-content: center;
-    align-items: center;
 }
 
 .usyDownloadChoicePopup {
