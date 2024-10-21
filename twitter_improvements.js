@@ -179,15 +179,6 @@
             document.querySelectorAll('div.usybuttonclickdiv').forEach(b => b.remove());
             document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
         }
-
-        static getNotificationButton(text, onclick) {
-            const b = document.createElement('button'), t = document.createElement('b');
-            b.classList.add('usyDownloadChoiceButton');
-            t.textContent = text;
-            b.appendChild(t);
-            if (onclick != null) b.addEventListener('click', onclick);
-            return b;
-        }
     }
 
     class Notification {
@@ -212,27 +203,34 @@
         }
 
         static createVideoChoice(choices, event) {
+            Notification.clear();
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
+            const getNotificationButton = (text, onclick) => {
+                const b = document.createElement('button'), t = document.createElement('b');
+                b.classList.add('usyDownloadChoiceButton');
+                t.textContent = text;
+                b.appendChild(t);
+                b.addEventListener('click', onclick);
+                return b;
+            }
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
             popup.style.top = `${event.y}px`;
             popup.style.left = `${event.x}px`;
-            fullscreen.addEventListener('click', (e) => {
-                fullscreen.remove();
-                Notification.create("Cancelled Video Saving");
-            });
+            fullscreen.addEventListener('click', Notification.clear);
 
-            popup.appendChild(Button.getNotificationButton('Cancel'));
-            let video_id = 1;
-            for (const _ of choices.urls) {
-                popup.appendChild(Button.getNotificationButton(`Video ${video_id++}`, (e) => {
-                    chrome.runtime.sendMessage({type: 'videoChoice', choice: parseInt(e.target.textContent.split(" ")[1]) - 1, choices}).then((r) => Tweet.videoResponseHandler(null, r));
+            const sendResponse = (choice) => {
+                const data = {type: 'videoChoice', choices};
+                if (choice != null) data.choice = choice;
+                chrome.runtime.sendMessage(data).then((r) => Tweet.videoResponseHandler(null, r));
+            }
+            for (let id = 0; id < choices.urls.length; ++id) {
+                popup.appendChild(getNotificationButton(`Video ${id + 1}`, (e) => {
+                    sendResponse(parseInt(e.target.textContent.split(" ")[1]) - 1);
                 }));
             }
-            popup.appendChild(Button.getNotificationButton('Download All', () => {
-                chrome.runtime.sendMessage({type: 'videoChoice', choices}).then((r) => Tweet.videoResponseHandler(null, r));
-            }));
+            popup.appendChild(getNotificationButton('Download All', () => sendResponse()));
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
@@ -363,7 +361,6 @@
             preferences = {
                 url_prefix: 'fixvx.com',
                 video_download_fallback: true,
-                video_download_picker: true,
                 long_image_button: false,
                 custom_url: '',
                 download_history_enabled: true,

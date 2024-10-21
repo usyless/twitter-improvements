@@ -92,22 +92,21 @@ async function download_video(request, sendResponse) {
         urls = urls?.tweet ?? urls;
         urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
             ?.map?.(m => getBestQuality(m?.video_info?.variants));
-        if (urls?.length > 0) {
-            if (urls.length === 1 || !request.video_download_picker) {
+        const download = () => {
+            if (urls.length === 1) {
                 downloadVideos(urls, filename);
                 sendResponse({status: 'success'});
             } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
-        } else {
+        }
+        if (urls?.length > 0) download();
+        else {
             console.log("Attempting to brute force video download");
             urls = []
             for (const tweet of findAllPotentialTweetsById(json, id)) {
                 const videos = findVideos(tweet);
                 for (const key in videos) urls.push(videos[key].url);
                 if (urls.length > 0) {
-                    if (urls.length === 1 || !request.video_download_picker) {
-                        downloadVideos(urls, filename);
-                        sendResponse({status: 'success'});
-                    } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
+                    download();
                     break;
                 }
             }
