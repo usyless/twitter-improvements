@@ -267,9 +267,7 @@
                     objectURL = URL.createObjectURL(blob);
                 link.href = objectURL;
                 link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                link.dispatchEvent(new MouseEvent('click'));
                 URL.revokeObjectURL(objectURL);
             });
         }

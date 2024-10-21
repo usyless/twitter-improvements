@@ -28,11 +28,7 @@ chrome?.contextMenus?.onClicked?.addListener?.((info) => {
 });
 
 function download(url, filename) {
-    try {
-        chrome.downloads.download({url, filename});
-    } catch {
-        sendToTab({type: 'download', url, filename});
-    }
+    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : chrome.downloads.download({url, filename});
 }
 
 function sendToTab(message) {
