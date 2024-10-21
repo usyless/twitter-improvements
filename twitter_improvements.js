@@ -59,7 +59,7 @@
         }
 
         static videoButtonCallback(event, article) {
-            Notification.create('Saving Tweet Video(s)');
+            Notification.create(`Saving Tweet Video(s)${Settings.about.android ? ' (This may take a second on android)' : ''}`);
             chrome.runtime.sendMessage({...Settings.preferences, type: 'video', url: Tweet.url(article), cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading}).then((r) => Tweet.videoResponseHandler(event, r));
         }
 
@@ -106,7 +106,7 @@
             if (Settings.preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
             } else {
-                Notification.create('Saving Image');
+                Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
                 chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
             }
         }
@@ -360,7 +360,7 @@
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'imageStore') {
             Settings.preferences.download_history_enabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
-            Notification.create("Saving Image");
+            Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
         } else if (message.type === 'downloadDetails') {
             let changeMade = false;
             for (const n in message) if (Settings.videoDownloading[n] && Settings.videoDownloading[n] !== message[n]) {
@@ -408,6 +408,10 @@
             videoDownloading = {
                 detailsURL: 'https://x.com/i/api/graphql/nBS-WpgA6ZG0CyNHD517JQ/TweetDetail',
                 authorization: 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
+            }
+
+            about = {
+                android: /Android/i.test(navigator.userAgent)
             }
 
             async loadSettings() {
