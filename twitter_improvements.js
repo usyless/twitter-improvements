@@ -181,6 +181,7 @@
         }
     }
 
+    let notificationEventListeners = [];
     class Notification {
         static create(text, timeout=5000) {
             Notification.clear();
@@ -199,6 +200,8 @@
         }
 
         static clear() {
+            for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
+            notificationEventListeners = []
             document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
         }
 
@@ -206,6 +209,19 @@
             Notification.clear();
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
+            const originalScrollY = window.scrollY;
+            const fixPosition = () => {
+                const rect = popup.getBoundingClientRect();
+                if (rect.left < 0) popup.style.left = '0px';
+                else if (rect.right > window.innerWidth) popup.style.left = `${event.x - popup.clientWidth}px`;
+                if (rect.top < 0) popup.style.top = '0px';
+                else if (rect.bottom > window.innerHeight) popup.style.top = `${event.y - popup.clientHeight - (window.scrollY - originalScrollY)}px`;
+            }
+            fixPosition.bind(this);
+            notificationEventListeners.push({type: 'resize', listener: fixPosition});
+            const fixScrollPosition = () => popup.style.top = `${event.y - (window.scrollY - originalScrollY)}px`;
+            fixScrollPosition.bind(this);
+            notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
             const getNotificationButton = (text, onclick) => {
                 const b = document.createElement('button'), t = document.createElement('b');
                 b.classList.add('usyDownloadChoiceButton');
@@ -216,7 +232,6 @@
             }
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
-            popup.style.top = `${event.y}px`;
             popup.style.left = `${event.x}px`;
             fullscreen.addEventListener('click', Notification.clear);
 
@@ -234,6 +249,11 @@
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
+
+            fixScrollPosition();
+            fixPosition();
+            window.addEventListener('resize', fixPosition);
+            window.addEventListener('scroll', fixScrollPosition);
         }
     }
 
