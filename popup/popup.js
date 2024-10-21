@@ -1,3 +1,4 @@
 document.addEventListener("click", (e) => {
-    e.target.nodeName === "A" && setTimeout(() => window.close(), 10);
+    chrome.tabs.create({url: e.target.dataset.href});
+    window.close();
 });

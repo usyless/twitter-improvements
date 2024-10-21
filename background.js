@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
-    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')})
+    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')});
 });
 
 chrome?.contextMenus?.create?.(
