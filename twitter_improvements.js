@@ -317,7 +317,7 @@
             hide_communities: ['a[href*="/communities"]'],
             hide_premium: ['a[href="/i/premium_sign_up"]', 'aside[aria-label="Subscribe to Premium"]'],
             hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
-            hide_monetization: ['a[href="/settings/monetization"]'],
+            hide_monetization: ['a[href="/settings/monetization"]', 'a[href="/i/monetization"]'],
             hide_ads_button: ['a[href*="https://ads.x.com"]'],
             hide_whats_happening: ['div[aria-label="Timeline: Trending now"]'],
             hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]'],
