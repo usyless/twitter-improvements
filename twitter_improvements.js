@@ -284,7 +284,7 @@
             const observerSettings = {subtree: true, childList: true},
                 callbackMappings = {
                     vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
-                    video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}],
+                    video_button: [{s: 'div[data-testid="videoComponent"]:not([usy])', f: Tweet.addVideoButton}, {s: 'img[alt="Embedded video"]:not([usy])', f: Tweet.addVideoButton}],
                     image_button: [{s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])', f: Image.addImageButton}],
                     show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}]
                 }, getCallback = () => {
