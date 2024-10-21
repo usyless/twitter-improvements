@@ -22,7 +22,8 @@
       "storage",
       "webRequest",
       "https://x.com/*",
-      "https://*.twimg.com/*"
+      "https://video.twimg.com/*",
+      "https://pbs.twimg.com/*"
     ],
 
     "background": {

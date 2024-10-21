@@ -29,7 +29,8 @@
 
     "host_permissions": [
       "https://x.com/*",
-      "https://*.twimg.com/*"
+      "https://video.twimg.com/*",
+      "https://pbs.twimg.com/*"
     ],
 
     "content_scripts": [

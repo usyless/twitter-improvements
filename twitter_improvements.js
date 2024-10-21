@@ -262,16 +262,16 @@
 
     class Helpers {
         static download(url, filename) {
-            fetch(url)
-                .then(r => r.blob())
-                .then(blob => {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                });
+            fetch(url).then(r => r.blob()).then(blob => {
+                const link = document.createElement('a'),
+                    objectURL = URL.createObjectURL(blob);
+                link.href = objectURL;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(objectURL);
+            });
         }
     }
 
