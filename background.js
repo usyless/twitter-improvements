@@ -9,11 +9,11 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
     return true;
 });
 
-chrome.runtime.onInstalled.addListener((details) => {
+chrome?.runtime?.onInstalled?.addListener?.((details) => {
     if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')})
 });
 
-chrome.contextMenus.create(
+chrome?.contextMenus?.create?.(
     {
         id: "save-image",
         title: "Save Image",
@@ -23,7 +23,7 @@ chrome.contextMenus.create(
     }
 );
 
-chrome.contextMenus.onClicked.addListener((info) => {
+chrome?.contextMenus?.onClicked?.addListener?.((info) => {
     if (info.menuItemId === "save-image") saveImage({url: info.linkUrl ?? info.pageUrl, sourceURL: info.srcUrl});
 });
 
