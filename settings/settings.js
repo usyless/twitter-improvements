@@ -40,8 +40,8 @@ const options = {
     "Image Saving": [
         {
             name: "image_button",
-            description: "Show Image Download Buttons (Doesn't work on mobile)",
-            default: !/Android/i.test(navigator.userAgent)
+            description: "Show Image Download Buttons",
+            default: true
         },
         {
             name: "long_image_button",

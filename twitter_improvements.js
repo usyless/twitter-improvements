@@ -54,7 +54,7 @@
         }
 
         static vxButtonCallback(article) {
-            try {navigator.clipboard.writeText(URL.vxIfy(Tweet.url(article))).then(() => {Notification.create('Copied URL to clipboard');});}
+            try {navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(article))).then(() => {Notification.create('Copied URL to clipboard');});}
             catch {Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');}
         }
 
@@ -124,9 +124,9 @@
         }
     }
 
-    class URL { // URL modification functions
+    class URLS { // URL modification functions
         static vxIfy(url) {
-            return `https://${URL.getPrefix()}/${url.substring(14)}`;
+            return `https://${URLS.getPrefix()}/${url.substring(14)}`;
         }
 
         static getPrefix() {
@@ -260,6 +260,21 @@
         }
     }
 
+    class Helpers {
+        static download(url, filename) {
+            fetch(url)
+                .then(r => r.blob())
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+        }
+    }
+
     const observer = {
         observer: null,
         previousURL: window.location.href,
@@ -343,18 +358,17 @@
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.store) {
+        if (message.type === 'imageStore') {
             Settings.preferences.download_history_enabled && (Settings.preferences.download_history[message.store] = true, Settings.saveDownloadHistory());
             Notification.create("Saving Image");
-        }
-        if (message.type === 'downloadDetails') {
+        } else if (message.type === 'downloadDetails') {
             let changeMade = false;
             for (const n in message) if (Settings.videoDownloading[n] && Settings.videoDownloading[n] !== message[n]) {
                 Settings.videoDownloading[n] = message[n];
                 changeMade = true;
             }
             changeMade && Settings.saveVideoDownloadInfo();
-        }
+        } else if (message.type === 'download') Helpers.download(message.url, message.filename);
     });
 
     async function getSettings() { // Setting handling
@@ -362,7 +376,7 @@
             setting = {
                 vx_button: true,
                 video_button: true,
-                image_button: !/Android/i.test(navigator.userAgent),
+                image_button: true,
                 show_hidden: false,
             }
 

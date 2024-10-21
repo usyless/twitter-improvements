@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Twitter Improvements",
-    "version": "1.0.9.7",
+    "version": "1.0.9.8",
   
     "description": "Various helpful twitter improvements",
   
@@ -28,7 +28,8 @@
     },
 
     "host_permissions": [
-      "https://x.com/*"
+      "https://x.com/*",
+      "https://*.twimg.com/*"
     ],
 
     "content_scripts": [

@@ -27,8 +27,12 @@ chrome.contextMenus.onClicked.addListener((info) => {
     if (info.menuItemId === "save-image") saveImage({url: info.linkUrl ?? info.pageUrl, sourceURL: info.srcUrl});
 });
 
-function download(url, name) {
-    chrome.downloads.download({url: url, filename: name});
+function download(url, filename) {
+    try {
+        chrome.downloads.download({url, filename});
+    } catch {
+        sendToTab({type: 'download', url, filename});
+    }
 }
 
 function sendToTab(message) {
@@ -41,7 +45,7 @@ function saveImage(request, sendResponse) {
     let filename = getFileName(request.url);
     download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), filename + "." + getImageFileType(request.sourceURL));
     filename = filename.split("-");
-    sendToTab({store: `${filename[1].trim()}-${filename[2].trim()}`});
+    sendToTab({type: 'imageStore', store: `${filename[1].trim()}-${filename[2].trim()}`});
     sendResponse?.({status: "success"});
 }
 
@@ -79,7 +83,6 @@ const features = '{"rweb_tipjar_consumption_enabled":true,"responsive_web_graphq
 async function download_video(request, sendResponse) {
     const filename = getFileName(request.url), id = request.url.split("/").slice(-1)[0];
     try {
-        if (/Android/i.test(navigator.userAgent)) throw new Error("android"); // open in new tab if on android
         const tweetDetailsURL = new URL(request.detailsURL);
         tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
         tweetDetailsURL.searchParams.set('features', features);

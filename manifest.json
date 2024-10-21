@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Twitter Improvements",
-    "version": "1.0.9.7",
+    "version": "1.0.9.8",
   
     "description": "Various helpful twitter improvements",
   
@@ -21,7 +21,8 @@
       "clipboardWrite",
       "storage",
       "webRequest",
-      "https://x.com/*"
+      "https://x.com/*",
+      "https://*.twimg.com/*"
     ],
 
     "background": {
