@@ -211,13 +211,12 @@ const options = {
         },
         {
             name: "reset_all_settings",
-            description: "Reset this extensions settings to their defaults (and remove extra permissions)",
+            description: "Reset this extensions settings to their defaults",
             type: 'button',
             button: 'RESET SETTINGS',
             onclick: () => {
                 if (confirm("Are you sure you want to RESET this extensions settings?")) {
                     clearStorage();
-                    chrome.permissions.remove({permissions: ['webRequest']});
                     window.location.reload();
                 }
             }
