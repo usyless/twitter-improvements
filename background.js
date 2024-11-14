@@ -61,11 +61,13 @@ function getVideoFileType(url) {
 chrome.webRequest.onSendHeaders.addListener((details) => {
     const url = new URL(decodeURIComponent(details.url));
     const authorization = details.requestHeaders?.find?.(a => a.name === 'authorization');
-    if (authorization?.value?.length > 0) {
+    const features = url.searchParams.get("features"), fieldToggles = url.searchParams.get("fieldToggles");
+    if (authorization?.value?.length > 0 && features?.length > 2 && fieldToggles?.length > 2) {
         sendToTab({
             type: 'downloadDetails',
             detailsURL: `${url.origin}${url.pathname}`,
-            authorization: authorization.value
+            authorization: authorization.value,
+            features, fieldToggles
         });
     }
 }, { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] }, ["requestHeaders"]);
@@ -74,15 +76,13 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
 const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => Number(x?.bitrate) > Number(y?.bitrate) ? x : y).url;
 const defaultHeaders = {'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en', 'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session'};
 const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
-const fieldToggles = '{"withArticleRichContentState":true,"withArticlePlainText":false,"withGrokAnalyze":false,"withDisallowedReplyControls":false}';
-const features = '{"responsive_web_live_screen_enabled":false,"rweb_tipjar_consumption_enabled":true,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"articles_preview_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"creator_subscriptions_quote_tweet_preview_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"rweb_video_timestamps_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_enhance_cards_enabled":false}';
 async function download_video(request, sendResponse) {
     const filename = getFileName(request.url), id = request.url.split("/").slice(-1)[0];
     try {
         const tweetDetailsURL = new URL(request.detailsURL);
         tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
-        tweetDetailsURL.searchParams.set('features', features);
-        tweetDetailsURL.searchParams.set('fieldToggles', fieldToggles);
+        tweetDetailsURL.searchParams.set('features', request.features);
+        tweetDetailsURL.searchParams.set('fieldToggles', request.fieldToggles);
         const headers = {'user-agent': navigator.userAgent, 'x-csrf-token': request.cookie, 'authorization': request.authorization, ...defaultHeaders}; // Cookie sent by browser so no need to set myself
         const json = await (await fetch(tweetDetailsURL, { headers })).json();
         let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
