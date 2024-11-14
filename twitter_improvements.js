@@ -363,7 +363,6 @@
             let changeMade = false;
             for (const n in message) if (Settings.videoDownloading[n] && Settings.videoDownloading[n] !== message[n]) {
                 Settings.videoDownloading[n] = message[n];
-                console.log("VIDEO DOWNLOADING CHANGE MADE");
                 changeMade = true;
             }
             changeMade && Settings.saveVideoDownloadInfo();
