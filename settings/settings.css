@@ -76,8 +76,10 @@ body {
         border-radius: 7px;
         cursor: pointer;
 
-        &:hover {
-            background-color: var(--additional-light);
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--additional-light);
+            }
         }
 
         &:active {
@@ -113,5 +115,23 @@ body {
 
     br {
         margin: 5px;
+    }
+
+    select {
+        background-color: var(--additional);
+        color: inherit;
+        font: inherit;
+        border-radius: 7px;
+        border: solid var(--background-dark) 2px;
+        padding: 7px;
+
+        &:active {
+            border-color: var(--additional-lighter);
+        }
+
+        &:focus-visible {
+            outline: none;
+            border-color: var(--additional-lighter);
+        }
     }
 }
