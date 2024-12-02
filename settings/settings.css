@@ -1,3 +1,16 @@
+:root {
+    --background-dark: #202025;
+    --background-light: #2c2c30;
+    --text-default: #cccccc;
+    --text-light: #f8f8f8;
+
+    --background-lighter: #2b2a33;
+
+    --additional: #3c3c47;
+    --additional-light: #50505c;
+    --additional-lighter: #666673;
+}
+
 * {
     box-sizing: border-box;
     font-family: Courier New, Arial, sans-serif;
@@ -5,9 +18,9 @@
 }
 
 body {
-    background-image: linear-gradient(to bottom right, #202025, #2c2c30);
+    background-image: linear-gradient(to bottom right, var(--background-dark), var(--background-light));
     background-size: cover;
-    color: #cccccc;
+    color: var(--text-default);
     font-family: Courier New, Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -27,7 +40,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background-color: #2b2a33;
+    background-color: var(--background-lighter);
     border-radius: 15px;
     row-gap: 20px;
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
@@ -46,7 +59,7 @@ body {
     }
 
     h3 {
-        color: #f8f8f8;
+        color: var(--text-light);
         margin-bottom: 10px;
         margin-top: 10px;
     }
@@ -54,7 +67,7 @@ body {
     button {
         max-width: 500px;
         width: 100%;
-        background-color: #3c3c47;
+        background-color: var(--additional);
         color: inherit;
         font: inherit;
         border: none;
@@ -62,16 +75,16 @@ body {
         cursor: pointer;
 
         &:hover {
-            background-color: #50505c;
+            background-color: var(--additional-light);
         }
 
         &:active {
-            background-color: #666673;
+            background-color: var(--additional-lighter);
         }
 
         &:focus-visible {
             outline: none;
-            background-color: #666673;
+            background-color: var(--additional-lighter);
         }
     }
 
@@ -80,19 +93,19 @@ body {
     }
 
     input {
-        background-color: #3c3c47;
+        background-color: var(--additional);
         color: inherit;
         border-radius: 7px;
         border: solid #202025 2px;
         font: inherit;
 
         &:active {
-            border-color: #666673;
+            border-color: var(--additional-lighter);
         }
 
         &:focus-visible {
             outline: none;
-            border-color: #666673;
+            border-color: var(--additional-lighter);
         }
     }
 
