@@ -1,15 +1,3 @@
-// if (typeof chrome === 'undefined') {
-//     // Debug thing
-//     var chrome = {
-//         storage: {
-//             local: {
-//                 set: async () => void(0),
-//                 clear: async () => void(0),
-//                 get: async () => ({})
-//             }
-//         }
-//     };
-// }
 if (typeof browser === 'undefined') {
     var browser = chrome;
 }
