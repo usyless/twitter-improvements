@@ -1,90 +1,92 @@
-const chrome = {
-    storage: {
-        local: {
-            set: async () => void(0),
-            clear: async () => void(0),
-            get: async () => ({})
+if (typeof chrome === 'undefined') {
+    // Debug thing
+    var chrome = {
+        storage: {
+            local: {
+                set: async () => void(0),
+                clear: async () => void(0),
+                get: async () => ({})
+            }
         }
-    }
-};
-
-if (typeof browser === "undefined") {
+    };
+}
+if (typeof browser === 'undefined') {
     var browser = chrome;
 }
 
-const DIV = document.getElementById("settings");
+const DIV = document.getElementById('settings');
 
 const options = {
-    "Link Copying": [
+    'Link Copying': [
         {
-            name: "vx_button",
-            description: "Enable Share as VX Button",
+            name: 'vx_button',
+            description: 'Enable Share as VX Button',
             default: true
         },
         {
-            name: "url_prefix",
-            description: "Set url prefix provider",
+            name: 'url_prefix',
+            description: 'Set url prefix provider',
             default: 'fixvx.com',
             type: 'choice',
             choices: [{name: 'VXTwitter (fixvx/vxtwitter)', type: 'fixvx.com'}, {name: 'FXTwitter (fixupx/fxtwitter)', type: 'fixupx.com'}, {name: 'Custom (Enter in advanced)', type: 'x.com'}]
         },
         {
-            name: "custom_url",
-            description: "Set custom copy link url (make sure to set prefix to 'Custom' above) format as: fixupx.com for fxtwitter manually",
+            name: 'custom_url',
+            description: 'Set custom copy link url (make sure to set prefix to \'Custom\' above) format as: fixupx.com for fxtwitter manually',
             default: '',
             type: 'text',
         },
     ],
-    "Video/GIF Saving": [
+    'Video/GIF Saving': [
         {
-            name: "video_button",
-            description: "Enable Video/GIF Download Buttons",
+            name: 'video_button',
+            description: 'Enable Video/GIF Download Buttons',
             default: true
         },
         {
-            name: "video_download_fallback",
-            description: "Fallback to opening video in new cobalt.tools tab if local download fails",
+            name: 'video_download_fallback',
+            description: 'Fallback to opening video in new cobalt.tools tab if local download fails',
             default: true,
         }
     ],
-    "Image Saving": [
+    'Image Saving': [
         {
-            name: "image_button",
-            description: "Show Image Download Buttons",
+            name: 'image_button',
+            description: 'Show Image Download Buttons',
             default: true
         },
         {
-            name: "long_image_button",
-            description: "Stretch image download button across width of image",
+            name: 'long_image_button',
+            description: 'Stretch image download button across width of image',
             default: false,
         },
         {
-            name: "download_history_enabled",
-            description: "Store image download history (local), right click on a download button to remove from history",
+            name: 'download_history_enabled',
+            description: 'Store image download history (local), right click on a download button to remove from history',
             default: true
         },
         {
-            name: "download_history_prevent_download",
-            description: "Prevent downloading of previously downloaded items",
+            name: 'download_history_prevent_download',
+            description: 'Prevent downloading of previously downloaded items',
             default: false
         },
         {
             type: 'break',
         },
         {
-            name: "clear_download_history",
-            description: "Clear downloaded image history",
+            name: 'clear_download_history',
+            description: '',
             type: 'button',
-            button: 'Clear History',
+            button: 'Clear downloaded image history',
             onclick: () => {
-                if (confirm("Are you sure you want to clear your image download history?")) setStorage({download_history: {}});
+                if (confirm('Are you sure you want to clear your image download history?')) setStorage({download_history: {}});
             }
         },
         {
-            name: "import_download_history",
-            description: "Import downloaded image history (formatted as {tweet id}-{image number} deliminated by spaces, without curly brackets)",
+            name: 'import_download_history',
+            description: '',
             type: 'button',
-            button: 'Import History',
+            button: 'Import downloaded image history (formatted as {tweet id}-{image number} deliminated by spaces, without curly brackets)',
             onclick: () => {
                 document.getElementById('download_history_input').click();
             },
@@ -102,7 +104,7 @@ const options = {
                             const items = r.target.result.split(' '), result = {};
                             for (const i of items) result[i] = true;
                             setStorage({download_history: {...(await get_value('download_history', {}, true)), ...result}});
-                            alert("Successfully imported!");
+                            alert('Successfully imported!');
                         };
                         reader.readAsText(file);
                 });
@@ -110,8 +112,8 @@ const options = {
             }
         },
         {
-            name: "import_download_history_from_files",
-            description: "Import download history from files",
+            name: 'import_download_history_from_files',
+            description: 'Import download history from files',
             type: 'button',
             button: 'Import History From Files',
             onclick: () => {
@@ -138,94 +140,95 @@ const options = {
             }
         },
         {
-            name: "export_download_history",
-            description: "Export downloaded image history",
+            name: 'export_download_history',
+            description: 'Export downloaded image history',
             type: 'button',
             button: 'Export History',
             onclick: async () => {
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(new Blob([Object.keys(await get_value('download_history', {}, true)).join(" ")], { type: "text/plain" }));
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(new Blob([Object.keys(await get_value('download_history', {}, true)).join(' ')], { type: 'text/plain' }));
                 link.download = 'export.twitterimprovements';
                 link.click();
                 URL.revokeObjectURL(link.href);
             }
         }
     ],
-    "Hide Sections": [
+    'Hide Sections': [
         {
-            name: "hide_notifications",
-            description: "Hide Notifications button",
+            name: 'hide_notifications',
+            description: 'Hide Notifications button',
             default: false
         },
         {
-            name: "hide_messages",
-            description: "Hide Messages button",
+            name: 'hide_messages',
+            description: 'Hide Messages button',
             default: false
         },
         {
-            name: "hide_grok",
-            description: "Hide Grok button",
+            name: 'hide_grok',
+            description: 'Hide Grok button',
             default: false
         },
         {
-            name: "hide_jobs",
-            description: "Hide Jobs button",
+            name: 'hide_jobs',
+            description: 'Hide Jobs button',
             default: false
         },
         {
-            name: "hide_lists",
-            description: "Hide Lists button",
+            name: 'hide_lists',
+            description: 'Hide Lists button',
             default: false
         },
         {
-            name: "hide_communities",
-            description: "Hide Communities button",
+            name: 'hide_communities',
+            description: 'Hide Communities button',
             default: false
         },
         {
-            name: "hide_premium",
-            description: "Hide Premium button and additional Premium ads",
+            name: 'hide_premium',
+            description: 'Hide Premium button and additional Premium ads',
             default: false
         },
         {
-            name: "hide_verified_orgs",
-            description: "Hide Verified Orgs button",
+            name: 'hide_verified_orgs',
+            description: 'Hide Verified Orgs button',
             default: false
         },
         {
-            name: "hide_monetization",
-            description: "Hide Monetization button",
+            name: 'hide_monetization',
+            description: 'Hide Monetization button',
             default: false
         },
         {
-            name: "hide_ads_button",
-            description: "Hide Ads button",
+            name: 'hide_ads_button',
+            description: 'Hide Ads button',
             default: false
         },
         {
-            name: "hide_whats_happening",
-            description: "Hide the Whats Happening tab (imperfect)",
+            name: 'hide_whats_happening',
+            description: 'Hide the Whats Happening tab (imperfect)',
             default: false
         },
         {
-            name: "hide_who_to_follow",
-            description: "Hide the Who To Follow tab (imperfect)",
+            name: 'hide_who_to_follow',
+            description: 'Hide the Who To Follow tab (imperfect)',
             default: false
         },
     ],
     "Extras": [
         {
-            name: "show_hidden",
-            description: "Automatically show all hidden media",
+            name: 'show_hidden',
+            description: 'Automatically show all hidden media',
             default: false
         },
         {
-            name: "reset_all_settings",
-            description: "Reset this extensions settings to their defaults",
+            name: 'reset_all_settings',
+            description: '',
             type: 'button',
-            button: 'RESET SETTINGS',
+            button: 'Reset this extensions settings to their defaults',
+            style: '',
             onclick: () => {
-                if (confirm("Are you sure you want to RESET this extensions settings?")) {
+                if (confirm('Are you sure you want to RESET this extensions settings?')) {
                     clearStorage();
                     window.location.reload();
                 }
@@ -241,7 +244,7 @@ const typeMap = {
 }
 let values;
 for (const section in options) {
-    const outer = document.createElement("div"), h = document.createElement("h3");
+    const outer = document.createElement('div'), h = document.createElement('h3');
     h.textContent = section;
     outer.appendChild(h);
     for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
@@ -254,18 +257,18 @@ function create(elem) {
 }
 
 function create_checkbox(e) {
-    const [outer, checkbox] = get_generic_setting(e, "input", true);
-    checkbox.setAttribute("type", "checkbox");
+    const [outer, checkbox] = get_generic_setting(e, 'input', true);
+    checkbox.setAttribute('type', 'checkbox');
     get_value(e.name, e.default).then(v => checkbox.checked = v);
     checkbox.addEventListener('change', toggle_value)
     return outer;
 }
 
 function create_choice(e) {
-    const [outer, select] = get_generic_setting(e, "select");
+    const [outer, select] = get_generic_setting(e, 'select');
     for (const opt of e.choices) {
         const o = document.createElement('option');
-        o.setAttribute("value", opt.type);
+        o.setAttribute('value', opt.type);
         o.textContent = opt.name;
         select.appendChild(o);
     }
@@ -275,28 +278,29 @@ function create_choice(e) {
 }
 
 function create_text(e) {
-    const [outer, input] = get_generic_setting(e, "input");
+    const [outer, input] = get_generic_setting(e, 'input');
     get_value(e.name, e.default).then(v => input.value = v);
     input.addEventListener('change', update_value);
     return outer;
 }
 
 function create_button(e) {
-    const [outer, button] = get_generic_setting(e, "button");
+    const [outer, button] = get_generic_setting(e, 'button');
     button.textContent = e.button;
     button.addEventListener('click', e.onclick);
     return outer;
 }
 
 function create_break() {
-    return document.createElement("br");
+    return document.createElement('br');
 }
 
 function get_generic_setting(e, element, flipOrder) {
-    const outer = document.createElement("div"), label = document.createElement("label"), elem = document.createElement(element);
+    const outer = document.createElement('div'), label = document.createElement('label'), elem = document.createElement(element);
     label.textContent = e.description;
-    label.setAttribute("for", e.name);
+    label.setAttribute('for', e.name);
     elem.id = e.name;
+    if (e.style) elem.setAttribute('style', e.style);
     if (flipOrder) outer.append(elem, label);
     else outer.append(label, elem);
     return [outer, elem];
