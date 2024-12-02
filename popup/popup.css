@@ -9,7 +9,7 @@ body {
 }
 
 .settings-button {
-    background: linear-gradient(40deg, #ff6ec4, #7873f5);
+    background: linear-gradient(40deg, var(--accent-alt), var(--accent));
     border-radius: 8px;
     border-style: none;
     color: var(--text-light);

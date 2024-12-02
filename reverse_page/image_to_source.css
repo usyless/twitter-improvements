@@ -26,15 +26,15 @@ body {
     height: fit-content;
     padding: 20px;
     border-radius: 25px;
-    background: linear-gradient(40deg,#ff6ec4,#7873f5);
+    background: linear-gradient(40deg,var(--accent-alt),var(--accent));
     box-shadow: 0 4px 7px rgba(0, 0, 0, 0.4);
     color: var(--text-light);
     cursor: pointer;
     transition: transform .2s ease-out;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(-50%);
     z-index: 9999;
 }
 
 input:hover + label, input:focus + label {
-    transform: translateX(-50%) scale(1.02);
+    transform: translateX(-50%) translateY(-50%) scale(1.02);
 }
