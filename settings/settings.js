@@ -113,9 +113,9 @@ const options = {
         },
         {
             name: 'import_download_history_from_files',
-            description: 'Import download history from files',
+            description: '',
             type: 'button',
-            button: 'Import History From Files',
+            button: 'Import download history from files',
             onclick: () => {
                 document.getElementById('download_history_files_input').click();
             },
@@ -141,9 +141,9 @@ const options = {
         },
         {
             name: 'export_download_history',
-            description: 'Export downloaded image history',
+            description: '',
             type: 'button',
-            button: 'Export History',
+            button: 'Export downloaded image history',
             onclick: async () => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([Object.keys(await get_value('download_history', {}, true)).join(' ')], { type: 'text/plain' }));
@@ -226,7 +226,7 @@ const options = {
             description: '',
             type: 'button',
             button: 'Reset this extensions settings to their defaults',
-            style: '',
+            style: 'color: red;',
             onclick: () => {
                 if (confirm('Are you sure you want to RESET this extensions settings?')) {
                     clearStorage();
