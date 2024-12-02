@@ -225,7 +225,7 @@ const options = {
             name: 'reset_all_settings',
             description: '',
             type: 'button',
-            button: 'Reset this extensions settings to their defaults',
+            button: 'Reset to DEFAULT settings',
             style: 'color: red;',
             onclick: () => {
                 if (confirm('Are you sure you want to RESET this extensions settings?')) {

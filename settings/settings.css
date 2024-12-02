@@ -1,6 +1,7 @@
 * {
     box-sizing: border-box;
     font-family: Courier New, Arial, sans-serif;
+    transition: 200ms;
 }
 
 body {
@@ -32,17 +33,45 @@ body {
     row-gap: 20px;
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
 
-    > div > div {
-        line-height: 30px;
-        padding-left: 20px;
+    > div {
         display: flex;
-        align-items: center;
-        column-gap: 6px;
+        flex-direction: column;
+        row-gap: 5px;
+        > div {
+            line-height: 30px;
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+            column-gap: 6px;
+        }
     }
 
     h3 {
         color: #f8f8f8;
         margin-bottom: 10px;
         margin-top: 10px;
+    }
+
+    button {
+        max-width: 500px;
+        width: 100%;
+        background-color: #3c3c47;
+        color: inherit;
+        font: inherit;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #50505c;
+        }
+
+        &:active {
+            background-color: #666673;
+        }
+    }
+
+    br {
+        margin: 5px;
     }
 }
