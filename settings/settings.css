@@ -118,6 +118,34 @@ body {
 
     input[type="checkbox"] {
         accent-color: var(--accent);
+        appearance: none;
+        outline: 2px solid transparent;
+        background-color: var(--additional);
+        width: 20px;
+        height: 20px;
+        min-height: 20px;
+        min-width: 20px;
+        margin: 6px;
+        padding: 0;
+        border: solid 0 transparent;
+        border-radius: 5px;
+        background-size: cover;
+        background-repeat: no-repeat;
+
+        &:not(:disabled):checked {
+            background-color: var(--accent);
+            background-image: url("Checkbox check.svg");
+        }
+
+        @media (hover: hover) {
+            &:not(:disabled):hover {
+                outline-color: var(--additional-lighter);
+            }
+        }
+
+        &:focus-visible {
+            outline-color: var(--additional-lighter);
+        }
     }
 
     input[type="text"] {
