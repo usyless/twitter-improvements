@@ -226,7 +226,7 @@ const options = {
             description: '',
             type: 'button',
             button: 'Reset to DEFAULT settings',
-            style: 'color: red;',
+            class: ['warning'],
             onclick: () => {
                 if (confirm('Are you sure you want to RESET this extensions settings?')) {
                     clearStorage();
@@ -301,7 +301,7 @@ function get_generic_setting(e, element, flipOrder) {
     label.textContent = e.description;
     label.setAttribute('for', e.name);
     elem.id = e.name;
-    if (e.style) elem.setAttribute('style', e.style);
+    if (e.class) elem.classList.add(...e.class);
     if (flipOrder) outer.append(elem, label);
     else outer.append(label, elem);
     return [outer, elem];

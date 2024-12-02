@@ -11,6 +11,10 @@
     --additional-lighter: #666673;
 
     --accent: #7873f5;
+
+    --warning: #911a1a;
+    --warning-dark: #771010;
+    --warning-darker: #530a0a;
 }
 
 * {
@@ -89,6 +93,25 @@ body {
         &:focus-visible {
             outline: none;
             background-color: var(--additional-lighter);
+        }
+
+        &.warning {
+            background-color: var(--warning);
+
+            @media (hover: hover) {
+                &:hover {
+                    background-color: var(--warning-dark);
+                }
+            }
+
+            &:active {
+                background-color: var(--warning-darker);
+            }
+
+            &:focus-visible {
+                outline: none;
+                background-color: var(--warning-darker);
+            }
         }
     }
 
