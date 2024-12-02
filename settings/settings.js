@@ -32,7 +32,7 @@ const options = {
         },
         {
             name: 'custom_url',
-            description: 'Set custom copy link url (make sure to set prefix to \'Custom\' above) format as: fixupx.com for fxtwitter manually',
+            description: 'Custom copy link host (Set prefix to \'Custom\')',
             default: '',
             type: 'text',
         },
@@ -77,7 +77,7 @@ const options = {
             name: 'clear_download_history',
             description: '',
             type: 'button',
-            button: 'Clear downloaded image history',
+            button: 'Clear download history',
             onclick: () => {
                 if (confirm('Are you sure you want to clear your image download history?')) setStorage({download_history: {}});
             }
@@ -86,7 +86,7 @@ const options = {
             name: 'import_download_history',
             description: '',
             type: 'button',
-            button: 'Import downloaded image history (formatted as {tweet id}-{image number} deliminated by spaces, without curly brackets)',
+            button: 'Import download history (Follow format from export)',
             onclick: () => {
                 document.getElementById('download_history_input').click();
             },
@@ -143,7 +143,7 @@ const options = {
             name: 'export_download_history',
             description: '',
             type: 'button',
-            button: 'Export downloaded image history',
+            button: 'Export downloaded history (Exported as {tweet id}-{image number})',
             onclick: async () => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([Object.keys(await get_value('download_history', {}, true)).join(' ')], { type: 'text/plain' }));
@@ -218,7 +218,7 @@ const options = {
     "Extras": [
         {
             name: 'show_hidden',
-            description: 'Automatically show all hidden media',
+            description: 'Show all hidden media',
             default: false
         },
         {
