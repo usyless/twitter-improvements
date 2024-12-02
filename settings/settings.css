@@ -9,6 +9,8 @@
     --additional: #3c3c47;
     --additional-light: #50505c;
     --additional-lighter: #666673;
+
+    --accent: #7873f5;
 }
 
 * {
@@ -89,14 +91,14 @@ body {
     }
 
     input[type="checkbox"] {
-        accent-color: #7873f5;
+        accent-color: var(--accent);
     }
 
     input {
         background-color: var(--additional);
         color: inherit;
         border-radius: 7px;
-        border: solid #202025 2px;
+        border: solid var(--background-dark) 2px;
         font: inherit;
 
         &:active {
