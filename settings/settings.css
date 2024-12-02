@@ -96,6 +96,7 @@ body {
         }
 
         &.warning {
+            color: var(--text-light);
             background-color: var(--warning);
 
             @media (hover: hover) {
