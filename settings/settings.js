@@ -1,3 +1,13 @@
+const chrome = {
+    storage: {
+        local: {
+            set: async () => void(0),
+            clear: async () => void(0),
+            get: async () => ({})
+        }
+    }
+};
+
 if (typeof browser === "undefined") {
     var browser = chrome;
 }
@@ -231,8 +241,8 @@ const typeMap = {
 }
 let values;
 for (const section in options) {
-    const outer = document.createElement("div"), h = document.createElement("h2");
-    h.innerText = section + ":";
+    const outer = document.createElement("div"), h = document.createElement("h3");
+    h.textContent = section;
     outer.appendChild(h);
     for (const inner in options[section]) outer.appendChild(create(options[section][inner]));
     DIV.appendChild(outer);
@@ -244,7 +254,7 @@ function create(elem) {
 }
 
 function create_checkbox(e) {
-    const [outer, checkbox] = get_generic_setting(e, "input");
+    const [outer, checkbox] = get_generic_setting(e, "input", true);
     checkbox.setAttribute("type", "checkbox");
     get_value(e.name, e.default).then(v => checkbox.checked = v);
     checkbox.addEventListener('change', toggle_value)
@@ -282,12 +292,13 @@ function create_break() {
     return document.createElement("br");
 }
 
-function get_generic_setting(e, element) {
+function get_generic_setting(e, element, flipOrder) {
     const outer = document.createElement("div"), label = document.createElement("label"), elem = document.createElement(element);
     label.textContent = e.description;
     label.setAttribute("for", e.name);
     elem.id = e.name;
-    outer.append(label, elem);
+    if (flipOrder) outer.append(elem, label);
+    else outer.append(label, elem);
     return [outer, elem];
 }
 
