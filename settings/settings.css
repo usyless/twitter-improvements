@@ -96,12 +96,14 @@ body {
         accent-color: var(--accent);
     }
 
-    input {
+    input[type="text"] {
         background-color: var(--additional);
         color: inherit;
         border-radius: 7px;
         border: solid var(--background-dark) 2px;
         font: inherit;
+        min-width: 100px;
+        flex-shrink: 1;
 
         &:active {
             border-color: var(--additional-lighter);
@@ -124,6 +126,8 @@ body {
         border-radius: 7px;
         border: solid var(--background-dark) 2px;
         padding: 7px;
+        min-width: 0;
+        flex-shrink: 1;
 
         &:active {
             border-color: var(--additional-lighter);

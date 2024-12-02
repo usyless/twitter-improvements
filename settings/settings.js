@@ -28,7 +28,7 @@ const options = {
             description: 'Set url prefix provider',
             default: 'fixvx.com',
             type: 'choice',
-            choices: [{name: 'VXTwitter (fixvx/vxtwitter)', type: 'fixvx.com'}, {name: 'FXTwitter (fixupx/fxtwitter)', type: 'fixupx.com'}, {name: 'Custom (Enter in advanced)', type: 'x.com'}]
+            choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}]
         },
         {
             name: 'custom_url',
@@ -279,6 +279,7 @@ function create_choice(e) {
 
 function create_text(e) {
     const [outer, input] = get_generic_setting(e, 'input');
+    input.type = "text";
     get_value(e.name, e.default).then(v => input.value = v);
     input.addEventListener('change', update_value);
     return outer;
