@@ -1,7 +1,8 @@
 # Twitter Improvements
 
-A simple web extension which brings a few quality of life features to twitter/X.
+A simple web extension which brings a few quality of life features to twitter/X.  
 
+**Screenshots available on the Mozilla addons page**
 
 ## Features
 
@@ -22,7 +23,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 - Saved Image/Video Reversing
 	- Allows you to upload any image or video saved by this extension and retrieve the original tweet it was saved from.
 - Save Image Context Menu
-	- A right click context menu for all images on twitter to save them, just like with the button
+	- A right click context menu for all images on Twitter to save them, just like with the button
 
 ## Installation
 
