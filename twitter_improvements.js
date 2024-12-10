@@ -415,7 +415,7 @@
             }
 
             async loadSettings() {
-                const data = await chrome.storage.local.get(), settings = ['setting', 'style', 'preferences', 'videoDownloading'];
+                const data = await chrome.storage.local.get(), settings = ['setting', 'style', 'preferences', 'videoDownloading', 'about'];
                 for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
                 // Fix for past changes
                 this.preferences.url_prefix === 'vx' && (this.preferences.url_prefix = 'fixvx.com');
