@@ -141,7 +141,7 @@ const options = {
             }
         }
     ],
-    'Hide Sections': [
+    'Hide Elements': [
         {
             name: 'hide_notifications',
             description: 'Hide Notifications button',
@@ -155,6 +155,11 @@ const options = {
         {
             name: 'hide_grok',
             description: 'Hide Grok button',
+            default: false
+        },
+        {
+            name: 'hide_grok_explain',
+            description: 'Hide Explain this post button',
             default: false
         },
         {

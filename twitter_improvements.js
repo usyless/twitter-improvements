@@ -275,7 +275,6 @@
 
     const observer = {
         observer: null,
-        previousURL: window.location.href,
         start: () => {
             observer.observer?.disconnect();
             Button.resetAll();
@@ -289,14 +288,23 @@
                     const callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
                     for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                    let previousURL = window.location.href;
+                    const update = () => {
+                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                    };
+                    let timer = null, lastUpdate = performance.now();
+                    const updateFrequency = 100;
                     if (callbacks.length > 0) {
                         return (_, o) => {
                             o.disconnect();
+                            clearTimeout(timer);
                             const newUrl = window.location.href;
                             // Fix green button on switching image
-                            if (observer.previousURL.includes("/photo/") && newUrl !== observer.previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
-                            observer.previousURL = newUrl;
-                            for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                            if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
+                            previousURL = newUrl;
+                            if (performance.now() - lastUpdate > updateFrequency) update();
+                            else setTimeout(update, updateFrequency);
+                            lastUpdate = performance.now();
                             o.observe(document.body, observerSettings);
                         }
                     }
@@ -310,6 +318,7 @@
             hide_notifications: ['a[href="/notifications"]'],
             hide_messages: ['a[href="/messages"]'],
             hide_grok: ['a[href="/i/grok"]'],
+            hide_grok_explain: ['div > button[aria-label="Grok actions"]'],
             hide_jobs: ['a[href="/jobs"]'],
             hide_lists: ['a[href*="/lists"]'],
             hide_communities: ['a[href*="/communities"]'],
@@ -382,6 +391,7 @@
                 hide_notifications: false,
                 hide_messages: false,
                 hide_grok: false,
+                hide_grok_explain: false,
                 hide_jobs: false,
                 hide_lists: false,
                 hide_communities: false,
