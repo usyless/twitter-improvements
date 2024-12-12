@@ -1,0 +1,41 @@
+@import "/shared/shared.css";
+
+body {
+    background-color: var(--background-dark);
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 4px;
+    row-gap: 4px;
+}
+
+.settings-button {
+    background: linear-gradient(40deg, var(--accent-alt), var(--accent));
+    border-radius: 8px;
+    border-style: none;
+    color: var(--text-light);
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    height: 40px;
+    line-height: 20px;
+    list-style: none;
+    margin: 0;
+    outline: none;
+    padding: 10px 16px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: baseline;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+
+    min-width: fit-content;
+    min-height: fit-content;
+}
+
+.settings-button:hover,
+.settings-button:focus {
+    transform: scale(1.02);
+}

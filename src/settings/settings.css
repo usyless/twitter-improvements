@@ -1,0 +1,172 @@
+@import "/shared/shared.css";
+
+body {
+    background-image: linear-gradient(to bottom right, var(--background-dark), var(--background-light));
+    background-size: cover;
+    color: var(--text-default);
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 15px;
+}
+
+#settings {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: var(--background-lighter);
+    border-radius: 15px;
+    row-gap: 20px;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+
+        > div {
+            line-height: 30px;
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+            column-gap: 6px;
+        }
+    }
+
+    h3 {
+        color: var(--text-light);
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    button {
+        max-width: 500px;
+        width: 100%;
+        background-color: var(--additional);
+        color: inherit;
+        font: inherit;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--additional-light);
+            }
+        }
+
+        &:active {
+            background-color: var(--additional-lighter);
+        }
+
+        &:focus-visible {
+            outline: none;
+            background-color: var(--additional-lighter);
+        }
+
+        &.warning {
+            color: var(--text-light);
+            background-color: var(--warning);
+
+            @media (hover: hover) {
+                &:hover {
+                    background-color: var(--warning-dark);
+                }
+            }
+
+            &:active {
+                background-color: var(--warning-darker);
+            }
+
+            &:focus-visible {
+                outline: none;
+                background-color: var(--warning-darker);
+            }
+        }
+    }
+
+    input[type="checkbox"] {
+        accent-color: var(--accent);
+        appearance: none;
+        outline: 2px solid transparent;
+        background-color: var(--additional);
+        width: 20px;
+        height: 20px;
+        min-height: 20px;
+        min-width: 20px;
+        margin: 6px;
+        padding: 0;
+        border: solid 0 transparent;
+        border-radius: 5px;
+        background-size: cover;
+        background-repeat: no-repeat;
+        cursor: pointer;
+
+        &:not(:disabled):checked {
+            background-color: var(--accent);
+            background-image: url("/shared/Checkbox check.svg");
+        }
+
+        @media (hover: hover) {
+            &:not(:disabled):hover {
+                outline-color: var(--additional-lighter);
+            }
+        }
+
+        &:focus-visible {
+            outline-color: var(--additional-lighter);
+        }
+    }
+
+    input[type="text"] {
+        background-color: var(--additional);
+        color: inherit;
+        border-radius: 7px;
+        border: solid var(--background-dark) 2px;
+        font: inherit;
+        min-width: 100px;
+        flex-shrink: 1;
+
+        &:active {
+            border-color: var(--additional-lighter);
+        }
+
+        &:focus-visible {
+            outline: none;
+            border-color: var(--additional-lighter);
+        }
+    }
+
+    br {
+        margin: 5px;
+    }
+
+    select {
+        background-color: var(--additional);
+        color: inherit;
+        font: inherit;
+        border-radius: 7px;
+        border: solid var(--background-dark) 2px;
+        padding: 7px;
+        min-width: 0;
+        flex-shrink: 1;
+        cursor: pointer;
+
+        &:active {
+            border-color: var(--additional-lighter);
+        }
+
+        &:focus-visible {
+            outline: none;
+            border-color: var(--additional-lighter);
+        }
+    }
+}
