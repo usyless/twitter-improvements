@@ -328,6 +328,9 @@
             hide_ads_button: ['a[href*="https://ads.x.com"]'],
             hide_whats_happening: ['div[aria-label="Timeline: Trending now"]', 'div:has(> * > [aria-label="Timeline: Trending now"])'],
             hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]', 'div:has(> * > aside[aria-label="Who to follow"])'],
+            hide_create_your_space: ['a[href="/i/spaces/start"]'],
+            hide_post_button: ['div:has(> a[href="/compose/post"])'],
+            hide_follower_requests: ['a[href="/follower_requests"]'],
         },
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
@@ -400,6 +403,9 @@
                 hide_ads_button: false,
                 hide_whats_happening: false,
                 hide_who_to_follow: false,
+                hide_create_your_space: false,
+                hide_post_button: false,
+                hide_follower_requests: false,
             }
 
             preferences = {

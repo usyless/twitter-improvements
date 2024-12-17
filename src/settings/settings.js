@@ -178,6 +178,21 @@ const options = {
             default: false
         },
         {
+            name: 'hide_create_your_space',
+            description: 'Hide Create your space button',
+            default: false
+        },
+        {
+            name: 'hide_post_button',
+            description: 'Hide Post button',
+            default: false
+        },
+        {
+            name: 'hide_follower_requests',
+            description: 'Hide follower requests button',
+            default: false
+        },
+        {
             name: 'hide_premium',
             description: 'Hide Premium button and additional Premium ads',
             default: false
