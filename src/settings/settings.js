@@ -144,82 +144,85 @@ const options = {
     'Hide Elements': [
         {
             name: 'hide_notifications',
-            description: 'Hide Notifications button',
+            description: '"Notifications" button',
             default: false
         },
         {
             name: 'hide_messages',
-            description: 'Hide Messages button',
+            description: '"Messages" button',
             default: false
         },
         {
             name: 'hide_grok',
-            description: 'Hide Grok button',
+            description: '"Grok" button',
             default: false
         },
         {
             name: 'hide_grok_explain',
-            description: 'Hide Explain this post button',
+            description: '"Explain this post" button',
             default: false
         },
         {
             name: 'hide_jobs',
-            description: 'Hide Jobs button',
+            description: '"Jobs" button',
             default: false
         },
         {
             name: 'hide_lists',
-            description: 'Hide Lists button',
+            description: '"Lists" button',
             default: false
         },
         {
             name: 'hide_communities',
-            description: 'Hide Communities button',
+            description: '"Communities" button',
             default: false
         },
         {
             name: 'hide_create_your_space',
-            description: 'Hide Create your space button',
+            description: '"Create your space" button',
             default: false
         },
         {
             name: 'hide_post_button',
-            description: 'Hide Post button',
+            description: '"Post" button',
             default: false
         },
         {
             name: 'hide_follower_requests',
-            description: 'Hide follower requests button',
+            description: '"Follower requests" button',
             default: false
         },
         {
             name: 'hide_premium',
-            description: 'Hide Premium button and additional Premium ads',
+            description: '"Premium" button and additional Premium ads',
             default: false
         },
         {
             name: 'hide_verified_orgs',
-            description: 'Hide Verified Orgs button',
+            description: '"Verified Orgs" button',
             default: false
         },
         {
             name: 'hide_monetization',
-            description: 'Hide Monetization button',
+            description: '"Monetization" button',
             default: false
         },
         {
             name: 'hide_ads_button',
-            description: 'Hide Ads button',
+            description: '"Ads" button',
             default: false
         },
         {
+            type: 'break'
+        },
+        {
             name: 'hide_whats_happening',
-            description: 'Hide the Whats Happening tab',
+            description: "What's Happening tab",
             default: false
         },
         {
             name: 'hide_who_to_follow',
-            description: 'Hide the Who To Follow tab',
+            description: 'Who To Follow tab',
             default: false
         },
     ],
