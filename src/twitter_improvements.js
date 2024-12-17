@@ -334,12 +334,12 @@
         },
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
-            let style = [];
-            for (const setting in Settings.style) if (Settings.style[setting]) style.push(...styles.styleMap[setting]);
+            let style = '';
+            for (const setting in Settings.style) if (Settings.style[setting]) for (const s of styles.styleMap[setting]) style += s + ' {display:none;}';
             if (style.length > 0) {
                 const s = document.createElement('style');
                 s.setAttribute('usyStyle', '');
-                s.appendChild(document.createTextNode(style.join(',') + ' {display:none;}'));
+                s.appendChild(document.createTextNode(style));
                 document.head.appendChild(s);
             }
         }
