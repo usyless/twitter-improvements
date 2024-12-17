@@ -199,12 +199,12 @@ const options = {
         },
         {
             name: 'hide_whats_happening',
-            description: 'Hide the Whats Happening tab (imperfect)',
+            description: 'Hide the Whats Happening tab',
             default: false
         },
         {
             name: 'hide_who_to_follow',
-            description: 'Hide the Who To Follow tab (imperfect)',
+            description: 'Hide the Who To Follow tab',
             default: false
         },
     ],
