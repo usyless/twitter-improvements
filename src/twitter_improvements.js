@@ -329,15 +329,14 @@
             hide_whats_happening: ['div[aria-label="Timeline: Trending now"]', 'div:has(> * > [aria-label="Timeline: Trending now"])'],
             hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]', 'div:has(> * > aside[aria-label="Who to follow"])'],
         },
-        style: '',
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
-            styles.style = '';
-            for (const setting in Settings.style) if (Settings.style[setting]) for (const selector of styles.styleMap[setting]) styles.style += `${selector} {display:none;}`;
-            if (styles.style.length > 0) {
+            let style = [];
+            for (const setting in Settings.style) if (Settings.style[setting]) style.push(...styles.styleMap[setting]);
+            if (style.length > 0) {
                 const s = document.createElement('style');
                 s.setAttribute('usyStyle', '');
-                s.appendChild(document.createTextNode(styles.style));
+                s.appendChild(document.createTextNode(style.join(',') + ' {display:none;}'));
                 document.head.appendChild(s);
             }
         }
