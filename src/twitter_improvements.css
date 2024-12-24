@@ -11,8 +11,10 @@
     transition: 230ms;
 }
 
-.usyMarked:hover, .usyMarked:hover * {
-    color: #529a52;
+@media (hover: hover) {
+    .usyMarked:hover, .usyMarked:hover * {
+        color: #529a52;
+    }
 }
 
 .hidden {
@@ -107,6 +109,8 @@ body {
     background-color: #2b2b2b;
 }
 
-.usyDownloadChoiceButton:hover {
-    background-color: #080808;
+@media (hover: hover) {
+    .usyDownloadChoiceButton:hover {
+        background-color: #080808;
+    }
 }

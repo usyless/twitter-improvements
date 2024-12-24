@@ -35,7 +35,11 @@ body {
     min-height: fit-content;
 }
 
-.settings-button:hover,
-.settings-button:focus {
+@media (hover: hover) {
+    .settings-button:hover {
+        transform: scale(1.02);
+    }
+}
+.settings-button:focus-visible {
     transform: scale(1.02);
 }
