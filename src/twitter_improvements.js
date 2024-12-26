@@ -331,6 +331,7 @@
             hide_create_your_space: ['a[href="/i/spaces/start"]'],
             hide_post_button: ['div:has(> a[href="/compose/post"])'],
             hide_follower_requests: ['a[href="/follower_requests"]'],
+            hide_live_on_x: ['div:has(> div[data-testid="placementTracking"] > button[aria-label*="Space,"])']
         },
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
@@ -406,6 +407,7 @@
                 hide_create_your_space: false,
                 hide_post_button: false,
                 hide_follower_requests: false,
+                hide_live_on_x: false,
             }
 
             preferences = {

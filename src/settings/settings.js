@@ -225,6 +225,11 @@ const options = {
             description: 'Who To Follow tab',
             default: false
         },
+        {
+            name: 'hide_live_on_x',
+            description: 'Live on X tab',
+            default: false
+        }
     ],
     "Extras": [
         {
