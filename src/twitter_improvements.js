@@ -68,8 +68,8 @@
             else if (r.status === 'choice') Notification.createVideoChoice(r.choices, event);
             else if (r.status === 'newpage') {
                 navigator.clipboard.writeText(r.copy);
-                Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, alternatively turn on auto update downloading in settings', 10000);
-            } else Notification.create('Error occurred downloading video, try clicking on tweet to fix if enabled auto update downloading in settings', 10000);
+                Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, try clicking on a new tweet to fix', 10000);
+            } else Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 10000);
         }
     }
 
