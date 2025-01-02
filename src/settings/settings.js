@@ -226,6 +226,11 @@ const options = {
             default: false
         },
         {
+            name: 'hide_relevant_people',
+            description: 'Relevant people tab',
+            default: false
+        },
+        {
             name: 'hide_live_on_x',
             description: 'Live on X tab',
             default: false
