@@ -289,10 +289,10 @@
             }
         }
 
-        const observer = {
+        const Observer = {
             observer: null,
             start: () => {
-                observer.observer?.disconnect();
+                Observer.observer?.disconnect();
                 Button.resetAll();
                 const observerSettings = {subtree: true, childList: true},
                     callbackMappings = {
@@ -310,32 +310,35 @@
                         const callbacks = [];
                         for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
                         const update = () => {
+                            Observer.observer?.disconnect();
                             for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                            Observer.observer?.observe(document.body, observerSettings);
                         };
+                        update.bind(this);
                         update();
 
                         let previousURL = window.location.href, timer = null, lastUpdate = performance.now();
                         const updateFrequency = 100;
                         if (callbacks.length > 0) {
-                            return (_, o) => {
-                                o.disconnect();
+                            return () => {
                                 clearTimeout(timer);
                                 const newUrl = window.location.href;
                                 // Fix green button on switching image
                                 if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
                                 previousURL = newUrl;
                                 if (performance.now() - lastUpdate > updateFrequency) update();
-                                else setTimeout(update, updateFrequency);
+                                else timer = setTimeout(update, updateFrequency);
                                 lastUpdate = performance.now();
-                                o.observe(document.body, observerSettings);
                             }
                         }
                         return (_, observer) => observer.disconnect();
                     };
-                observer.observer = new MutationObserver(getCallback());
-                observer.observer.observe(document.body, observerSettings);
+                Observer.observer = new MutationObserver(getCallback());
+                Observer.observer.observe(document.body, observerSettings);
             }
-        }, styles = {
+        }
+
+        const styles = {
             styleMap: {
                 hide_notifications: ['a[href="/notifications"]'],
                 hide_messages: ['a[href="/messages"]'],
@@ -368,9 +371,11 @@
                     document.head.appendChild(s);
                 }
             }
-        }, extension = {
+        }
+
+        const extension = {
             start: () => {
-                observer.start();
+                Observer.start();
                 styles.start();
             }
         }
