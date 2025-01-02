@@ -349,12 +349,12 @@
                 hide_monetization: ['a[href="/settings/monetization"]', 'a[href="/i/monetization"]'],
                 hide_ads_button: ['a[href*="https://ads.x.com"]'],
                 hide_whats_happening: ['div:has(> * > [aria-label="Timeline: Trending now"])'],
-                hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])', 'div:has(> * > [aria-label="Relevant people"])'],
+                hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])', 'div:has(> [aria-label="Relevant people"])'],
                 hide_create_your_space: ['a[href="/i/spaces/start"]'],
                 hide_post_button: ['div:has(> a[href="/compose/post"])'],
                 hide_follower_requests: ['a[href="/follower_requests"]'],
                 hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
-                hide_post_reply_sections: ['div:has(> div > [role="progressbar"])']
+                hide_post_reply_sections: ['div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])']
             },
             start: () => {
                 document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
