@@ -82,12 +82,9 @@
         }
 
         static respectiveURL(image) {
-            let url;
-            while (image) {
-                url = image.href;
-                if (url) return url;
-                image = image.parentElement;
-            }
+            let url = image.closest('[href]')?.href;
+            if (url) return url;
+
             url = window.location.href;
             if (url.includes('/photo/')) return url;
         }
@@ -286,13 +283,13 @@
                     show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}]
                 }, getCallback = () => {
                     const callbacks = [];
-                    for (const m in callbackMappings) if (Settings.setting[m]) for (const cb of callbackMappings[m]) callbacks.push(cb);
-                    for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
-                    let previousURL = window.location.href;
+                    for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
                     const update = () => {
                         for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
                     };
-                    let timer = null, lastUpdate = performance.now();
+                    update();
+
+                    let previousURL = window.location.href, timer = null, lastUpdate = performance.now();
                     const updateFrequency = 100;
                     if (callbacks.length > 0) {
                         return (_, o) => {
@@ -326,17 +323,18 @@
             hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
             hide_monetization: ['a[href="/settings/monetization"]', 'a[href="/i/monetization"]'],
             hide_ads_button: ['a[href*="https://ads.x.com"]'],
-            hide_whats_happening: ['div[aria-label="Timeline: Trending now"]', 'div:has(> * > [aria-label="Timeline: Trending now"])'],
-            hide_who_to_follow: ['aside[aria-label="Who to follow"]', 'aside[aria-label="Relevant people"]', 'div:has(> * > aside[aria-label="Who to follow"])'],
+            hide_whats_happening: ['div:has(> * > [aria-label="Timeline: Trending now"])'],
+            hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])', 'div:has(> * > [aria-label="Relevant people"])'],
             hide_create_your_space: ['a[href="/i/spaces/start"]'],
             hide_post_button: ['div:has(> a[href="/compose/post"])'],
             hide_follower_requests: ['a[href="/follower_requests"]'],
-            hide_live_on_x: ['div:has(> div[data-testid="placementTracking"] > button[aria-label*="Space,"])']
+            hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
+            hide_post_reply_sections: ['div:has(> div > [role="progressbar"])']
         },
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
             let style = '';
-            for (const setting in Settings.style) if (Settings.style[setting]) for (const s of styles.styleMap[setting]) style += s + ' {display:none;}';
+            for (const setting in Settings.style) if (Settings.style[setting]) for (const s of styles.styleMap[setting]) style += s + '{display:none;}';
             if (style.length > 0) {
                 const s = document.createElement('style');
                 s.setAttribute('usyStyle', '');
@@ -408,6 +406,7 @@
                 hide_post_button: false,
                 hide_follower_requests: false,
                 hide_live_on_x: false,
+                hide_post_reply_sections: false,
             }
 
             preferences = {

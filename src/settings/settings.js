@@ -229,6 +229,11 @@ const options = {
             name: 'hide_live_on_x',
             description: 'Live on X tab',
             default: false
+        },
+        {
+            name: 'hide_post_reply_sections',
+            description: '"Post" and "Reply" sections',
+            default: false
         }
     ],
     "Extras": [
