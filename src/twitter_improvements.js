@@ -349,7 +349,7 @@
                 hide_monetization: ['a[href="/settings/monetization"]', 'a[href="/i/monetization"]'],
                 hide_ads_button: ['a[href*="https://ads.x.com"]'],
                 hide_whats_happening: ['div:has(> * > [aria-label="Timeline: Trending now"])'],
-                hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])'],
+                hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])', 'div:has(> * > * > [aria-label="Loading recommendations for users to follow"])'],
                 hide_relevant_people: ['div:has(> [aria-label="Relevant people"])'],
                 hide_create_your_space: ['a[href="/i/spaces/start"]'],
                 hide_post_button: ['div:has(> a[href="/compose/post"])'],
