@@ -4,11 +4,11 @@
     getSettings().then(Settings => {
         const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
             download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z";
-        // Fallbacks for when button cannot be found
-        let fallbackButton;
 
-        class Tweet { // Tweet functions
-            static addVXButton(article) {
+        const Tweet = { // Tweet functions
+            fallbackButton: null,
+
+            addVXButton: (article) => {
                 try {
                     article.setAttribute('usy', '');
                     const a = Tweet.anchor(article);
@@ -16,9 +16,9 @@
                 } catch {
                     article.removeAttribute('usy');
                 }
-            }
+            },
 
-            static addVideoButton(videoComponent) {
+            addVideoButton: (videoComponent)=> {
                 try {
                     videoComponent.setAttribute('usy', '');
                     const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
@@ -30,37 +30,37 @@
                 } catch {
                     videoComponent.removeAttribute('usy')
                 }
-            }
+            },
 
-            static anchor(article) {
+            anchor: (article) => {
                 const anchor = article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
-                if (!fallbackButton) fallbackButton = anchor;
+                if (!Tweet.fallbackButton) Tweet.fallbackButton = anchor;
                 return anchor;
-            }
+            },
 
-            static anchorWithFallback(article) {
+            anchorWithFallback: (article) => {
                 try {
                     return Tweet.anchor(article);
                 } catch {
-                    return fallbackButton;
+                    return Tweet.fallbackButton;
                 }
-            }
+            },
 
-            static url(article) {
+            url: (article) => {
                 for (const a of article.querySelectorAll('a')) if (a.querySelector('time')) return a.href.replace(/\/history$/, "");
                 throw new TypeError("No URL Found");
-            }
+            },
 
-            static nearestTweet(elem) {
+            nearestTweet: (elem) => {
                 let anchor;
                 while (elem) {
                     anchor = elem.querySelector('article');
                     if (anchor) return anchor;
                     elem = elem.parentElement;
                 }
-            }
+            },
 
-            static vxButtonCallback(article) {
+            vxButtonCallback: (article) => {
                 try {
                     navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(article))).then(() => {
                         Notification.create('Copied URL to clipboard');
@@ -68,9 +68,9 @@
                 } catch {
                     Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');
                 }
-            }
+            },
 
-            static videoButtonCallback(event, article) {
+            videoButtonCallback: (event, article) => {
                 Notification.create(`Saving Tweet Video(s)${Settings.about.android ? ' (This may take a second on android)' : ''}`);
                 chrome.runtime.sendMessage({
                     ...Settings.preferences,
@@ -78,9 +78,9 @@
                     url: Tweet.url(article),
                     cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading
                 }).then((r) => Tweet.videoResponseHandler(event, r));
-            }
+            },
 
-            static videoResponseHandler(event, r) {
+            videoResponseHandler: (event, r) => {
                 if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
                 else if (r.status === 'choice') Notification.createVideoChoice(r.choices, event);
                 else if (r.status === 'newpage') {
@@ -90,34 +90,34 @@
             }
         }
 
-        class Image { // Image element functions
-            static addImageButton(image) {
+        const Image = { // Image element functions
+            addImageButton: (image) => {
                 try {
                     image.setAttribute('usy', '');
                     image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
                 } catch {
                     image.removeAttribute('usy')
                 }
-            }
+            },
 
-            static respectiveURL(image) {
+            respectiveURL: (image) => {
                 let url = image.closest('[href]')?.href;
                 if (url) return url;
 
                 url = window.location.href;
                 if (url.includes('/photo/')) return url;
-            }
+            },
 
-            static idWithNumber(image) {
+            idWithNumber: (image) => {
                 const a = Image.respectiveURL(image).split("/").slice(-3);
                 return `${a[0]}-${a[2]}`;
-            }
+            },
 
-            static getRespectiveButton(image) {
+            getRespectiveButton: (image) => {
                 return image.parentElement.querySelector('div.usybuttonclickdiv');
-            }
+            },
 
-            static imageButtonCallback(e, image) {
+            imageButtonCallback: (e, image) => {
                 e.preventDefault();
                 if (Settings.preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                     Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
@@ -125,34 +125,34 @@
                     Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
                     chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
                 }
-            }
+            },
 
-            static removeImageDownloadCallback(e, image) {
+            removeImageDownloadCallback: (e, image) => {
                 e.preventDefault();
                 Notification.create('Removing image from saved');
                 delete Settings.preferences.download_history[Image.idWithNumber(image)];
                 Settings.saveDownloadHistory();
-            }
+            },
 
-            static resetAll() {
+            resetAll: () => {
                 document.querySelectorAll('div[usy-image].usybuttonclickdiv').forEach((e) => e.remove());
                 document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
             }
         }
 
-        class URLS { // URL modification functions
-            static vxIfy(url) {
+        const URLS = { // URL modification functions
+            vxIfy: (url) => {
                 return `https://${URLS.getPrefix()}/${url.substring(14)}`;
-            }
+            },
 
-            static getPrefix() {
+            getPrefix: () => {
                 if (Settings.preferences.url_prefix === 'x.com') return Settings.preferences.custom_url;
                 return Settings.preferences.url_prefix;
             }
         }
 
-        class Button { // Button functions
-            static newButton(shareButton, path, clickCallback, marked, attribute, rightClickCallback) {
+        const Button = { // Button functions
+            newButton: (shareButton, path, clickCallback, marked, attribute, rightClickCallback) => {
                 shareButton = shareButton.cloneNode(true);
                 shareButton.classList.add('usybuttonclickdiv');
                 shareButton.setAttribute(attribute, "");
@@ -168,37 +168,37 @@
                 shareButton.addEventListener('click', clickCallback);
                 if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
                 return shareButton;
-            }
+            },
 
-            static isMarked(button) {
+            isMarked: (button) => {
                 return button.classList.contains('usyMarked');
-            }
+            },
 
-            static onhover(bc) {
+            onhover: (bc) => {
                 bc.classList.add('r-1cvl2hr');
                 bc.style.color = "";
                 bc.firstElementChild.firstElementChild.classList.replace('r-1niwhzg', 'r-1peqgm7');
-            }
+            },
 
-            static stophover(bc) {
+            stophover: (bc) => {
                 bc.classList.remove('r-1cvl2hr');
                 bc.style.color = "rgb(113, 118, 123)";
                 bc.firstElementChild.firstElementChild.classList.replace('r-1peqgm7', 'r-1niwhzg');
-            }
+            },
 
-            static showHidden(b) {
+            showHidden: (b) => {
                 b.setAttribute('usy', '');
                 if (b.innerText === 'Show' || b.innerText === 'View') b.click();
-            }
+            },
 
-            static resetAll() {
+            resetAll: () => {
                 document.querySelectorAll('div.usybuttonclickdiv').forEach(b => b.remove());
                 document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
             }
         }
 
-        class Notification {
-            static create(text, timeout = 5000) {
+        const Notification = {
+            create: (text, timeout = 5000) => {
                 Notification.clear();
                 const outer = document.createElement('div'), inner = document.createElement('div');
                 outer.appendChild(inner);
@@ -212,13 +212,13 @@
                         outer.remove();
                     });
                 }, timeout);
-            }
+            },
 
-            static clear() {
+            clear: () => {
                 document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
-            }
+            },
 
-            static createVideoChoice(choices, event) {
+            createVideoChoice: (choices, event) => {
                 Notification.clear();
                 const notificationEventListeners = [];
                 const fullscreen = document.createElement('div'),
@@ -276,8 +276,8 @@
             }
         }
 
-        class Helpers {
-            static download(url, filename) {
+        const Helpers = {
+            download: (url, filename) => {
                 fetch(url).then(r => r.blob()).then(blob => {
                     const link = document.createElement('a'),
                         objectURL = URL.createObjectURL(blob);
