@@ -22,6 +22,7 @@
             hide_follower_requests: false,
             hide_live_on_x: false,
             hide_post_reply_sections: false,
+            hide_sidebar_footer: false
         },
 
         loadSettings: async () => {
@@ -50,7 +51,8 @@
             hide_post_button: ['div:has(> a[href="/compose/post"])'],
             hide_follower_requests: ['a[href="/follower_requests"]'],
             hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
-            hide_post_reply_sections: ['div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])']
+            hide_post_reply_sections: ['div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])'],
+            hide_sidebar_footer: ['div:has(> [aria-label="Footer"])']
         },
         start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());

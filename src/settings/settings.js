@@ -241,6 +241,11 @@ const options = {
             name: 'hide_post_reply_sections',
             description: '"Post" and "Reply" sections',
             default: false
+        },
+        {
+            name: 'hide_sidebar_footer',
+            description: 'Additional sidebar urls, under the search bar',
+            default: false
         }
     ],
     "Extras": [
