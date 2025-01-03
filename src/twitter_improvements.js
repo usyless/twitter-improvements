@@ -332,8 +332,14 @@
 
     const Observer = {
         observer: null,
+
+        timer: null,
+
         start: () => {
+            clearTimeout(Observer.timer);
             Observer.observer?.disconnect();
+            Observer.observer = null;
+
             Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
                 callbackMappings = {
@@ -355,20 +361,19 @@
                         for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
                         Observer.observer?.observe(document.body, observerSettings);
                     };
-                    update.bind(this);
                     update();
 
-                    let previousURL = window.location.href, timer = null, lastUpdate = performance.now();
+                    let previousURL = window.location.href, lastUpdate = performance.now();
                     const updateFrequency = 100;
                     if (callbacks.length > 0) {
                         return () => {
-                            clearTimeout(timer);
+                            clearTimeout(Observer.timer);
                             const newUrl = window.location.href;
                             // Fix green button on switching image
                             if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
                             previousURL = newUrl;
                             if (performance.now() - lastUpdate > updateFrequency) update();
-                            else timer = setTimeout(update, updateFrequency);
+                            else Observer.timer = setTimeout(update, updateFrequency);
                             lastUpdate = performance.now();
                         }
                     }
