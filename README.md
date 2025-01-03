@@ -1,4 +1,4 @@
-# Twitter Improvements
+# Improvements for Twitter
 
 A simple web extension which brings a few quality of life features to twitter/X.  
 
