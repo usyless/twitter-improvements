@@ -6,3 +6,4 @@ reverse_page\
 background.js
 twitter_improvements.css
 twitter_improvements.js
+element_hiding.js

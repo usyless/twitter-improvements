@@ -338,50 +338,8 @@
             }
         }
 
-        const styles = {
-            styleMap: {
-                hide_notifications: ['a[href="/notifications"]'],
-                hide_messages: ['a[href="/messages"]'],
-                hide_grok: ['a[href="/i/grok"]'],
-                hide_grok_explain: ['button[aria-label="Grok actions"]'],
-                hide_jobs: ['a[href="/jobs"]'],
-                hide_lists: ['a[href*="/lists"]'],
-                hide_communities: ['a[href*="/communities"]'],
-                hide_premium: ['a[href="/i/premium_sign_up"]', 'aside[aria-label*="Premium"]', 'div:has(> * > aside[aria-label*="Premium"])'],
-                hide_verified_orgs: ['a[href="/i/verified-orgs-signup"]'],
-                hide_monetization: ['a[href="/settings/monetization"]', 'a[href="/i/monetization"]'],
-                hide_ads_button: ['a[href*="https://ads.x.com"]'],
-                hide_whats_happening: ['div:has(> * > [aria-label="Timeline: Trending now"])'],
-                hide_who_to_follow: ['div:has(> * > [aria-label="Who to follow"])', 'div:has(> * > * > [aria-label="Loading recommendations for users to follow"])'],
-                hide_relevant_people: ['div:has(> [aria-label="Relevant people"])'],
-                hide_create_your_space: ['a[href="/i/spaces/start"]'],
-                hide_post_button: ['div:has(> a[href="/compose/post"])'],
-                hide_follower_requests: ['a[href="/follower_requests"]'],
-                hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
-                hide_post_reply_sections: ['div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])']
-            },
-            start: () => {
-                document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
-                let style = '';
-                for (const setting in Settings.style) if (Settings.style[setting]) for (const s of styles.styleMap[setting]) style += s + '{display:none;}';
-                if (style.length > 0) {
-                    const s = document.createElement('style');
-                    s.setAttribute('usyStyle', '');
-                    s.appendChild(document.createTextNode(style));
-                    document.head.appendChild(s);
-                }
-            }
-        }
-
-        const extension = {
-            start: () => {
-                Observer.start();
-                styles.start();
-            }
-        }
-
         // Starts extension
-        extension.start();
+        Observer.start();
 
         chrome.storage.onChanged.addListener(async (changes, namespace) => {
             if (namespace === 'local') {
@@ -389,7 +347,7 @@
                     if (Settings.videoDownloading.hasOwnProperty(key)) continue;
                     else {
                         await Settings.loadSettings();
-                        extension.start();
+                        Observer.start();
                         break;
                     }
                 }
@@ -423,28 +381,6 @@
                 show_hidden: false,
             }
 
-            style = {
-                hide_notifications: false,
-                hide_messages: false,
-                hide_grok: false,
-                hide_grok_explain: false,
-                hide_jobs: false,
-                hide_lists: false,
-                hide_communities: false,
-                hide_premium: false,
-                hide_verified_orgs: false,
-                hide_monetization: false,
-                hide_ads_button: false,
-                hide_whats_happening: false,
-                hide_who_to_follow: false,
-                hide_relevant_people: false,
-                hide_create_your_space: false,
-                hide_post_button: false,
-                hide_follower_requests: false,
-                hide_live_on_x: false,
-                hide_post_reply_sections: false,
-            }
-
             preferences = {
                 url_prefix: 'fixvx.com',
                 video_download_fallback: true,
@@ -467,7 +403,7 @@
             }
 
             async loadSettings() {
-                const data = await chrome.storage.local.get(), settings = ['setting', 'style', 'preferences', 'videoDownloading'];
+                const data = await chrome.storage.local.get(), settings = ['setting', 'preferences', 'videoDownloading'];
                 for (const setting of settings) for (const s in this[setting]) this[setting][s] = data[s] ?? this[setting][s];
                 // Fix for past changes
                 this.preferences.url_prefix === 'vx' && (this.preferences.url_prefix = 'fixvx.com');
