@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
-  "name": "Twitter Improvements",
+  "name": "Improvements for Twitter",
   "version": "1.1.0.7",
   "author": "usy",
   "homepage_url": "https://github.com/usyless/twitter-improvements",
-  "description": "Various helpful twitter improvements",
+  "description": "Various helpful additions and changes for Twitter",
   "icons": {
     "96": "icons/icon-96.png"
   },
