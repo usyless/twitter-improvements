@@ -2,6 +2,8 @@ if (typeof browser === 'undefined') {
     var browser = chrome;
 }
 
+document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
+
 const DIV = document.getElementById('settings');
 
 const options = {
