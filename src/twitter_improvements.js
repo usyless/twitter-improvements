@@ -385,12 +385,9 @@
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
-            const vd = Settings.videoDownloading;
-            const pref = Settings.preferences;
-            const set = Settings.setting;
+            const {videoDownloading, preferences, setting} = Settings;
             for (const key in changes) {
-                if (vd.hasOwnProperty(key)) continue;
-                else if (pref.hasOwnProperty(key) || set.hasOwnProperty(key)) {
+                if (!videoDownloading.hasOwnProperty(key) && (preferences.hasOwnProperty(key) || setting.hasOwnProperty(key))) {
                     start();
                     break;
                 }
