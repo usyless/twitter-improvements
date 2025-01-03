@@ -52,7 +52,7 @@
             hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
             hide_post_reply_sections: ['div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])']
         },
-        start: (Settings) => {
+        start: () => {
             document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
             let style = '';
             for (const setting in Settings.style) if (Settings.style[setting]) for (const s of Styles.styleMap[setting]) style += s + '{display:none;}';
