@@ -26,6 +26,7 @@ body {
     touch-action: manipulation;
     min-width: fit-content;
     min-height: fit-content;
+    font-weight: bold;
 }
 
 @media (hover: hover) {
