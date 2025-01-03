@@ -24,7 +24,7 @@
             hide_post_reply_sections: false,
         },
 
-        async loadSettings() {
+        loadSettings: async () => {
             const data = await chrome.storage.local.get();
             for (const s in Settings.style) Settings.style[s] = data[s] ?? Settings.style[s];
         }
