@@ -30,6 +30,6 @@
 
 * {
     font-family: 'Open Sans', Arial, sans-serif;
-    transition: 200ms;
+    transition: 200ms ease-in-out;
     box-sizing: border-box;
 }
