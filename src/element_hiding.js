@@ -73,7 +73,7 @@
         if (namespace === 'local') {
             const style = Settings.style;
             for (const key in changes) {
-                if (key in style) {
+                if (style.hasOwnProperty(key)) {
                     start();
                     break;
                 }
