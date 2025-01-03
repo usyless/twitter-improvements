@@ -6,10 +6,12 @@ body {
     flex-wrap: wrap;
     column-gap: 4px;
     row-gap: 4px;
+    width: 100%;
+    overflow: hidden;
 }
 
 .settings-button {
-    background: linear-gradient(40deg, var(--accent-alt), var(--accent));
+    background-color: var(--additional);
     border-radius: 8px;
     border-style: none;
     color: var(--text-light);
@@ -29,11 +31,15 @@ body {
     font-weight: bold;
 }
 
+body :last-child {
+    padding: 10px;
+}
+
 @media (hover: hover) {
     .settings-button:hover {
-        transform: scaleX(1.03);
+        background-color: var(--accent);
     }
 }
 .settings-button:focus-visible {
-    transform: scaleX(1.03);
+    background-color: var(--accent);
 }
