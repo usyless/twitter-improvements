@@ -387,8 +387,9 @@
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
-            if (changes.hasOwnProperty('preferences') || changes.hasOwnProperty('setting')) start();
-            else if (changes.hasOwnProperty('download_history')) {
+            // no need to restart on vx_preferences change
+            if (changes.hasOwnProperty('setting')) start();
+            else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_history')) {
                 Observer.forceUpdate?.(Image.resetAll);
             }
         }
