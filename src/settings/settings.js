@@ -113,7 +113,7 @@
                 name: 'import_download_history_from_files',
                 description: '',
                 type: 'button',
-                button: 'Import download history from files',
+                button: 'Import download history from saved images',
                 onclick: () => {
                     document.getElementById('download_history_files_input').click();
                 },
