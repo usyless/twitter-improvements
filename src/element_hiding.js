@@ -24,10 +24,12 @@
             hide_sidebar_footer: false
         },
 
-        loadSettings: async () => {
-            const data = await chrome.storage.local.get();
-            Settings.style = {...Settings.style, ...data.style};
-        }
+        loadSettings: () => new Promise( resolve => {
+            chrome.storage.local.get(['style'], (s) => {
+                Settings.style = {...Settings.style, ...s.style};
+            });
+            resolve();
+        })
     }
 
     const Styles = {

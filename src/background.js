@@ -170,7 +170,7 @@ function migrateSettings(previousVersion) {
     // Fix for old link copying setting
     if (versionBelowGiven(previousVersion, '1.0.7.3')) {
         console.log("Migrating vx and fx settings to new format");
-        chrome.storage.local.get(async (s) => {
+        chrome.storage.local.get(['url_prefix'], async (s) => {
             if (s.url_prefix === 'vx') await chrome.storage.local.set({url_prefix: 'fixvx.com'});
             if (s.url_prefix === 'fx') await chrome.storage.local.set({url_prefix: 'fixupx.com'});
         });

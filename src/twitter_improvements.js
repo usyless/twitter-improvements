@@ -34,11 +34,13 @@
             android: /Android/i.test(navigator.userAgent)
         },
 
-        loadSettings: async () => {
-            const data = await chrome.storage.local.get(), settings = ['setting', 'preferences', 'videoDownloading'];
-            for (const setting of settings) Settings[setting] = {...Settings[setting], ...data[setting]};
-            Settings.download_history = data.download_history ?? {};
-        },
+        loadSettings: () => new Promise(resolve => {
+            chrome.storage.local.get(['setting', 'preferences', 'videoDownloading', 'download_history'], (s) => {
+                for (const setting of ['setting', 'preferences', 'videoDownloading']) Settings[setting] = {...Settings[setting], ...s[setting]};
+                Settings.download_history = s.download_history ?? {};
+                resolve();
+            });
+        }),
 
         saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.download_history}),
 
