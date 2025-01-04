@@ -152,7 +152,7 @@
 
         imageButtonCallback: (e, image) => {
             e.preventDefault();
-            if (Settings.preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
+            if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
             } else {
                 Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
@@ -389,7 +389,9 @@
         if (namespace === 'local') {
             // no need to restart on vx_preferences change
             if (changes.hasOwnProperty('setting')) start();
-            else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_history')) {
+            else if (changes.hasOwnProperty('image_preferences')) {
+                Settings.loadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
+            } else if (changes.hasOwnProperty('download_history')) {
                 Observer.forceUpdate?.(Image.resetAll);
             }
         }
