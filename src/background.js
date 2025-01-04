@@ -219,7 +219,7 @@ function migrateSettings(previousVersion) {
             if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
             if (hide_grok != null) newSettings.style.hide_grok = hide_grok;
             if (hide_jobs != null) newSettings.style.hide_jobs = hide_jobs;
-            if (hide_lists == null) newSettings.style.hide_lists = hide_lists;
+            if (hide_lists != null) newSettings.style.hide_lists = hide_lists;
             if (hide_communities != null) newSettings.style.hide_communities = hide_communities;
             if (hide_premium != null) newSettings.style.hide_premium = hide_premium;
             if (hide_verified_orgs != null) newSettings.style.hide_verified_orgs = hide_verified_orgs;
