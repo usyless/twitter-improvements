@@ -37,6 +37,13 @@
             });
         }),
 
+        reloadSettings: () => new Promise(resolve => {
+            chrome.storage.local.get(['setting', 'vx_preferences', 'image_preferences'], (s) => {
+                for (const setting of ['setting', 'vx_preferences', 'image_preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
+                resolve();
+            });
+        }),
+
         saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.download_history}),
     }
 
@@ -381,17 +388,16 @@
         }
     }
 
-    const start = () => Settings.loadSettings().then(Observer.start);
-
-    start();
+    Settings.loadSettings().then(Observer.start);
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
             // no need to restart on vx_preferences change
-            if (changes.hasOwnProperty('setting')) start();
+            if (changes.hasOwnProperty('setting')) Settings.reloadSettings().then(Observer.start);
             else if (changes.hasOwnProperty('image_preferences')) {
-                Settings.loadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
+                Settings.reloadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
             } else if (changes.hasOwnProperty('download_history')) {
+                // Will need to refresh active tabs after clearing/importing
                 Observer.forceUpdate?.(Image.resetAll);
             }
         }
