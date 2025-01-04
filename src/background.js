@@ -238,7 +238,7 @@ function migrateSettings(previousVersion) {
             if (vx_button != null) newSettings.setting.vx_button = vx_button;
             if (video_button != null) newSettings.setting.video_button = video_button;
             if (image_button != null) newSettings.setting.image_button = image_button;
-            if (show_hidden != null) newSettings.setting.hidden_hidden = show_hidden;
+            if (show_hidden != null) newSettings.setting.show_hidden = show_hidden;
 
             if (url_prefix != null) newSettings.vx_preferences.url_prefix = url_prefix;
             if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
