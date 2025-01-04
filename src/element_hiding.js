@@ -27,8 +27,8 @@
         loadSettings: () => new Promise( resolve => {
             chrome.storage.local.get(['style'], (s) => {
                 Settings.style = {...Settings.style, ...s.style};
+                resolve();
             });
-            resolve();
         })
     }
 
