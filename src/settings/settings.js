@@ -85,7 +85,7 @@ const options = {
             onclick: () => {
                 document.getElementById('download_history_input').click();
             },
-            init: function () {
+            init: () => {
                 const i = document.createElement('input');
                 i.type = 'file';
                 i.id = 'download_history_input';
@@ -98,7 +98,7 @@ const options = {
                         reader.onload = async (r) => {
                             const items = r.target.result.split(' '), result = {};
                             for (const i of items) result[i] = true;
-                            setStorage({download_history: {...(await get_value(this)), ...result}});
+                            setStorage({download_history: {...(await get_value({name: 'download_history', default: {}})), ...result}});
                             alert('Successfully imported!');
                         };
                         reader.readAsText(file);
@@ -114,7 +114,7 @@ const options = {
             onclick: () => {
                 document.getElementById('download_history_files_input').click();
             },
-            init: function() {
+            init: () => {
                 const i = document.createElement('input');
                 i.type = 'file';
                 i.id = 'download_history_files_input';
@@ -128,7 +128,7 @@ const options = {
                         const n = file.name.split('-');
                         if (n[0].includes('twitter')) try {result[`${n[1].replace(/\D/g, '')}-${n[2].split('.')[0].replace(/\D/g, '')[0]}`] = true;++accepted;} catch {}
                     }
-                    setStorage({download_history: {...(await get_value(this)), ...result}});
+                    setStorage({download_history: {...(await get_value({name: 'download_history', default: {}})), ...result}});
                     alert(`Successfully imported ${accepted} files!`);
                 });
                 document.body.appendChild(i);
@@ -139,9 +139,9 @@ const options = {
             description: '',
             type: 'button',
             button: 'Export downloaded history (Exported as {tweet id}-{image number})',
-            onclick: async function() {
+            onclick: async () => {
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(new Blob([Object.keys(await get_value(this)).join(' ')], { type: 'text/plain' }));
+                link.href = URL.createObjectURL(new Blob([Object.keys(await get_value({name: 'download_history', default: {}})).join(' ')], { type: 'text/plain' }));
                 link.download = 'export.twitterimprovements';
                 link.click();
                 URL.revokeObjectURL(link.href);
