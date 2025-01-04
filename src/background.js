@@ -71,16 +71,12 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
         }
         chrome.storage.local.get(['video_details'], async (result) => {
             result = result.video_details;
-            if (!result) await chrome.storage.local.set({video_details: data});
+            if (result == null || Object.keys(result).length !== 4) await chrome.storage.local.set({video_details: data});
             else {
-                let changeMade = false;
-                for (const n in data) {
-                    if (result.hasOwnProperty(n) && result[n] !== data[n]) {
-                        result[n] = data[n];
-                        changeMade = true;
-                    }
+                for (const n in data) if (result.hasOwnProperty(n) && result[n] !== data[n]) {
+                    await chrome.storage.local.set({video_details: data})
+                    break;
                 }
-                if (changeMade) await chrome.storage.local.set({video_details: result});
             }
         });
     }
