@@ -6,7 +6,6 @@
             hide_notifications: false,
             hide_messages: false,
             hide_grok: false,
-            hide_grok_explain: false,
             hide_jobs: false,
             hide_lists: false,
             hide_communities: false,
