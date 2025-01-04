@@ -64,11 +64,24 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
     const authorization = details.requestHeaders?.find?.(a => a.name === 'authorization');
     const features = url.searchParams.get("features"), fieldToggles = url.searchParams.get("fieldToggles");
     if (authorization?.value?.length > 0 && features?.length > 2 && fieldToggles?.length > 2) {
-        sendToTab({
-            type: 'downloadDetails',
+        const data = {
             detailsURL: `${url.origin}${url.pathname}`,
             authorization: authorization.value,
             features, fieldToggles
+        }
+        chrome.storage.local.get(['video_details'], async (result) => {
+            result = result.video_details;
+            if (!result) await chrome.storage.local.set({video_details: data});
+            else {
+                let changeMade = false;
+                for (const n in data) {
+                    if (result.hasOwnProperty(n) && result[n] !== data[n]) {
+                        result[n] = data[n];
+                        changeMade = true;
+                    }
+                }
+                if (changeMade) await chrome.storage.local.set({video_details: result});
+            }
         });
     }
 }, { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] }, ["requestHeaders"]);
@@ -77,48 +90,55 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
 const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => Number(x?.bitrate) > Number(y?.bitrate) ? x : y).url;
 const defaultHeaders = {'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en', 'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session'};
 const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
-async function download_video(request, sendResponse) {
+function download_video(request, sendResponse) {
     const filename = getFileName(request.url), id = request.url.split("/").slice(-1)[0];
-    try {
-        const tweetDetailsURL = new URL(request.detailsURL);
-        tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
-        tweetDetailsURL.searchParams.set('features', request.features);
-        tweetDetailsURL.searchParams.set('fieldToggles', request.fieldToggles);
-        const headers = {'user-agent': navigator.userAgent, 'x-csrf-token': request.cookie, 'authorization': request.authorization, ...defaultHeaders}; // Cookie sent by browser so no need to set myself
-        const json = await (await fetch(tweetDetailsURL, { headers })).json();
-        let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
-            ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId?.includes?.(id))?.content
-            ?.itemContent?.tweet_results?.result;
-        urls = urls?.tweet ?? urls;
-        urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
-            ?.map?.(m => getBestQuality(m?.video_info?.variants));
-        const download = () => {
-            if (urls.length === 1) {
-                downloadVideos(urls, filename);
-                sendResponse({status: 'success'});
-            } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
-        }
-        if (urls?.length > 0) download();
-        else {
-            console.log("Attempting to brute force video download");
-            urls = []
-            for (const tweet of findAllPotentialTweetsById(json, id)) {
-                const videos = findVideos(tweet);
-                for (const key in videos) urls.push(videos[key].url);
-                if (urls.length > 0) {
-                    download();
-                    break;
-                }
+    chrome.storage.local.get(['video_details', 'video_preferences'], async (preferences) => {
+        const details = preferences.video_details;
+        try {
+            const tweetDetailsURL = new URL(details.detailsURL);
+            tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
+            tweetDetailsURL.searchParams.set('features', details.features);
+            tweetDetailsURL.searchParams.set('fieldToggles', details.fieldToggles);
+            const headers = {
+                'user-agent': navigator.userAgent,
+                'x-csrf-token': request.cookie,
+                'authorization': details.authorization, ...defaultHeaders
+            }; // Cookie sent by browser so no need to set myself
+            const json = await(await fetch(tweetDetailsURL, {headers})).json();
+            let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
+                ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId?.includes?.(id))?.content
+                ?.itemContent?.tweet_results?.result;
+            urls = urls?.tweet ?? urls;
+            urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
+                ?.map?.(m => getBestQuality(m?.video_info?.variants));
+            const download = () => {
+                if (urls.length === 1) {
+                    downloadVideos(urls, filename);
+                    sendResponse({status: 'success'});
+                } else sendResponse({status: 'choice', choices: {filename: filename, urls: urls}});
             }
-            if (urls.length <= 0) throw new Error("failed to download");
+            if (urls?.length > 0) download();
+            else {
+                console.log("Attempting to brute force video download");
+                urls = []
+                for (const tweet of findAllPotentialTweetsById(json, id)) {
+                    const videos = findVideos(tweet);
+                    for (const key in videos) urls.push(videos[key].url);
+                    if (urls.length > 0) {
+                        download();
+                        break;
+                    }
+                }
+                if (urls.length <= 0) throw new Error("failed to download");
+            }
+        } catch (error) {
+            console.error(error);
+            if (preferences.video_preferences?.video_download_fallback ?? true) { // default value for fallback
+                sendResponse({status: 'newpage', copy: filename});
+                chrome.tabs.create({url: `https://cobalt.tools/#${request.url}`});
+            } else sendResponse({status: 'error'});
         }
-    } catch (error) {
-        console.error(error);
-        if (request.video_download_fallback) {
-            sendResponse({status: 'newpage', copy: filename});
-            chrome.tabs.create({url: `https://cobalt.tools/#${request.url}`});
-        } else sendResponse({status: 'error'});
-    }
+    });
 }
 
 function download_video_from_choices(request, sendResponse) {
@@ -196,7 +216,8 @@ function migrateSettings(previousVersion) {
             } = s;
 
             await chrome.storage.local.clear();
-            const newSettings = {style: {}, setting: {}, preferences: {}, videoDownloading: {}};
+            const newSettings = {style: {}, setting: {}, vx_preferences: {}, video_details: {},
+                image_preferences: {}, video_preferences: {}};
 
             if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
             if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
@@ -223,17 +244,19 @@ function migrateSettings(previousVersion) {
             if (image_button != null) newSettings.setting.image_button = image_button;
             if (show_hidden != null) newSettings.setting.hidden_hidden = show_hidden;
 
-            if (url_prefix != null) newSettings.preferences.url_prefix = url_prefix;
-            if (video_download_fallback != null) newSettings.preferences.video_download_fallback = video_download_fallback;
-            if (long_image_button != null) newSettings.preferences.long_image_button = long_image_button;
-            if (custom_url != null) newSettings.preferences.custom_url = custom_url;
-            if (download_history_enabled != null) newSettings.preferences.download_history_enabled = download_history_enabled;
-            if (download_history_prevent_download != null) newSettings.preferences.download_history_prevent_download = download_history_prevent_download;
+            if (url_prefix != null) newSettings.vx_preferences.url_prefix = url_prefix;
+            if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
 
-            if (detailsURL != null) newSettings.videoDownloading.detailsURL = detailsURL;
-            if (authorization != null) newSettings.videoDownloading.authorization = authorization;
-            if (features != null) newSettings.videoDownloading.features = features;
-            if (fieldToggles != null) newSettings.videoDownloading.fieldToggles = fieldToggles;
+            if (video_download_fallback != null) newSettings.image_preferences.video_download_fallback = video_download_fallback;
+            if (long_image_button != null) newSettings.image_preferences.long_image_button = long_image_button;
+            if (download_history_enabled != null) newSettings.image_preferences.download_history_enabled = download_history_enabled;
+
+            if (download_history_prevent_download != null) newSettings.video_preferences.download_history_prevent_download = download_history_prevent_download;
+
+            if (detailsURL != null) newSettings.video_details.detailsURL = detailsURL;
+            if (authorization != null) newSettings.video_details.authorization = authorization;
+            if (features != null) newSettings.video_details.features = features;
+            if (fieldToggles != null) newSettings.video_details.fieldToggles = fieldToggles;
 
             if (download_history != null) newSettings.download_history = download_history;
 

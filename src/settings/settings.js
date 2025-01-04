@@ -15,7 +15,7 @@
             },
             {
                 name: 'url_prefix',
-                category: 'preferences',
+                category: 'vx_preferences',
                 description: 'Set url prefix provider',
                 default: 'fixvx.com',
                 type: 'choice',
@@ -23,7 +23,7 @@
             },
             {
                 name: 'custom_url',
-                category: 'preferences',
+                category: 'vx_preferences',
                 description: 'Custom copy link host (Set prefix to \'Custom\')',
                 default: '',
                 type: 'text',
@@ -38,7 +38,7 @@
             },
             {
                 name: 'video_download_fallback',
-                category: 'preferences',
+                category: 'video_preferences',
                 description: 'Fallback to opening video in new cobalt.tools tab if local download fails',
                 default: true,
             }
@@ -52,19 +52,19 @@
             },
             {
                 name: 'long_image_button',
-                category: 'preferences',
+                category: 'image_preferences',
                 description: 'Stretch image download button across width of image',
                 default: false,
             },
             {
                 name: 'download_history_enabled',
-                category: 'preferences',
+                category: 'image_preferences',
                 description: 'Store image download history (local), right click on a download button to remove from history',
                 default: true
             },
             {
                 name: 'download_history_prevent_download',
-                category: 'preferences',
+                category: 'image_preferences',
                 description: 'Prevent downloading of previously downloaded items',
                 default: false
             },

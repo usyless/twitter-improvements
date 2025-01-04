@@ -12,39 +12,32 @@
             show_hidden: false,
         },
 
-        preferences: {
+        vx_preferences: {
             url_prefix: 'fixvx.com',
-            video_download_fallback: true,
-            long_image_button: false,
             custom_url: '',
+        },
+
+        image_preferences: {
+            long_image_button: false,
             download_history_enabled: true,
             download_history_prevent_download: false,
         },
 
         download_history: {},
 
-        videoDownloading: {
-            detailsURL: '',
-            authorization: '',
-            features: '',
-            fieldToggles: ''
-        },
-
         about: {
             android: /Android/i.test(navigator.userAgent)
         },
 
         loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(['setting', 'preferences', 'videoDownloading', 'download_history'], (s) => {
-                for (const setting of ['setting', 'preferences', 'videoDownloading']) Settings[setting] = {...Settings[setting], ...s[setting]};
+            chrome.storage.local.get(['setting', 'vx_preferences', 'image_preferences', 'download_history'], (s) => {
+                for (const setting of ['setting', 'vx_preferences', 'image_preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
                 Settings.download_history = s.download_history ?? {};
                 resolve();
             });
         }),
 
         saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.download_history}),
-
-        saveVideoDownloadInfo: () => chrome.storage.local.set({videoDownloading: Settings.videoDownloading})
     }
 
     const Tweet = { // Tweet functions
@@ -115,10 +108,8 @@
         videoButtonCallback: (event, article) => {
             Notification.create(`Saving Tweet Video(s)${Settings.about.android ? ' (This may take a second on android)' : ''}`);
             chrome.runtime.sendMessage({
-                ...Settings.preferences,
-                type: 'video',
-                url: Tweet.url(article),
-                cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4), ...Settings.videoDownloading
+                type: 'video', url: Tweet.url(article),
+                cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
             }).then((r) => Tweet.videoResponseHandler(event, r));
         },
 
@@ -136,7 +127,7 @@
         addImageButton: (image) => {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.image_preferences.download_history_enabled && (Settings.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
             } catch {
                 image.removeAttribute('usy')
             }
@@ -188,8 +179,8 @@
         },
 
         getPrefix: () => {
-            if (Settings.preferences.url_prefix === 'x.com') return Settings.preferences.custom_url;
-            return Settings.preferences.url_prefix;
+            if (Settings.vx_preferences.url_prefix === 'x.com') return Settings.vx_preferences.custom_url;
+            return Settings.vx_preferences.url_prefix;
         }
     }
 
@@ -199,7 +190,7 @@
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
             if (marked) shareButton.classList.add('usyMarked');
-            if (attribute === "usy-image" && !Settings.preferences.long_image_button) shareButton.style.maxWidth = 'fit-content';
+            if (attribute === "usy-image" && !Settings.image_preferences.long_image_button) shareButton.style.maxWidth = 'fit-content';
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
@@ -376,7 +367,7 @@
                             clearTimeout(Observer.timer);
                             const newUrl = window.location.href;
                             // Fix green button on switching image
-                            if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.preferences.download_history_enabled) Image.resetAll();
+                            if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.image_preferences.download_history_enabled) Image.resetAll();
                             previousURL = newUrl;
                             if (performance.now() - lastUpdate > updateFrequency) update();
                             else Observer.timer = setTimeout(update, updateFrequency);
@@ -405,18 +396,11 @@
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'imageStore') {
-            if (Settings.preferences.download_history_enabled) {
+            if (Settings.image_preferences.download_history_enabled) {
                 Settings.download_history[message.store] = true;
                 Settings.saveDownloadHistory();
             }
             Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
-        } else if (message.type === 'downloadDetails') {
-            let changeMade = false;
-            for (const n in message) if (Settings.videoDownloading[n] != null && Settings.videoDownloading[n] !== message[n]) {
-                Settings.videoDownloading[n] = message[n];
-                changeMade = true;
-            }
-            changeMade && Settings.saveVideoDownloadInfo();
         } else if (message.type === 'download') Helpers.download(message.url, message.filename);
     });
 })();
