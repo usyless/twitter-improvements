@@ -19,8 +19,9 @@
             custom_url: '',
             download_history_enabled: true,
             download_history_prevent_download: false,
-            download_history: {}
         },
+
+        download_history: {},
 
         videoDownloading: {
             detailsURL: '',
@@ -35,15 +36,13 @@
 
         loadSettings: async () => {
             const data = await chrome.storage.local.get(), settings = ['setting', 'preferences', 'videoDownloading'];
-            for (const setting of settings) for (const s in Settings[setting]) Settings[setting][s] = data[s] ?? Settings[setting][s];
-            // Fix for past changes
-            Settings.preferences.url_prefix === 'vx' && (Settings.preferences.url_prefix = 'fixvx.com');
-            Settings.preferences.url_prefix === 'fx' && (Settings.preferences.url_prefix = 'fixupx.com');
+            for (const setting of settings) Settings[setting] = {...Settings[setting], ...data[setting]};
+            Settings.download_history = data.download_history ?? {};
         },
 
-        saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.preferences.download_history}),
+        saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.download_history}),
 
-        saveVideoDownloadInfo: () => chrome.storage.local.set(Settings.videoDownloading)
+        saveVideoDownloadInfo: () => chrome.storage.local.set({videoDownloading: Settings.videoDownloading})
     }
 
     const Tweet = { // Tweet functions
@@ -135,7 +134,7 @@
         addImageButton: (image) => {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.preferences.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.preferences.download_history_enabled && (Settings.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
             } catch {
                 image.removeAttribute('usy')
             }
@@ -171,7 +170,7 @@
         removeImageDownloadCallback: (e, image) => {
             e.preventDefault();
             Notification.create('Removing image from saved');
-            delete Settings.preferences.download_history[Image.idWithNumber(image)];
+            delete Settings.download_history[Image.idWithNumber(image)];
             Settings.saveDownloadHistory();
         },
 
@@ -389,21 +388,18 @@
     start();
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local') {
-            const {videoDownloading, preferences, setting} = Settings;
-            for (const key in changes) {
-                if (!videoDownloading.hasOwnProperty(key) && (preferences.hasOwnProperty(key) || setting.hasOwnProperty(key))) {
-                    start();
-                    break;
-                }
-            }
+        if (namespace === 'local' &&
+            (changes.hasOwnProperty('preferences') ||
+                changes.hasOwnProperty('setting') ||
+                changes.hasOwnProperty('download_history'))) {
+            start();
         }
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'imageStore') {
             if (Settings.preferences.download_history_enabled) {
-                Settings.preferences.download_history[message.store] = true;
+                Settings.download_history[message.store] = true;
                 Settings.saveDownloadHistory();
             }
             Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);

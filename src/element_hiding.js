@@ -26,7 +26,7 @@
 
         loadSettings: async () => {
             const data = await chrome.storage.local.get();
-            for (const s in Settings.style) Settings.style[s] = data[s] ?? Settings.style[s];
+            Settings.style = {...Settings.style, ...data.style};
         }
     }
 
@@ -70,14 +70,6 @@
     start();
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local') {
-            const style = Settings.style;
-            for (const key in changes) {
-                if (style.hasOwnProperty(key)) {
-                    start();
-                    break;
-                }
-            }
-        }
+        if (namespace === 'local' && changes.hasOwnProperty('style')) start();
     });
 })();

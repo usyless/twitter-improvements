@@ -11,6 +11,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
     if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')});
+    else if (details.previousVersion != null) migrateSettings(details.previousVersion);
 });
 
 chrome?.contextMenus?.create?.(
@@ -155,4 +156,88 @@ function findVideos(data, results = {}) {
         for (const key in data) findVideos(data[key], results);
     }
     return results;
+}
+
+// migrating to new settings format
+function versionBelowGiven(previousVersion, maxVersion) {
+    previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
+    maxVersion = (maxVersion?.match?.(/\d+/g) ?? []).join('');
+    const length = Math.max(previousVersion.length, maxVersion.length);
+    return Number(previousVersion.padEnd(length, '0')) < Number(maxVersion.padEnd(length, '0'));
+}
+
+function migrateSettings(previousVersion) {
+    // Fix for old link copying setting
+    if (versionBelowGiven(previousVersion, '1.0.7.3')) {
+        console.log("Migrating vx and fx settings to new format");
+        chrome.storage.local.get(async (s) => {
+            if (s.url_prefix === 'vx') await chrome.storage.local.set({url_prefix: 'fixvx.com'});
+            if (s.url_prefix === 'fx') await chrome.storage.local.set({url_prefix: 'fixupx.com'});
+        });
+    }
+
+    // 1.1.1.1 is settings migrate update
+    if (versionBelowGiven(previousVersion, '1.1.1.1')) {
+        console.log("Migrating settings to new format");
+        chrome.storage.local.get(async (s) => {
+            const {
+                // styles
+                hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
+                hide_premium, hide_verified_orgs, hide_monetization, hide_ads_button, hide_whats_happening,
+                hide_who_to_follow, hide_relevant_people, hide_create_your_space, hide_post_button,
+                hide_follower_requests, hide_live_on_x, hide_post_reply_sections, hide_sidebar_footer,
+                // settings
+                vx_button, video_button, image_button, show_hidden,
+                // preferences
+                url_prefix, video_download_fallback, long_image_button, custom_url, download_history_enabled,
+                download_history_prevent_download, download_history,
+                // videoDownloading
+                detailsURL, authorization, features, fieldToggles
+            } = s;
+
+            await chrome.storage.local.clear();
+            const newSettings = {style: {}, setting: {}, preferences: {}, videoDownloading: {}};
+
+            if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
+            if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
+            if (hide_grok != null) newSettings.style.hide_grok = hide_grok;
+            if (hide_jobs != null) newSettings.style.hide_jobs = hide_jobs;
+            if (hide_lists == null) newSettings.style.hide_lists = hide_lists;
+            if (hide_communities != null) newSettings.style.hide_communities = hide_communities;
+            if (hide_premium != null) newSettings.style.hide_premium = hide_premium;
+            if (hide_verified_orgs != null) newSettings.style.hide_verified_orgs = hide_verified_orgs;
+            if (hide_monetization != null) newSettings.style.hide_monetization = hide_monetization;
+            if (hide_ads_button != null) newSettings.style.hide_ads_button = hide_ads_button;
+            if (hide_whats_happening != null) newSettings.style.hide_whats_happening = hide_whats_happening;
+            if (hide_who_to_follow != null) newSettings.style.hide_who_to_follow = hide_who_to_follow;
+            if (hide_relevant_people != null) newSettings.style.hide_relevant_people = hide_relevant_people;
+            if (hide_create_your_space != null) newSettings.style.hide_create_your_space = hide_create_your_space;
+            if (hide_post_button != null) newSettings.style.hide_post_button = hide_post_button;
+            if (hide_follower_requests != null) newSettings.style.hide_follower_requests = hide_follower_requests;
+            if (hide_live_on_x != null) newSettings.style.hide_live_on_x = hide_live_on_x;
+            if (hide_post_reply_sections != null) newSettings.style.hide_post_reply_sections = hide_post_reply_sections;
+            if (hide_sidebar_footer != null) newSettings.style.hide_sidebar_footer = hide_sidebar_footer;
+
+            if (vx_button != null) newSettings.setting.vx_button = vx_button;
+            if (video_button != null) newSettings.setting.video_button = video_button;
+            if (image_button != null) newSettings.setting.image_button = image_button;
+            if (show_hidden != null) newSettings.setting.hidden_hidden = show_hidden;
+
+            if (url_prefix != null) newSettings.preferences.url_prefix = url_prefix;
+            if (video_download_fallback != null) newSettings.preferences.video_download_fallback = video_download_fallback;
+            if (long_image_button != null) newSettings.preferences.long_image_button = long_image_button;
+            if (custom_url != null) newSettings.preferences.custom_url = custom_url;
+            if (download_history_enabled != null) newSettings.preferences.download_history_enabled = download_history_enabled;
+            if (download_history_prevent_download != null) newSettings.preferences.download_history_prevent_download = download_history_prevent_download;
+
+            if (detailsURL != null) newSettings.videoDownloading.detailsURL = detailsURL;
+            if (authorization != null) newSettings.videoDownloading.authorization = authorization;
+            if (features != null) newSettings.videoDownloading.features = features;
+            if (fieldToggles != null) newSettings.videoDownloading.fieldToggles = fieldToggles;
+
+            if (download_history != null) newSettings.download_history = download_history;
+
+            await chrome.storage.local.set(newSettings);
+        });
+    }
 }
