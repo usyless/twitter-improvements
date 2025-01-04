@@ -29,7 +29,7 @@
 
     const start = () => loadSettings().then((enabled) => {
         // Remove current styles
-        document.querySelectorAll('style[usyStyle]').forEach((e) => e.remove());
+        for (const s of document.querySelectorAll('style[usyStyle]')) s.remove();
 
         // Apply new enabled styles
         let style = '';
