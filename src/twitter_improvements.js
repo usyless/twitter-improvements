@@ -336,10 +336,13 @@
 
         timer: null,
 
+        forceUpdate: null,
+
         start: () => {
             clearTimeout(Observer.timer);
             Observer.observer?.disconnect();
             Observer.observer = null;
+            Observer.forceUpdate = null;
 
             Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
@@ -357,12 +360,14 @@
                 }, getCallback = () => {
                     const callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
-                    const update = () => {
+                    const update = (pre) => {
                         Observer.observer?.disconnect();
+                        pre?.();
                         for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
                         Observer.observer?.observe(document.body, observerSettings);
                     };
                     update();
+                    Observer.forceUpdate = update;
 
                     let previousURL = window.location.href, lastUpdate = performance.now();
                     const updateFrequency = 100;
@@ -390,11 +395,11 @@
     start();
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local' &&
-            (changes.hasOwnProperty('preferences') ||
-                changes.hasOwnProperty('setting') ||
-                changes.hasOwnProperty('download_history'))) {
-            start();
+        if (namespace === 'local') {
+            if (changes.hasOwnProperty('preferences') || changes.hasOwnProperty('setting')) start();
+            else if (changes.hasOwnProperty('download_history')) {
+                Observer.forceUpdate?.(Image.resetAll);
+            }
         }
     });
 
