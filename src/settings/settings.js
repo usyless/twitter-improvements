@@ -343,6 +343,7 @@
             if (obj.category != null) func(s[obj.category]?.[obj.name] ?? obj.default);
             else func(s[obj.name] ?? obj.default);
         }
+        valuesToUpdate.length = 0;
     });
 
     function create(elem) {
