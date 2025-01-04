@@ -35,8 +35,7 @@
         styleMap: {
             hide_notifications: ['a[href="/notifications"]'],
             hide_messages: ['a[href="/messages"]'],
-            hide_grok: ['a[href="/i/grok"]'],
-            hide_grok_explain: ['button[aria-label="Grok actions"]'],
+            hide_grok: ['a[href="/i/grok"]', 'button[aria-label="Grok actions"]', 'div:has(> div[data-testid^="followups_"] + nav > div > div[data-testid="ScrollSnap-SwipeableList"])'],
             hide_jobs: ['a[href="/jobs"]'],
             hide_lists: ['a[href*="/lists"]'],
             hide_communities: ['a[href*="/communities"]'],

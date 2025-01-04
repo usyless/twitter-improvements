@@ -145,6 +145,11 @@ const options = {
     ],
     'Hide Elements': [
         {
+            name: 'hide_grok',
+            description: 'Everything "Grok"',
+            default: false
+        },
+        {
             name: 'hide_notifications',
             description: '"Notifications" button',
             default: false
@@ -152,16 +157,6 @@ const options = {
         {
             name: 'hide_messages',
             description: '"Messages" button',
-            default: false
-        },
-        {
-            name: 'hide_grok',
-            description: '"Grok" button',
-            default: false
-        },
-        {
-            name: 'hide_grok_explain',
-            description: '"Explain this post" button',
             default: false
         },
         {
