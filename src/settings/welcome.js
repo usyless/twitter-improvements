@@ -58,10 +58,12 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
             else overlay.style.marginTop = '';
         };
         overlay.style.transition = '0s';
-        window.addEventListener('pointermove', (ev) => {
-            overlay.style.marginTop = `${ev.clientY - e.clientY}px`;
-        }, {signal: moveController.signal});
         window.addEventListener('pointerup', onExit, {once: true, signal: controller.signal});
         window.addEventListener('pointercancel', onExit, {once: true, signal: controller.signal});
+        try {
+            window.addEventListener('pointermove', (ev) => {
+                overlay.style.marginTop = `${ev.clientY - e.clientY}px`;
+            }, {signal: AbortSignal.any([moveController.signal, controller.signal])});
+        } catch {console.error("AbortSignal.any not supported, ignoring dragging");}
     }, {signal: controller.signal});
 }
