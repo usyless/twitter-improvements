@@ -134,13 +134,17 @@ body {
     border-radius: 15px 15px 0 0;
 }
 
+#reverseFileInput {
+    display: none;
+}
+
 .parent {
     background-color: var(--additional);
     border-radius: 15px;
     filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
 
     &:has(#reverseFile:active), &:has(#reverseFile:focus-visible) {
-        background-color: var(--additional-lighter);
+        background-color: var(--additional-lighter) !important;
     }
 
     @media (hover: hover) {

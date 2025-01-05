@@ -4,12 +4,13 @@
         <title>Settings - Improvements for Twitter</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="settings.css" />
+        <link rel="stylesheet" href="./settings.css" />
     </head>
 
     <body>
     <div class="wrapper">
         <div class="parent">
+            <input type="file" id="reverseFileInput" accept="image/png, image/jpeg, video/mp4, image/gif" multiple/>
             <button id="reverseFile">Click to reverse image, or drop/paste image into page</button>
             <div id="settings"></div>
         </div>
@@ -17,6 +18,7 @@
         <h3>Found an issue? <a href="https://github.com/usyless/twitter-improvements/issues" target="_blank">Report here</a></h3>
         <h4 id="versionDisplay">Version: v</h4>
     </div>
-    <script src="settings.js"></script>
+    <script src="./settings.js"></script>
+    <script src="./reverse_file.js"></script>
     </body>
 </html>

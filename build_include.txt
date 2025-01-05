@@ -2,7 +2,6 @@ shared\
 settings\
 popup\
 icons\
-reverse_page\
 background.js
 twitter_improvements.css
 twitter_improvements.js
