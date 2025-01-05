@@ -6,7 +6,7 @@
     });
 
     const runIntroduction = () => {
-        // chrome.storage.local.set({introduction: true});
+        chrome.storage.local.set({introduction: true});
         document.body.classList.add('introduction');
         const settings = document.body.firstElementChild;
         settings.classList.add('nopointer');
