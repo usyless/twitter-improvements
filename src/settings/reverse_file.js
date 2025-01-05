@@ -1,8 +1,10 @@
 'use strict';
 
 (() => {
-    document.getElementById('reverseFile').addEventListener('click', () => {
-        document.getElementById('reverseFileInput').click();
+    document.getElementById('reverseFile').parentElement.addEventListener('click', (e) => {
+        if (e.target.id === 'reverseFile' || e.target === e.currentTarget) {
+            document.getElementById('reverseFileInput').click();
+        }
     });
     document.getElementById('reverseFileInput').addEventListener('change', (e) => {
         const d = new DataTransfer();
