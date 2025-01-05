@@ -138,6 +138,10 @@ body {
     display: none;
 }
 
+.active {
+    filter: blur(3px);
+}
+
 .parent {
     background-color: var(--additional);
     border-radius: 15px;

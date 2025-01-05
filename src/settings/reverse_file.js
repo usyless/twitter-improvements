@@ -18,9 +18,14 @@
     window.addEventListener('dragover', (e) => {
         e.preventDefault()
         e.dataTransfer.dropEffect = 'copy';
+        document.body.classList.add('active');
     });
+    const removeHover = () => document.body.classList.remove('active');
+    window.addEventListener('dragleave', removeHover);
+    window.addEventListener('dragend', removeHover);
     window.addEventListener('drop', (e) => {
         e.preventDefault();
+        removeHover();
         reverseFiles(e.dataTransfer);
     });
 
