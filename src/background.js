@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
     if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')});
-    else if (details.previousVersion != null) migrateSettings(details.previousVersion);
+    else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
 });
 
 chrome?.contextMenus?.create?.(
