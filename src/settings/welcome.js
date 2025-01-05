@@ -50,9 +50,17 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
 
     window.addEventListener('pointerdown', (e) => {
+        const moveController = new AbortController();
         const onExit = (ev) => {
+            moveController.abort();
+            overlay.style.transition = '';
             if (e.clientY - ev.clientY > 150) finishIntroduction();
+            else overlay.style.marginTop = '';
         };
+        overlay.style.transition = '0s';
+        window.addEventListener('pointermove', (ev) => {
+            overlay.style.marginTop = `-${Math.max(e.clientY - ev.clientY, 0)}px`;
+        }, {signal: moveController.signal});
         window.addEventListener('pointerup', onExit, {once: true, signal: controller.signal});
         window.addEventListener('pointercancel', onExit, {once: true, signal: controller.signal});
     }, {signal: controller.signal});
