@@ -16,6 +16,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     const lowerText = document.createElement('p');
     const continueButton = document.createElement('button');
     logo.src = '/icons/icon-96.png';
+    logo.addEventListener('dragstart', (e) => e.preventDefault());
     mainText.textContent = 'Thank you for downloading Improvements for Twitter!';
     lowerText.textContent = 'Please adjust the settings to your preferences, and remember to check occasionally for updates, through the popup.'
     overlay.append(logo, mainText, lowerText, continueButton);
