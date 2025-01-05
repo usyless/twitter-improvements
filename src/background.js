@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
-    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html')});
+    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
     else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
 });
 
