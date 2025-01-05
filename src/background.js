@@ -243,11 +243,11 @@ function migrateSettings(previousVersion) {
             if (url_prefix != null) newSettings.vx_preferences.url_prefix = url_prefix;
             if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
 
-            if (video_download_fallback != null) newSettings.image_preferences.video_download_fallback = video_download_fallback;
+            if (download_history_prevent_download != null) newSettings.image_preferences.download_history_prevent_download = download_history_prevent_download;
             if (long_image_button != null) newSettings.image_preferences.long_image_button = long_image_button;
             if (download_history_enabled != null) newSettings.image_preferences.download_history_enabled = download_history_enabled;
 
-            if (download_history_prevent_download != null) newSettings.video_preferences.download_history_prevent_download = download_history_prevent_download;
+            if (video_download_fallback != null) newSettings.video_preferences.video_download_fallback = video_download_fallback;
 
             if (detailsURL != null) newSettings.video_details.detailsURL = detailsURL;
             if (authorization != null) newSettings.video_details.authorization = authorization;
