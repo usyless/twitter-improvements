@@ -54,7 +54,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         const onExit = (ev) => {
             moveController.abort();
             overlay.style.transition = '';
-            if (e.clientY - ev.clientY > 150) finishIntroduction();
+            if (e.clientY - ev.clientY > 200) finishIntroduction();
             else overlay.style.marginTop = '';
         };
         overlay.style.transition = '0s';
