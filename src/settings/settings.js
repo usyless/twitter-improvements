@@ -286,7 +286,6 @@
                 onclick: () => {
                     if (confirm('Are you sure you want to RESET this extensions settings?')) {
                         clearStorage();
-                        window.scrollTo({top: 0, behavior: 'instant'});
                         window.location.reload();
                     }
                 }

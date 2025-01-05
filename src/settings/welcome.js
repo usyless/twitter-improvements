@@ -6,6 +6,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     history.pushState(null, '', newURL.href);
 
     document.body.classList.add('introduction');
+    window.scrollTo({top: 0, behavior: 'instant'});
     const settings = document.body.firstElementChild;
     settings.classList.add('nopointer');
     const overlay = document.createElement('div');
