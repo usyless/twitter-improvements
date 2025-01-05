@@ -25,7 +25,6 @@ body {
     background-color: var(--background-lighter);
     border-radius: 15px;
     row-gap: 20px;
-    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
 
     > div {
         display: flex;
@@ -49,48 +48,6 @@ body {
 
     button {
         max-width: 500px;
-        width: 100%;
-        background-color: var(--additional);
-        color: inherit;
-        font: inherit;
-        border: none;
-        border-radius: 7px;
-        cursor: pointer;
-
-        @media (hover: hover) {
-            &:hover {
-                background-color: var(--additional-light);
-            }
-        }
-
-        &:active {
-            background-color: var(--additional-lighter);
-        }
-
-        &:focus-visible {
-            outline: none;
-            background-color: var(--additional-lighter);
-        }
-
-        &.warning {
-            color: var(--text-light);
-            background-color: var(--warning);
-
-            @media (hover: hover) {
-                &:hover {
-                    background-color: var(--warning-dark);
-                }
-            }
-
-            &:active {
-                background-color: var(--warning-darker);
-            }
-
-            &:focus-visible {
-                outline: none;
-                background-color: var(--warning-darker);
-            }
-        }
     }
 
     input[type="checkbox"] {
@@ -167,6 +124,74 @@ body {
         &:focus-visible {
             outline: none;
             border-color: var(--additional-lighter);
+        }
+    }
+}
+
+#reverseFile {
+    padding: 15px;
+    font-weight: bold;
+    border-radius: 15px 15px 0 0;
+}
+
+.parent {
+    background-color: var(--additional);
+    border-radius: 15px;
+    filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, 0.2));
+
+    &:has(#reverseFile:active), &:has(#reverseFile:focus-visible) {
+        background-color: var(--additional-lighter);
+    }
+
+    @media (hover: hover) {
+        &:has(#reverseFile:hover) {
+            background-color: var(--additional-light);
+        }
+    }
+}
+
+button {
+    width: 100%;
+    background-color: var(--additional);
+    color: inherit;
+    font: inherit;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    text-align: center;
+
+    @media (hover: hover) {
+        &:hover {
+            background-color: var(--additional-light);
+        }
+    }
+
+    &:active {
+        background-color: var(--additional-lighter);
+    }
+
+    &:focus-visible {
+        outline: none;
+        background-color: var(--additional-lighter);
+    }
+
+    &.warning {
+        color: var(--text-light);
+        background-color: var(--warning);
+
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--warning-dark);
+            }
+        }
+
+        &:active {
+            background-color: var(--warning-darker);
+        }
+
+        &:focus-visible {
+            outline: none;
+            background-color: var(--warning-darker);
         }
     }
 }
