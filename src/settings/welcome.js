@@ -26,12 +26,10 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         controller.abort();
 
         overlay.classList.add('intro-end');
-        settings.classList.add('intro-end');
 
         overlay.addEventListener('transitionend', (e) => {
             if (e.target === e.currentTarget) {
                 document.body.classList.remove('introduction');
-                settings.classList.remove('intro-end');
                 settings.classList.remove('nopointer');
                 overlay.remove();
             }
