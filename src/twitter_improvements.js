@@ -331,13 +331,9 @@
 
     const Observer = {
         observer: null,
-
-        timer: null,
-
         forceUpdate: null,
 
         start: () => {
-            clearTimeout(Observer.timer);
             Observer.observer?.disconnect();
             Observer.observer = null;
             Observer.forceUpdate = null;
@@ -366,21 +362,17 @@
                     };
                     update();
                     Observer.forceUpdate = update;
-
-                    let previousURL = window.location.href, lastUpdate = performance.now();
-                    const updateFrequency = 100;
-                    if (callbacks.length > 0) {
-                        return () => {
-                            clearTimeout(Observer.timer);
-                            const newUrl = window.location.href;
-                            // Fix green button on switching image
-                            if (previousURL.includes("/photo/") && newUrl !== previousURL && newUrl.includes("/photo/") && Settings.setting.image_button && Settings.image_preferences.download_history_enabled) Image.resetAll();
-                            previousURL = newUrl;
-                            if (performance.now() - lastUpdate > updateFrequency) update();
-                            else Observer.timer = setTimeout(update, updateFrequency);
-                            lastUpdate = performance.now();
-                        }
+                    // Fix green button on switching image
+                    let previousURL = window.location.href;
+                    const imageFix = () => {
+                        const newUrl = window.location.href;
+                        previousURL.includes("/photo/") && newUrl !== previousURL &&
+                        newUrl.includes("/photo/") && Settings.setting.image_button &&
+                        Settings.image_preferences.download_history_enabled && Image.resetAll();
+                        previousURL = newUrl;
                     }
+
+                    if (callbacks.length > 0) return () => update(imageFix);
                     return (_, observer) => observer.disconnect();
                 };
             Observer.observer = new MutationObserver(getCallback());
