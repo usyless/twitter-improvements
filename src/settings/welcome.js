@@ -24,7 +24,6 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
     const controller = new AbortController();
     const finishIntroduction = () => {
-        console.log("Intro finished");
         controller.abort();
 
         overlay.classList.add('intro-end');
