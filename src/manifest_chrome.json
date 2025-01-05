@@ -52,7 +52,6 @@
     }
   ],
   "options_ui": {
-    "page": "settings/settings.html",
-    "open_in_tab": false
+    "page": "/settings/settings.html"
   }
 }
