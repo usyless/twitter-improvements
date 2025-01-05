@@ -33,7 +33,7 @@
 
         // Apply new enabled styles
         let style = '';
-        for (const setting in enabled) for (const s of StyleMap?.[setting]) style += s + '{display:none;}';
+        for (const setting in enabled) if (enabled[setting] === true) for (const s of StyleMap?.[setting]) style += s + '{display:none;}';
         if (style.length > 0) {
             const s = document.createElement('style');
             s.setAttribute('usyStyle', '');
