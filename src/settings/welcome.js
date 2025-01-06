@@ -93,4 +93,6 @@ if (true) {
             }, {signal: AbortSignal.any([moveController.signal, controller.signal])});
         } catch {console.error("AbortSignal.any not supported, ignoring dragging");}
     }, {signal: controller.signal});
+
+    // do logo spin thing here, with requestAnimationFrame, adjust rotate
 }

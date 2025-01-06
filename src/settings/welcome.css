@@ -16,6 +16,15 @@ body.introduction {
     div {
         width: 96px;
         height: 96px;
+
+        @media(hover: hover) {
+            &:has(img:last-of-type:hover) {
+                img {
+                    transition: 0.1s ease;
+                    transform: rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2) translateZ(var(--pos));
+                }
+            }
+        }
     }
 
     img {
@@ -29,21 +38,8 @@ body.introduction {
         position: absolute;
         filter: brightness(0.8);
 
-        @media(hover: hover) {
-            &:has(~ img:last-of-type:hover) {
-                transition: 0.1s ease;
-                transform: rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2) translateZ(var(--pos));
-            }
-        }
-
         &:last-of-type {
             filter: none;
-            @media(hover: hover) {
-                &:hover {
-                    transition: 0.1s ease;
-                    transform: rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2) translateZ(var(--pos));
-                }
-            }
         }
     }
 
