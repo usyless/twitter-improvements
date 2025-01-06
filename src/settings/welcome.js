@@ -11,7 +11,6 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     settings.classList.add('nopointer');
     const overlay = document.createElement('div');
     overlay.classList.add('wrapper', 'intro-wrapper');
-    const logo = document.createElement('img');
     const logoContainer = document.createElement('div');
     const mainText = document.createElement('h1');
     const lowerText = document.createElement('p');
@@ -41,6 +40,16 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         lastAnimFrame = requestAnimationFrame(anim);
     }
     {
+        const logos = [];
+        for (let i = -10; i <= 20; i += 5) {
+            const l = document.createElement('img');
+            l.src = '/icons/icon-96.png';
+            l.style.setProperty('--pos', `${i}px`);
+            logos.push(l);
+        }
+        logoContainer.classList.add('logo');
+        logoContainer.append(...logos);
+        const logo = logos[logos.length - 1];
         logo.addEventListener('pointermove', (e) => {
             cancelAnimationFrame(lastAnimFrame);
             const rect = logo.getBoundingClientRect();
@@ -56,20 +65,8 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         logo.addEventListener('pointerout', reset);
         logo.addEventListener('pointerleave', reset);
         logo.addEventListener('pointercancel', reset);
+        logo.addEventListener('dragstart', (e) => e.preventDefault());
     }
-    logo.src = '/icons/icon-96.png';
-    const maxLayer = 20;
-    logo.style.setProperty('--pos', `${maxLayer}px`);
-    const lowerLogos = [];
-    for (let i = -10; i < maxLayer; i += 5) {
-        const l = document.createElement('img');
-        l.src = '/icons/icon-96.png';
-        l.style.setProperty('--pos', `${i}px`);
-        lowerLogos.push(l);
-    }
-    logoContainer.classList.add('logo');
-    logoContainer.append(...lowerLogos, logo);
-    logo.addEventListener('dragstart', (e) => e.preventDefault());
     mainText.textContent = 'Thank you for downloading Improvements for Twitter!';
     lowerText.textContent = 'Please adjust the settings to your preferences, and remember to check the settings occasionally for new features, or new elements to hide.'
     overlay.append(logoContainer, mainText, lowerText, continueButton);
