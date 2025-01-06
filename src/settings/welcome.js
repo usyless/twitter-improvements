@@ -19,13 +19,17 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
     let lastAnimFrame;
     const animateLogo = (startY) => {
-        let prevTime, prevY = startY || 0, prevH = 0;
+        let prevTime, prevY = startY || 0, prevH = 0, forwards = true;
         const anim = (timestamp) => {
             if (prevTime == null) prevTime = timestamp;
             else {
                 const delta = (timestamp - prevTime) / 1000;
                 prevTime = timestamp;
-                prevY = prevY + (delta * 50);
+                if (prevY >= 120) forwards = false;
+                else if (prevY <= -120) forwards = true;
+
+                if (forwards) prevY += (delta * 50);
+                else prevY -= (delta * 50);
                 logoContainer.style.setProperty('--y', `${prevY}deg`);
             }
             lastAnimFrame = requestAnimationFrame(anim);
