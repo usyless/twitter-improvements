@@ -9,13 +9,42 @@ body.introduction {
     user-select: none;
     touch-action: none;
 
-    * {
+    *:not(img) {
         transform: translateY(-60px);
     }
 
+    div {
+        width: 96px;
+        height: 96px;
+    }
+
     img {
+        top: 0;
+        left: 0;
         width: fit-content;
         height: fit-content;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+        backdrop-filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)); /* fixes antialiasing in firefox */
+        position: absolute;
+        filter: brightness(0.8);
+
+        @media(hover: hover) {
+            &:has(~ img:last-of-type:hover) {
+                transition: 0.1s ease;
+                transform: rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2) translateZ(var(--pos));
+            }
+        }
+
+        &:last-of-type {
+            filter: none;
+            @media(hover: hover) {
+                &:hover {
+                    transition: 0.1s ease;
+                    transform: rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2) translateZ(var(--pos));
+                }
+            }
+        }
     }
 
     button {

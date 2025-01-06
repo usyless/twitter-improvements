@@ -1,6 +1,6 @@
 'use strict';
 
-if ((new URLSearchParams(window.location.search)).get('installed')) {
+if (true) {
     const newURL = new URL(window.location.href);
     newURL.search = '';
     history.pushState(null, '', newURL.href);
@@ -12,14 +12,41 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     const overlay = document.createElement('div');
     overlay.classList.add('wrapper', 'intro-wrapper');
     const logo = document.createElement('img');
+    const logoContainer = document.createElement('div');
     const mainText = document.createElement('h1');
     const lowerText = document.createElement('p');
     const continueButton = document.createElement('button');
+    logo.addEventListener('load', () => {
+        logo.addEventListener('pointermove', (e) => {
+            const rect = logo.getBoundingClientRect();
+            logoContainer.style.setProperty('--y', `${(e.clientX - rect.left) - (rect.width / 2)}deg`);
+            logoContainer.style.setProperty('--x', `${(rect.height / 2) - (e.clientY - rect.top)}deg`);
+        });
+
+        const reset = () => {
+            logoContainer.style.removeProperty('--x');
+            logoContainer.style.removeProperty('--y');
+        }
+
+        logo.addEventListener('pointerout', reset);
+        logo.addEventListener('pointerleave', reset);
+        logo.addEventListener('pointercancel', reset);
+    });
     logo.src = '/icons/icon-96.png';
+    const maxLayer = 20;
+    logo.style.setProperty('--pos', `${maxLayer}px`);
+    const lowerLogos = [];
+    for (let i = -10; i < maxLayer; i += 5) {
+        const l = document.createElement('img');
+        l.src = '/icons/icon-96.png';
+        l.style.setProperty('--pos', `${i}px`);
+        lowerLogos.push(l);
+    }
+    logoContainer.append(...lowerLogos, logo);
     logo.addEventListener('dragstart', (e) => e.preventDefault());
     mainText.textContent = 'Thank you for downloading Improvements for Twitter!';
     lowerText.textContent = 'Please adjust the settings to your preferences, and remember to check the settings occasionally for new features, or new elements to hide.'
-    overlay.append(logo, mainText, lowerText, continueButton);
+    overlay.append(logoContainer, mainText, lowerText, continueButton);
     document.body.firstElementChild.before(overlay);
 
     const controller = new AbortController();
