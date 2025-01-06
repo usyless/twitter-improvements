@@ -16,8 +16,25 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     const mainText = document.createElement('h1');
     const lowerText = document.createElement('p');
     const continueButton = document.createElement('button');
-    logo.addEventListener('load', () => {
+
+    let lastAnimFrame;
+    const animateLogo = (startY) => {
+        let prevTime, prevY = startY || 0, prevH = 0;
+        const anim = (timestamp) => {
+            if (prevTime == null) prevTime = timestamp;
+            else {
+                const delta = (timestamp - prevTime) / 1000;
+                prevTime = timestamp;
+                prevY = prevY + (delta * 50);
+                logoContainer.style.setProperty('--y', `${prevY}deg`);
+            }
+            lastAnimFrame = requestAnimationFrame(anim);
+        }
+        lastAnimFrame = requestAnimationFrame(anim);
+    }
+    {
         logo.addEventListener('pointermove', (e) => {
+            cancelAnimationFrame(lastAnimFrame);
             const rect = logo.getBoundingClientRect();
             logoContainer.style.setProperty('--y', `${(e.clientX - rect.left) - (rect.width / 2)}deg`);
             logoContainer.style.setProperty('--x', `${(rect.height / 2) - (e.clientY - rect.top)}deg`);
@@ -25,13 +42,13 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
         const reset = () => {
             logoContainer.style.removeProperty('--x');
-            logoContainer.style.removeProperty('--y');
+            animateLogo(Number(logoContainer.style.getPropertyValue('--y').match(/\d+/)[0]));
         }
 
         logo.addEventListener('pointerout', reset);
         logo.addEventListener('pointerleave', reset);
         logo.addEventListener('pointercancel', reset);
-    });
+    }
     logo.src = '/icons/icon-96.png';
     const maxLayer = 20;
     logo.style.setProperty('--pos', `${maxLayer}px`);
@@ -42,6 +59,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         l.style.setProperty('--pos', `${i}px`);
         lowerLogos.push(l);
     }
+    logoContainer.classList.add('logo');
     logoContainer.append(...lowerLogos, logo);
     logo.addEventListener('dragstart', (e) => e.preventDefault());
     mainText.textContent = 'Thank you for downloading Improvements for Twitter!';
@@ -94,5 +112,5 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         } catch {console.error("AbortSignal.any not supported, ignoring dragging");}
     }, {signal: controller.signal});
 
-    // do logo spin thing here, with requestAnimationFrame, adjust rotate
+    animateLogo();
 }
