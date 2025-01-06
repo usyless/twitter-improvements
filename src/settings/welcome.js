@@ -50,6 +50,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         logoContainer.classList.add('logo');
         logoContainer.append(...logos);
         const logo = logos[logos.length - 1];
+        logo.addEventListener('pointerdown', (e) => e.stopPropagation());
         logo.addEventListener('pointermove', (e) => {
             cancelAnimationFrame(lastAnimFrame);
             const rect = logo.getBoundingClientRect();
