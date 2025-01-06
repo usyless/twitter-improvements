@@ -41,10 +41,10 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     }
     {
         const logos = [];
-        for (let i = -10; i <= 20; i += 5) {
+        for (let i = -2; i <= 4; ++i) { // creates 7 layers
             const l = document.createElement('img');
             l.src = '/icons/icon-96.png';
-            l.style.setProperty('--pos', `${i}px`);
+            l.style.setProperty('--pos', `${i * 5}px`); // 5 change per layer
             logos.push(l);
         }
         logoContainer.classList.add('logo');
