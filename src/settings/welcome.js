@@ -23,14 +23,17 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
         const anim = (timestamp) => {
             if (prevTime == null) prevTime = timestamp;
             else {
-                const delta = (timestamp - prevTime) / 1000;
-                prevTime = timestamp;
-                if (prevY >= 120) forwards = false;
-                else if (prevY <= -120) forwards = true;
+                let delta = timestamp - prevTime;
+                if (delta < 100) { // for tabbing out
+                    delta /= 1000;
+                    if (prevY >= 120) forwards = false;
+                    else if (prevY <= -120) forwards = true;
 
-                if (forwards) prevY += (delta * 50);
-                else prevY -= (delta * 50);
-                logoContainer.style.setProperty('--y', `${prevY}deg`);
+                    if (forwards) prevY += (delta * 50);
+                    else prevY -= (delta * 50);
+                    logoContainer.style.setProperty('--y', `${prevY}deg`);
+                }
+                prevTime = timestamp;
             }
             lastAnimFrame = requestAnimationFrame(anim);
         }
