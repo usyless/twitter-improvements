@@ -1,6 +1,6 @@
 'use strict';
 
-if (true) {
+if ((new URLSearchParams(window.location.search)).get('installed')) {
     const newURL = new URL(window.location.href);
     newURL.search = '';
     history.pushState(null, '', newURL.href);
