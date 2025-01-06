@@ -19,6 +19,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
     let lastAnimFrame;
     const animateLogo = (startY) => {
+        logoContainer.style.setProperty('--x', `-20deg`);
         let prevTime, prevY = startY || 0, forwards = true;
         const anim = (timestamp) => {
             if (prevTime == null) prevTime = timestamp;
