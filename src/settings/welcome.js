@@ -16,43 +16,18 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     const lowerText = document.createElement('p');
     const continueButton = document.createElement('button');
 
-    let lastAnimFrame;
-    const animateLogo = (startY) => {
-        logoContainer.style.setProperty('--x', `-20deg`);
-        let prevTime, prevY = startY || 0, forwards = true;
-        const anim = (timestamp) => {
-            if (prevTime == null) prevTime = timestamp;
-            else {
-                let delta = timestamp - prevTime;
-                if (delta < 100) { // for tabbing out
-                    delta /= 1000;
-                    if (prevY >= 120) forwards = false;
-                    else if (prevY <= -120) forwards = true;
-
-                    if (forwards) prevY += (delta * 50);
-                    else prevY -= (delta * 50);
-                    logoContainer.style.setProperty('--y', `${prevY}deg`);
-                }
-                prevTime = timestamp;
-            }
-            lastAnimFrame = requestAnimationFrame(anim);
-        }
-        lastAnimFrame = requestAnimationFrame(anim);
-    }
     {
-        const logos = [];
         for (let i = -2; i <= 4; ++i) { // creates 7 layers
             const l = document.createElement('img');
             l.src = '/icons/icon-96.png';
             l.style.setProperty('--pos', `${i * 5}px`); // 5 change per layer
-            logos.push(l);
+            logoContainer.appendChild(l);
         }
         logoContainer.classList.add('logo');
-        logoContainer.append(...logos);
-        const logo = logos[logos.length - 1];
+
+        const logo = logoContainer.lastElementChild;
         logo.addEventListener('pointerdown', (e) => e.stopPropagation());
         logo.addEventListener('pointermove', (e) => {
-            cancelAnimationFrame(lastAnimFrame);
             const rect = logo.getBoundingClientRect();
             logoContainer.style.setProperty('--y', `${(e.clientX - rect.left) - (rect.width / 2)}deg`);
             logoContainer.style.setProperty('--x', `${(rect.height / 2) - (e.clientY - rect.top)}deg`);
@@ -60,7 +35,7 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
 
         const reset = () => {
             logoContainer.style.removeProperty('--x');
-            animateLogo(Number(logoContainer.style.getPropertyValue('--y').match(/\d+/)[0]));
+            logoContainer.style.removeProperty('--y');
         }
 
         logo.addEventListener('pointerout', reset);
@@ -117,6 +92,4 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
             }, {signal: AbortSignal.any([moveController.signal, controller.signal])});
         } catch {console.error("AbortSignal.any not supported, ignoring dragging");}
     }, {signal: controller.signal});
-
-    animateLogo();
 }
