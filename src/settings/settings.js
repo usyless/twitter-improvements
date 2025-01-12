@@ -77,7 +77,7 @@
                 type: 'button',
                 button: 'Clear download history',
                 onclick: () => {
-                    if (confirm('Are you sure you want to clear your image download history?')) setStorage({download_history: {}});
+                    if (confirm('Are you sure you want to clear your image download history?')) chrome.runtime.sendMessage({type: 'download_history_clear'});
                 }
             },
             {
@@ -99,10 +99,9 @@
                             if (!file) return;
                             const reader = new FileReader();
                             reader.onload = async (r) => {
-                                const items = r.target.result.split(' '), result = {};
-                                for (const i of items) result[i] = true;
-                                setStorage({download_history: {...(await get_value({name: 'download_history', default: {}})), ...result}});
-                                alert('Successfully imported!');
+                                (browser ?? chrome).runtime.sendMessage({
+                                    type: 'download_history_add_all', saved_images: r.target.result.split(' ')
+                                }).then(() => alert('Successfully imported!'));
                             };
                             reader.readAsText(file);
                     });
@@ -125,14 +124,18 @@
                     i.multiple = true;
                     i.accept = 'image/*';
                     i.addEventListener('change', async (e) => {
-                        const result = {};
+                        const saved_images = [];
                         let accepted = 0;
                         for (const file of e.target.files) {
                             const n = file.name.split('-');
-                            if (n[0].includes('twitter')) try {result[`${n[1].replace(/\D/g, '')}-${n[2].split('.')[0].replace(/\D/g, '')[0]}`] = true;++accepted;} catch {}
+                            if (n[0].includes('twitter')) try {
+                                saved_images.push(`${n[1].replace(/\D/g, '')}-${n[2].split('.')[0].replace(/\D/g, '')[0]}`);
+                                ++accepted;
+                            } catch {}
                         }
-                        setStorage({download_history: {...(await get_value({name: 'download_history', default: {}})), ...result}});
-                        alert(`Successfully imported ${accepted} files!`);
+                        (browser ?? chrome).runtime.sendMessage({
+                            type: 'download_history_add_all', saved_images
+                        }).then(() => alert(`Successfully imported ${accepted} files!`));
                     });
                     document.body.appendChild(i);
                 }
@@ -142,12 +145,14 @@
                 description: '',
                 type: 'button',
                 button: 'Export downloaded history (Exported as {tweet id}-{image number})',
-                onclick: async () => {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(new Blob([Object.keys(await get_value({name: 'download_history', default: {}})).join(' ')], { type: 'text/plain' }));
-                    link.download = 'export.twitterimprovements';
-                    link.click();
-                    URL.revokeObjectURL(link.href);
+                onclick: () => {
+                    (browser ?? chrome).runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
+                        link.download = 'export.twitterimprovements';
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                    });
                 }
             }
         ],
@@ -281,7 +286,7 @@
                 name: 'reset_all_settings',
                 description: '',
                 type: 'button',
-                button: 'Reset to DEFAULT settings',
+                button: 'Reset to DEFAULT settings (excluding download history)',
                 class: ['warning'],
                 onclick: () => {
                     if (confirm('Are you sure you want to RESET this extensions settings?')) {
@@ -360,13 +365,6 @@
         if (flipOrder) outer.append(elem, label);
         else outer.append(label, elem);
         return [outer, elem];
-    }
-
-    function get_value(obj) {
-        return new Promise((resolve) => {
-            if (obj.category != null) chrome.storage.local.get([obj.category], (r) => resolve(r[obj.category]?.[obj.name] ?? obj.default));
-            else chrome.storage.local.get([obj.name], (r) => resolve(r[obj.name] ?? obj.default));
-        });
     }
 
     function update_value(e, obj, property) {

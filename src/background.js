@@ -4,6 +4,9 @@ const requestMap = {
     videoChoice: download_video_from_choices,
     download_history_has: download_history_has,
     download_history_remove: download_history_remove,
+    download_history_clear: download_history_clear,
+    download_history_add_all: download_history_add_all,
+    download_history_get_all: download_history_get_all
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -277,11 +280,9 @@ function migrateSettings(previousVersion) {
 
             chrome.storage.local.get(['download_history'], (r) => {
                 const history = r.download_history ?? {};
-                if (Object.keys(history).length > 0) {
-                    for (const key in history) if (history.hasOwnProperty(key)) objectStore.put({saved_image: key});
+                if (Object.keys(history).length > 0) for (const saved_image in history) objectStore.put({saved_image});
 
-                    chrome.storage.local.remove('download_history');
-                }
+                chrome.storage.local.remove('download_history');
             });
         });
     }
@@ -333,5 +334,33 @@ function download_history_remove(request, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .delete(request.id).addEventListener('success', () => sendResponse(true));
+    });
+}
+
+function download_history_clear() {
+    getHistoryDB().then((db) => {
+        db.transaction(['download_history'], 'readwrite').objectStore('download_history').clear();
+    })
+}
+
+function download_history_add_all(request, sendResponse) {
+    getHistoryDB().then((db) => {
+        const transaction = db.transaction(['download_history'], 'readwrite');
+        const objectStore = transaction.objectStore('download_history');
+
+        for (const saved_image of request.saved_images) objectStore.put({saved_image});
+
+        transaction.addEventListener('complete', () => {
+            sendResponse(true);
+        });
+    });
+}
+
+function download_history_get_all(_, sendResponse) {
+    getHistoryDB().then((db) => {
+        db.transaction(['download_history'], 'readonly').objectStore('download_history')
+            .getAllKeys().addEventListener('success', (e) => {
+                sendResponse(e.target.result);
+        })
     });
 }
