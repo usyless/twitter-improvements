@@ -15,11 +15,10 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
-    if (details.reason === 'install') {
-        getHistoryDB(); // create indexed db
-        chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
-    }
-    else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
+    updateHistoryDb().then(() => {
+        if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
+        else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
+    });
 });
 
 chrome?.contextMenus?.create?.(
@@ -296,25 +295,40 @@ function migrateSettings(previousVersion) {
     }
 }
 
-let download_history_db;
-function getHistoryDB() {
+function updateHistoryDb() {
     return new Promise((resolve) => {
-        if (download_history_db != null) resolve(download_history_db);
-        else {
-            const request = indexedDB.open('download_history', 1);
-            request.addEventListener('upgradeneeded', (event) => {
+        indexedDB.open('download_history', 1)
+            .addEventListener('upgradeneeded', (event) => {
                 const db = event.target.result;
 
                 if (event.oldVersion <= 0) {
                     const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
                     objectStore.createIndex('saved_image', 'saved_image', {unique: true});
                 }
-            });
 
-            request.addEventListener('success', (e) => {
-                download_history_db = e.target.result;
-                resolve(e.target.result)
+                resolve(true);
             });
+    });
+}
+
+let download_history_db;
+let db_opening = false;
+const pending_db_promises = [];
+function getHistoryDB() {
+    return new Promise((resolve) => {
+        if (download_history_db != null) resolve(download_history_db);
+        else if (db_opening) pending_db_promises.push(resolve);
+        else {
+            db_opening = true;
+            indexedDB.open('download_history', 1)
+                .addEventListener('success', (e) => {
+                    download_history_db = e.target.result;
+                    db_opening = false;
+                    resolve(download_history_db);
+
+                    for (const promise of pending_db_promises) promise(download_history_db);
+                    pending_db_promises.length = 0;
+                });
         }
     });
 }
