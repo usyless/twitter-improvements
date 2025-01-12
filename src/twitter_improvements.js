@@ -391,9 +391,6 @@
             if (changes.hasOwnProperty('setting')) Settings.loadSettings().then(Observer.start);
             else if (changes.hasOwnProperty('image_preferences')) {
                 Settings.loadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
-            } else if (changes.hasOwnProperty('download_history')) {
-                // Will need to refresh active tabs after clearing/importing
-                Observer.forceUpdate?.(Image.resetAll);
             }
         }
     });
