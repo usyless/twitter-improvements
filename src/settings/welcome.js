@@ -19,10 +19,11 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     {
         for (let i = -2; i <= 4; ++i) { // creates 7 layers
             const l = document.createElement('img');
-            l.src = '/icons/icon-96.png';
+            l.src = '/icons/icon-bg.svg';
             l.style.setProperty('--pos', `${i * 5}px`); // 5 change per layer
             logoContainer.appendChild(l);
         }
+        logoContainer.lastElementChild.src = '/icons/icon.svg';
         logoContainer.classList.add('logo');
 
         const logo = logoContainer.lastElementChild;

@@ -59,8 +59,8 @@ body.introduction {
     img {
         top: 0;
         left: 0;
-        width: fit-content;
-        height: fit-content;
+        width: 96px;
+        height: 96px;
         transform-style: preserve-3d;
         perspective: 1000px;
         backdrop-filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)); /* fixes antialiasing in firefox */
