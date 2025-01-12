@@ -37,7 +37,7 @@
 
     const Background = {
         download_history_has: async (id) => await chrome.runtime.sendMessage({type: 'download_history_has', id}),
-        download_history_remove: async (id) => await chrome.runtime.sendMessage({type: 'download_history_remove', id}),
+        download_history_remove: (id) => chrome.runtime.sendMessage({type: 'download_history_remove', id}),
 
         save_video: async (url) => await chrome.runtime.sendMessage({
             type: 'video', url,
@@ -173,7 +173,7 @@
         removeImageDownloadCallback: (e, image) => {
             e.preventDefault();
             Notification.create('Removing image from saved');
-            Background.download_history_remove(Image.idWithNumber(image)).then(() => Observer.forceUpdate?.(Image.resetAll));
+            Background.download_history_remove(Image.idWithNumber(image));
         },
 
         resetAll: () => {

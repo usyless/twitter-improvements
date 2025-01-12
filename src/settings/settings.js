@@ -78,9 +78,7 @@
                 button: 'Clear download history',
                 onclick: () => {
                     if (confirm('Are you sure you want to clear your image download history?')) {
-                        (browser ?? chrome).runtime.sendMessage({type: 'download_history_clear'}).then(() => {
-                            chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
-                        });
+                        (browser ?? chrome).runtime.sendMessage({type: 'download_history_clear'});
                     }
                 }
             },
@@ -105,10 +103,7 @@
                             reader.onload = async (r) => {
                                 (browser ?? chrome).runtime.sendMessage({
                                     type: 'download_history_add_all', saved_images: r.target.result.split(' ')
-                                }).then(() => {
-                                    chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
-                                    alert('Successfully imported!');
-                                });
+                                }).then(() => alert('Successfully imported!'));
                             };
                             reader.readAsText(file);
                     });
@@ -142,10 +137,7 @@
                         }
                         (browser ?? chrome).runtime.sendMessage({
                             type: 'download_history_add_all', saved_images
-                        }).then(() => {
-                            chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
-                            alert(`Successfully imported ${accepted} files!`);
-                        });
+                        }).then(() => alert(`Successfully imported ${accepted} files!`));
                     });
                     document.body.appendChild(i);
                 }

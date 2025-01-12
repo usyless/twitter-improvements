@@ -62,8 +62,7 @@ function saveImage(request, sendResponse) {
     filename = filename.split("-");
     const saved_id = `${filename[1].trim()}-${filename[2].trim()}`;
     chrome.storage.local.get(['image_preferences'], (r) => {
-        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => send_to_all_tabs({message: {type: 'image_saved'}}));
-        else send_to_all_tabs({message: {type: 'image_saved'}});
+        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id);
     })
     sendResponse?.('success');
 }
@@ -331,10 +330,10 @@ function download_history_has(request, sendResponse) {
 }
 
 function download_history_add(saved_image) {
-    return new Promise((resolve) => {
-        getHistoryDB().then((db) => {
-            db.transaction(['download_history'], 'readwrite').objectStore('download_history')
-                .put({saved_image}).addEventListener('success', resolve);
+    getHistoryDB().then((db) => {
+        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+            .put({saved_image}).addEventListener('success', () => {
+                send_to_all_tabs({message: {type: 'image_saved'}});
         });
     });
 }
@@ -342,7 +341,10 @@ function download_history_add(saved_image) {
 function download_history_remove(request, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
-            .delete(request.id).addEventListener('success', () => sendResponse(true));
+            .delete(request.id).addEventListener('success', () => {
+                send_to_all_tabs({message: {type: 'image_saved'}});
+                sendResponse(true);
+        });
     });
 }
 
@@ -350,7 +352,8 @@ function download_history_clear(_, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .clear().addEventListener('success', () => {
-            sendResponse(true);
+                send_to_all_tabs({message: {type: 'image_saved'}});
+                sendResponse(true);
         });
     })
 }
@@ -363,6 +366,7 @@ function download_history_add_all(request, sendResponse) {
         for (const saved_image of request.saved_images) objectStore.put({saved_image});
 
         transaction.addEventListener('complete', () => {
+            send_to_all_tabs({message: {type: 'image_saved'}});
             sendResponse(true);
         });
     });
