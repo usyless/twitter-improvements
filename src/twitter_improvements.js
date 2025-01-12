@@ -23,28 +23,27 @@
             download_history_prevent_download: false,
         },
 
-        download_history: {},
-
         about: {
             android: /Android/i.test(navigator.userAgent)
         },
 
         loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(['setting', 'vx_preferences', 'image_preferences', 'download_history'], (s) => {
-                for (const setting of ['setting', 'vx_preferences', 'image_preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
-                Settings.download_history = s.download_history ?? {};
-                resolve();
-            });
-        }),
-
-        reloadSettings: () => new Promise(resolve => {
             chrome.storage.local.get(['setting', 'vx_preferences', 'image_preferences'], (s) => {
                 for (const setting of ['setting', 'vx_preferences', 'image_preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
                 resolve();
             });
         }),
+    }
 
-        saveDownloadHistory: () => chrome.storage.local.set({download_history: Settings.download_history}),
+    const Background = {
+        download_history_has: async (id) => await chrome.runtime.sendMessage({type: 'download_history_has', id}),
+        download_history_remove: async (id) => await chrome.runtime.sendMessage({type: 'download_history_remove', id}),
+
+        save_video: async (url) => await chrome.runtime.sendMessage({
+            type: 'video', url,
+            cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
+        }),
+        save_image: (url, sourceURL) => chrome.runtime.sendMessage({type: 'image', url, sourceURL})
     }
 
     const Tweet = { // Tweet functions
@@ -114,10 +113,7 @@
 
         videoButtonCallback: (event, article) => {
             Notification.create(`Saving Tweet Video(s)${Settings.about.android ? ' (This may take a second on android)' : ''}`);
-            chrome.runtime.sendMessage({
-                type: 'video', url: Tweet.url(article),
-                cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
-            }).then((r) => Tweet.videoResponseHandler(event, r));
+            Background.save_video(Tweet.url(article)).then((r) => Tweet.videoResponseHandler(event, r));
         },
 
         videoResponseHandler: (event, r) => {
@@ -134,7 +130,13 @@
         addImageButton: (image) => {
             try {
                 image.setAttribute('usy', '');
-                image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), Settings.image_preferences.download_history_enabled && (Settings.download_history.hasOwnProperty(Image.idWithNumber(image))), "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                if (Settings.image_preferences.download_history_enabled) {
+                    Background.download_history_has(Image.idWithNumber(image)).then((response) => {
+                        image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), response, "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                    });
+                } else { // create buttons immediately then mark optionally
+                    image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), false, "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                }
             } catch {
                 image.removeAttribute('usy')
             }
@@ -163,15 +165,14 @@
                 Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
             } else {
                 Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
-                chrome.runtime.sendMessage({type: 'image', url: Image.respectiveURL(image), sourceURL: image.src});
+                Background.save_image(Image.respectiveURL(image), image.src);
             }
         },
 
         removeImageDownloadCallback: (e, image) => {
             e.preventDefault();
             Notification.create('Removing image from saved');
-            delete Settings.download_history[Image.idWithNumber(image)];
-            Settings.saveDownloadHistory();
+            Background.download_history_remove(Image.idWithNumber(image)).then(() => Observer.forceUpdate?.(Image.resetAll));
         },
 
         resetAll: () => {
@@ -385,9 +386,9 @@
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
             // no need to restart on vx_preferences change
-            if (changes.hasOwnProperty('setting')) Settings.reloadSettings().then(Observer.start);
+            if (changes.hasOwnProperty('setting')) Settings.loadSettings().then(Observer.start);
             else if (changes.hasOwnProperty('image_preferences')) {
-                Settings.reloadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
+                Settings.loadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
             } else if (changes.hasOwnProperty('download_history')) {
                 // Will need to refresh active tabs after clearing/importing
                 Observer.forceUpdate?.(Image.resetAll);
@@ -396,11 +397,8 @@
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === 'imageStore') {
-            if (Settings.image_preferences.download_history_enabled) {
-                Settings.download_history[message.store] = true;
-                Settings.saveDownloadHistory();
-            }
+        if (message.type === 'image_saved') {
+            if (Settings.image_preferences.download_history_enabled) Observer.forceUpdate?.(Image.resetAll);
             Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
         } else if (message.type === 'download') Helpers.download(message.url, message.filename);
     });

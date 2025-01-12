@@ -1,7 +1,9 @@
 const requestMap = {
     image: saveImage,
     video: download_video,
-    videoChoice: download_video_from_choices
+    videoChoice: download_video_from_choices,
+    download_history_has: download_history_has,
+    download_history_remove: download_history_remove,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -10,7 +12,10 @@ chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 chrome?.runtime?.onInstalled?.addListener?.((details) => {
-    if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
+    if (details.reason === 'install') {
+        getHistoryDB(); // create indexed db
+        chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
+    }
     else if (details.reason === 'update' && details.previousVersion != null) migrateSettings(details.previousVersion);
 });
 
@@ -41,9 +46,14 @@ function sendToTab(message) {
 function saveImage(request, sendResponse) {
     let filename = getFileName(request.url);
     download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), filename + "." + getImageFileType(request.sourceURL));
+
     filename = filename.split("-");
-    sendToTab({type: 'imageStore', store: `${filename[1].trim()}-${filename[2].trim()}`});
-    sendResponse?.({status: "success"});
+    const saved_id = `${filename[1].trim()}-${filename[2].trim()}`;
+    chrome.storage.local.get(['image_preferences'], (r) => {
+        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => sendToTab({type: 'image_saved'}));
+        else sendToTab({type: 'image_saved'});
+    })
+    sendResponse?.('success');
 }
 
 function getFileName(url) { // [twitter] <Username> - <Tweet ID> - <Number>
@@ -259,4 +269,69 @@ function migrateSettings(previousVersion) {
             await chrome.storage.local.set(newSettings);
         });
     }
+
+    // migrate history to indexed db
+    if (versionBelowGiven(previousVersion, 'v1.1.1.4')) {
+        getHistoryDB().then((db) => {
+            const objectStore = db.transaction(['download_history'], 'readwrite').objectStore('download_history');
+
+            chrome.storage.local.get(['download_history'], (r) => {
+                const history = r.download_history ?? {};
+                if (Object.keys(history).length > 0) {
+                    for (const key in history) if (history.hasOwnProperty(key)) objectStore.put({saved_image: key});
+
+                    chrome.storage.local.remove('download_history');
+                }
+            });
+        });
+    }
+}
+
+let download_history_db;
+function getHistoryDB() {
+    return new Promise((resolve) => {
+        if (download_history_db != null) resolve(download_history_db);
+        else {
+            const request = indexedDB.open('download_history', 1);
+            request.addEventListener('upgradeneeded', (event) => {
+                const db = event.target.result;
+
+                if (event.oldVersion <= 0) {
+                    const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
+                    objectStore.createIndex('saved_image', 'saved_image', {unique: true});
+                }
+            });
+
+            request.addEventListener('success', (e) => {
+                download_history_db = e.target.result;
+                resolve(e.target.result)
+            });
+        }
+    });
+}
+
+function download_history_has(request, sendResponse) {
+    getHistoryDB().then((db) => {
+        db.transaction(['download_history'], 'readonly').objectStore('download_history').index('saved_image')
+            .get(request.id).addEventListener('success', (e) => {
+            if (e.target.result) sendResponse(true);
+            else sendResponse(false);
+        });
+    });
+}
+
+function download_history_add(saved_image) {
+    return new Promise((resolve) => {
+        getHistoryDB().then((db) => {
+            db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+                .put({saved_image}).addEventListener('success', resolve);
+        });
+    });
+}
+
+function download_history_remove(request, sendResponse) {
+    getHistoryDB().then((db) => {
+        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+            .delete(request.id).addEventListener('success', () => sendResponse(true));
+    });
 }
