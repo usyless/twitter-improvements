@@ -375,7 +375,7 @@
                     return Observer.disable;
                 };
             Observer.observer = new MutationObserver(getCallback());
-            Observer.observer.observe(document.body, observerSettings);
+            Observer.observer?.observe(document.body, observerSettings);
         },
 
         disable: () => {
