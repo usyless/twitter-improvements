@@ -283,11 +283,12 @@ function migrateSettings(previousVersion) {
     // migrate history to indexed db
     if (versionBelowGiven(previousVersion, 'v1.1.1.4')) {
         getHistoryDB().then((db) => {
-            const objectStore = db.transaction(['download_history'], 'readwrite').objectStore('download_history');
-
             chrome.storage.local.get(['download_history'], (r) => {
                 const history = r.download_history ?? {};
-                if (Object.keys(history).length > 0) for (const saved_image in history) objectStore.put({saved_image});
+                if (Object.keys(history).length > 0) {
+                    const objectStore = db.transaction(['download_history'], 'readwrite').objectStore('download_history');
+                    for (const saved_image in history) objectStore.put({saved_image});
+                }
 
                 chrome.storage.local.remove('download_history');
             });
