@@ -156,14 +156,12 @@
             return `${a[0]}-${a[2]}`;
         },
 
-        getRespectiveButton: (image) => {
-            return image.parentElement.querySelector('div.usybuttonclickdiv');
-        },
+        getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
 
         imageButtonCallback: (e, image) => {
             e.preventDefault();
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
-                Notification.create('Image is already saved, save using right click menu, or remove from saved to override')
+                Notification.create('Image is already saved, save using right click menu, or remove from saved to override');
             } else {
                 Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
                 Background.save_image(Image.respectiveURL(image), image.src);
