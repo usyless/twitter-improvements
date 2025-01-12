@@ -53,7 +53,7 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article), false, "usy-copy"));
+                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article), "usy-copy"));
             } catch {
                 article.removeAttribute('usy');
             }
@@ -66,7 +66,7 @@
                 // checks if quote tweet contains specific video component (don't show button)
                 // doesn't affect a video QRT as each video checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    a.after(Button.newButton(a, download_button_path, (e) => Tweet.videoButtonCallback(e, article), false, "usy-video"));
+                    a.after(Button.newButton(a, download_button_path, (e) => Tweet.videoButtonCallback(e, article), "usy-video"));
                 }
             } catch {
                 videoComponent.removeAttribute('usy')
@@ -130,12 +130,13 @@
         addImageButton: (image) => {
             try {
                 image.setAttribute('usy', '');
+                const button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
+                image.after(button);
+
                 if (Settings.image_preferences.download_history_enabled) {
                     Background.download_history_has(Image.idWithNumber(image)).then((response) => {
-                        image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), response, "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
+                        if (response === true) Button.mark(button);
                     });
-                } else { // create buttons immediately then mark optionally
-                    image.after(Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), false, "usy-image", (e) => Image.removeImageDownloadCallback(e, image)));
                 }
             } catch {
                 image.removeAttribute('usy')
@@ -193,11 +194,10 @@
     }
 
     const Button = { // Button functions
-        newButton: (shareButton, path, clickCallback, marked, attribute, rightClickCallback) => {
+        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
-            if (marked) shareButton.classList.add('usyMarked');
             if (attribute === "usy-image" && !Settings.image_preferences.long_image_button) shareButton.style.maxWidth = 'fit-content';
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
@@ -214,6 +214,8 @@
         isMarked: (button) => {
             return button.classList.contains('usyMarked');
         },
+
+        mark: (button) => button.classList.add('usyMarked'),
 
         onhover: (bc) => {
             bc.classList.add('r-1cvl2hr');
