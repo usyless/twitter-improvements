@@ -53,7 +53,7 @@ body.introduction {
 
     @media(hover: hover) {
         &:has(img:last-of-type:hover) {
-            transition: none !important;
+            transition: none;
             transform: translateY(-60px) perspective(1000px) rotateX(var(--x, 0)) rotateY(var(--y, 0)) scale(1.2);
         }
     }
