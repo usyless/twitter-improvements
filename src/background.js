@@ -7,7 +7,6 @@ const requestMap = {
     download_history_clear: download_history_clear,
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
-    send_to_all_tabs: send_to_all_tabs,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -47,12 +46,10 @@ function sendToTab(message) {
     });
 }
 
-function send_to_all_tabs(request, sendResponse) {
+function send_to_all_tabs(message) {
     chrome.tabs.query({}, (tabs) => {
-        for (const tab of tabs) if (tab.status === 'complete') chrome.tabs.sendMessage(tab.id, request.message);
+        for (const tab of tabs) if (tab.status === 'complete') chrome.tabs.sendMessage(tab.id, message);
     });
-
-    sendResponse?.(true);
 }
 
 function saveImage(request, sendResponse) {
@@ -62,7 +59,9 @@ function saveImage(request, sendResponse) {
     filename = filename.split("-");
     const saved_id = `${filename[1].trim()}-${filename[2].trim()}`;
     chrome.storage.local.get(['image_preferences'], (r) => {
-        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id);
+        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => {
+            sendToTab({type: 'image_saved'});
+        });
     })
     sendResponse?.('success');
 }
@@ -330,10 +329,13 @@ function download_history_has(request, sendResponse) {
 }
 
 function download_history_add(saved_image) {
-    getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
-            .put({saved_image}).addEventListener('success', () => {
-                send_to_all_tabs({message: {type: 'image_saved'}});
+    return new Promise((resolve) => {
+        getHistoryDB().then((db) => {
+            db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+                .put({saved_image}).addEventListener('success', () => {
+                send_to_all_tabs({type: 'history_change'});
+                resolve();
+            });
         });
     });
 }
@@ -342,7 +344,7 @@ function download_history_remove(request, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .delete(request.id).addEventListener('success', () => {
-                send_to_all_tabs({message: {type: 'image_saved'}});
+                send_to_all_tabs({type: 'history_change'});
                 sendResponse(true);
         });
     });
@@ -352,7 +354,7 @@ function download_history_clear(_, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .clear().addEventListener('success', () => {
-                send_to_all_tabs({message: {type: 'image_saved'}});
+                send_to_all_tabs({type: 'history_change'});
                 sendResponse(true);
         });
     })
@@ -366,7 +368,7 @@ function download_history_add_all(request, sendResponse) {
         for (const saved_image of request.saved_images) objectStore.put({saved_image});
 
         transaction.addEventListener('complete', () => {
-            send_to_all_tabs({message: {type: 'image_saved'}});
+            send_to_all_tabs({type: 'history_change'});
             sendResponse(true);
         });
     });
