@@ -335,9 +335,7 @@
         forceUpdate: null,
 
         start: () => {
-            Observer.observer?.disconnect();
-            Observer.observer = null;
-            Observer.forceUpdate = null;
+            Observer.disable();
 
             Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
@@ -374,10 +372,16 @@
                     }
 
                     if (callbacks.length > 0) return () => update(imageFix);
-                    return (_, observer) => observer.disconnect();
+                    return Observer.disable;
                 };
             Observer.observer = new MutationObserver(getCallback());
             Observer.observer.observe(document.body, observerSettings);
+        },
+
+        disable: () => {
+            Observer.observer?.disconnect();
+            Observer.observer = null;
+            Observer.forceUpdate = null;
         }
     }
 
