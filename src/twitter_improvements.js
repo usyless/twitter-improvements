@@ -394,8 +394,19 @@
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === 'history_change') if (Settings.image_preferences.download_history_enabled) Observer.forceUpdate?.(Image.resetAll);
-        else if (message.type === 'image_saved') Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
-        else if (message.type === 'download') Helpers.download(message.url, message.filename);
+        switch (message.type) {
+            case 'history_change': {
+                if (Settings.image_preferences.download_history_enabled) Observer.forceUpdate?.(Image.resetAll);
+                break;
+            }
+            case 'image_saved': {
+                Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
+                break;
+            }
+            case 'download': {
+                Helpers.download(message.url, message.filename);
+                break;
+            }
+        }
     });
 })();
