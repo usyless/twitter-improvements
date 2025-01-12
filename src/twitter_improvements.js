@@ -385,11 +385,11 @@
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
         if (namespace === 'local') {
-            // no need to restart on vx_preferences change
-            if (changes.hasOwnProperty('setting')) Settings.loadSettings().then(Observer.start);
-            else if (changes.hasOwnProperty('image_preferences')) {
-                Settings.loadSettings().then(() => Observer.forceUpdate?.(Image.resetAll));
-            }
+            Settings.loadSettings().then(() => {
+                // only need to reload for vx setting change
+                if (changes.hasOwnProperty('setting')) Observer.start();
+                else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(Image.resetAll);
+            });
         }
     });
 
