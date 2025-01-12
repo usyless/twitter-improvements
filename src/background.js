@@ -6,7 +6,8 @@ const requestMap = {
     download_history_remove: download_history_remove,
     download_history_clear: download_history_clear,
     download_history_add_all: download_history_add_all,
-    download_history_get_all: download_history_get_all
+    download_history_get_all: download_history_get_all,
+    send_to_all_tabs: send_to_all_tabs,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -46,6 +47,14 @@ function sendToTab(message) {
     });
 }
 
+function send_to_all_tabs(request, sendResponse) {
+    chrome.tabs.query({}, (tabs) => {
+        for (const tab of tabs) if (tab.status === 'complete') chrome.tabs.sendMessage(tab.id, request.message);
+    });
+
+    sendResponse?.(true);
+}
+
 function saveImage(request, sendResponse) {
     let filename = getFileName(request.url);
     download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), filename + "." + getImageFileType(request.sourceURL));
@@ -53,8 +62,8 @@ function saveImage(request, sendResponse) {
     filename = filename.split("-");
     const saved_id = `${filename[1].trim()}-${filename[2].trim()}`;
     chrome.storage.local.get(['image_preferences'], (r) => {
-        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => sendToTab({type: 'image_saved'}));
-        else sendToTab({type: 'image_saved'});
+        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => send_to_all_tabs({message: {type: 'image_saved'}}));
+        else send_to_all_tabs({message: {type: 'image_saved'}});
     })
     sendResponse?.('success');
 }
@@ -337,9 +346,12 @@ function download_history_remove(request, sendResponse) {
     });
 }
 
-function download_history_clear() {
+function download_history_clear(_, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readwrite').objectStore('download_history').clear();
+        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+            .clear().addEventListener('success', () => {
+            sendResponse(true);
+        });
     })
 }
 

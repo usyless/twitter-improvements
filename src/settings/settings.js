@@ -77,7 +77,11 @@
                 type: 'button',
                 button: 'Clear download history',
                 onclick: () => {
-                    if (confirm('Are you sure you want to clear your image download history?')) chrome.runtime.sendMessage({type: 'download_history_clear'});
+                    if (confirm('Are you sure you want to clear your image download history?')) {
+                        (browser ?? chrome).runtime.sendMessage({type: 'download_history_clear'}).then(() => {
+                            chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
+                        });
+                    }
                 }
             },
             {
@@ -101,7 +105,10 @@
                             reader.onload = async (r) => {
                                 (browser ?? chrome).runtime.sendMessage({
                                     type: 'download_history_add_all', saved_images: r.target.result.split(' ')
-                                }).then(() => alert('Successfully imported!'));
+                                }).then(() => {
+                                    chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
+                                    alert('Successfully imported!');
+                                });
                             };
                             reader.readAsText(file);
                     });
@@ -135,7 +142,10 @@
                         }
                         (browser ?? chrome).runtime.sendMessage({
                             type: 'download_history_add_all', saved_images
-                        }).then(() => alert(`Successfully imported ${accepted} files!`));
+                        }).then(() => {
+                            chrome.runtime.sendMessage({type: 'send_to_all_tabs', message: {type: 'image_saved'}});
+                            alert(`Successfully imported ${accepted} files!`);
+                        });
                     });
                     document.body.appendChild(i);
                 }
