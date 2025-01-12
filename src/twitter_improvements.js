@@ -36,10 +36,10 @@
     }
 
     const Background = {
-        download_history_has: async (id) => await chrome.runtime.sendMessage({type: 'download_history_has', id}),
+        download_history_has: (id) => chrome.runtime.sendMessage({type: 'download_history_has', id}),
         download_history_remove: (id) => chrome.runtime.sendMessage({type: 'download_history_remove', id}),
 
-        save_video: async (url) => await chrome.runtime.sendMessage({
+        save_video: (url) => chrome.runtime.sendMessage({
             type: 'video', url,
             cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
         }),
