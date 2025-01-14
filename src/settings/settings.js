@@ -156,6 +156,17 @@
                         URL.revokeObjectURL(link.href);
                     });
                 }
+            },
+            {
+                name: 'saved_image_count',
+                description: '',
+                type: 'button',
+                button: 'Get saved image count',
+                onclick: () => {
+                    (browser ?? chrome).runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                        alert(`You have downloaded approximately ${r.length} unique image(s)`);
+                    });
+                }
             }
         ],
         'Hide Elements': [
