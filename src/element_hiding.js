@@ -12,7 +12,9 @@
             'a[href="/i/grok"]',
             'button[aria-label="Grok actions"]',
             'div:has(> div[data-testid^="followups_"] + nav > div > div[data-testid="ScrollSnap-SwipeableList"])',
-            'button[aria-label="Enhance your post with Grok"]'
+            'button[aria-label="Enhance your post with Grok"]',
+            'button[aria-label="Profile Summary"]',
+            'div.css-175oi2r.r-1777fci.r-1wzrnnt'
         ],
         hide_jobs: ['a[href="/jobs"]'],
         hide_lists: ['a[href*="/lists"]'],
