@@ -348,7 +348,7 @@ function download_history_add(saved_image) {
         getHistoryDB().then((db) => {
             db.transaction(['download_history'], 'readwrite').objectStore('download_history')
                 .put({saved_image}).addEventListener('success', () => {
-                send_to_all_tabs({type: 'history_change'});
+                send_to_all_tabs({type: 'history_change_add', id: saved_image});
                 resolve();
             });
         });
@@ -359,7 +359,7 @@ function download_history_remove(request, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .delete(request.id).addEventListener('success', () => {
-                send_to_all_tabs({type: 'history_change'});
+                send_to_all_tabs({type: 'history_change_remove', id: request.id});
                 sendResponse(true);
         });
     });

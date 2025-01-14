@@ -133,8 +133,10 @@
                 const button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
                 image.after(button);
 
-                if (Settings.image_preferences.download_history_enabled) {
-                    Background.download_history_has(Image.idWithNumber(image)).then((response) => {
+                if (Settings.image_preferences.download_history_enabled) { // mark image
+                    const id = Image.idWithNumber(image);
+                    button.setAttribute('ti-id', id);
+                    Background.download_history_has(id).then((response) => {
                         if (response === true) Button.mark(button);
                     });
                 }
@@ -177,7 +179,9 @@
         resetAll: () => {
             document.querySelectorAll('div[usy-image].usybuttonclickdiv').forEach((e) => e.remove());
             document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
-        }
+        },
+
+        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
     }
 
     const URLS = { // URL modification functions
@@ -214,6 +218,7 @@
         },
 
         mark: (button) => button.classList.add('usyMarked'),
+        unmark: (button) => button.classList.remove('usyMarked'),
 
         onhover: (bc) => {
             bc.classList.add('r-1cvl2hr');
@@ -399,8 +404,16 @@
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
+            case 'history_change_add': {
+                for (const button of Image.getButtons(message.id)) Button.mark(button);
+                break;
+            }
+            case 'history_change_remove': {
+                for (const button of Image.getButtons(message.id)) Button.unmark(button);
+                break;
+            }
             case 'history_change': {
-                if (Settings.image_preferences.download_history_enabled) Observer.forceUpdate?.(Image.resetAll);
+                Observer.forceUpdate?.(Image.resetAll);
                 break;
             }
             case 'image_saved': {
