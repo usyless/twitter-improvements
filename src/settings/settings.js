@@ -1,5 +1,9 @@
 'use strict';
 
+if (typeof browser === 'undefined') {
+    var browser = chrome;
+}
+
 (() => {
     document.getElementById('versionDisplay').textContent += chrome?.runtime?.getManifest?.()?.version;
 
@@ -78,7 +82,7 @@
                 button: 'Clear download history',
                 onclick: () => {
                     if (confirm('Are you sure you want to clear your image download history?')) {
-                        (browser ?? chrome).runtime.sendMessage({type: 'download_history_clear'});
+                        browser.runtime.sendMessage({type: 'download_history_clear'});
                     }
                 }
             },
@@ -101,7 +105,7 @@
                             if (!file) return;
                             const reader = new FileReader();
                             reader.onload = async (r) => {
-                                (browser ?? chrome).runtime.sendMessage({
+                                browser.runtime.sendMessage({
                                     type: 'download_history_add_all', saved_images: r.target.result.split(' ')
                                 }).then(() => alert('Successfully imported!'));
                             };
@@ -135,7 +139,7 @@
                                 ++accepted;
                             } catch {}
                         }
-                        (browser ?? chrome).runtime.sendMessage({
+                        browser.runtime.sendMessage({
                             type: 'download_history_add_all', saved_images
                         }).then(() => alert(`Successfully imported ${accepted} files!`));
                     });
@@ -148,7 +152,7 @@
                 type: 'button',
                 button: 'Export downloaded history (Exported as {tweet id}-{image number})',
                 onclick: () => {
-                    (browser ?? chrome).runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                    browser.runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
                         const link = document.createElement('a');
                         link.href = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
                         link.download = 'export.twitterimprovements';
@@ -163,7 +167,7 @@
                 type: 'button',
                 button: 'Get saved image count',
                 onclick: () => {
-                    (browser ?? chrome).runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                    browser.runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
                         alert(`You have downloaded approximately ${r.length} unique image(s)`);
                     });
                 }
