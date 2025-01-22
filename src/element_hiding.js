@@ -40,7 +40,10 @@
         hide_create_your_space: ['a[href="/i/spaces/start"]'],
         hide_post_button: ['div:has(> a[href="/compose/post"])'],
         hide_follower_requests: ['a[href="/follower_requests"]'],
-        hide_live_on_x: ['div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])'],
+        hide_live_on_x: [
+            'div:has(> [data-testid="placementTracking"] > [aria-label^="Space,"])',
+            'div:has(> [data-testid="placementTracking"] > [aria-label^="Broadcast, "])'
+        ],
         hide_post_reply_sections: [
             'div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])'
         ],
