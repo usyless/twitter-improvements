@@ -4,7 +4,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 
 **Screenshots available on the Mozilla addons page**
 
-## Features
+# Features
 
 - Copy as VX/FX/Custom Button
 	- Each tweet will display a button to copy the link to the tweet directly using VXTwitter, FXTwitter, or a custom prefix to allow for better embedding when sending on other platforms.
@@ -25,7 +25,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 - Save Image Context Menu
 	- A right click context menu for all images on Twitter to save them, just like with the button
 
-## Installation
+# Installation
 
 - **Firefox Desktop/Mobile (or Fennec)**
 	- Install extension through the [Mozilla addons page](https://addons.mozilla.org/en-GB/firefox/addon/improvements-for-twitter/)
