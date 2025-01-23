@@ -1,4 +1,5 @@
 # Improvements for Twitter
+<h1><img src="https://github.com/usyless/twitter-improvements/blob/main/src/icons/icon.svg?raw=true" alt="logo" width="64" height="64"> Improvements for Twitter</h1>
 
 A simple web extension which brings a few quality of life features to twitter/X.  
 
