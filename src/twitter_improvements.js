@@ -128,9 +128,10 @@
 
     const Image = { // Image element functions
         addImageButton: (image) => {
+            let button;
             try {
                 image.setAttribute('usy', '');
-                const button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
+                button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
                 image.after(button);
 
                 if (Settings.image_preferences.download_history_enabled) { // mark image
@@ -141,7 +142,8 @@
                     });
                 }
             } catch {
-                image.removeAttribute('usy')
+                image.removeAttribute('usy');
+                button?.remove();
             }
         },
 
