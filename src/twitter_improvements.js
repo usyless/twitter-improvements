@@ -256,8 +256,10 @@
             document.body.appendChild(outer);
             setTimeout(() => {
                 inner.classList.add('usyFadeOut');
-                inner.addEventListener('transitionend', () => {
-                    outer.remove();
+                inner.addEventListener('transitionend', (e) => {
+                    if (e.target === e.currentTarget) {
+                        outer.remove();
+                    }
                 });
             }, timeout);
         },
