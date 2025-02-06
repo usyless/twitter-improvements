@@ -92,6 +92,12 @@ body {
     overflow: hidden;
     min-width: 10em;
     box-shadow: rgba(255, 255, 255, 0.2) 0 0 15px, rgba(255, 255, 255, 0.15) 0 0 3px 1px;
+    opacity: 0;
+
+    &.animate {
+        animation: usyProgressIn 1s ease-out forwards;
+        opacity: 1;
+    }
 }
 
 .usyDownloadChoiceButton {
@@ -113,5 +119,14 @@ body {
 @media (hover: hover) {
     .usyDownloadChoiceButton:hover {
         background-color: #ffffff0b;
+    }
+}
+
+@keyframes usyProgressIn {
+    0% {
+        max-height: 0;
+    }
+    100% {
+        max-height: 1000px;
     }
 }

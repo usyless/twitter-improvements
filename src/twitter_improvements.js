@@ -278,9 +278,8 @@
 
             const btnRect = Button.closest(event.target).getBoundingClientRect();
 
-            let originalScrollY = window.scrollY;
-            const fixScrollPosition = () => popup.style.top = `${btnRect.y - (window.scrollY - originalScrollY)}px`;
-            notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
+            const originalScrollY = window.scrollY;
+            let fixScrollPosition = () => popup.style.top = `${btnRect.y - (window.scrollY - originalScrollY)}px`;
 
             const getNotificationButton = (text, onclick) => {
                 const b = document.createElement('button'), t = document.createElement('b');
@@ -319,13 +318,18 @@
 
             const rect = popup.getBoundingClientRect();
             if (rect.left < 0) popup.style.left = '0px';
-            else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - popup.clientWidth + (btnRect.right - btnRect.left)}px`;
+            else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
 
             if (rect.top < 0) popup.style.top = '0px';
             else if (rect.bottom > window.innerHeight) {
-                popup.style.top = `${btnRect.y - popup.clientHeight - btnRect.top + btnRect.bottom}px`;
-                originalScrollY -= popup.clientHeight + btnRect.top - btnRect.bottom;
+                popup.style.removeProperty('top');
+                popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
+                fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
             }
+
+            popup.classList.add('animate');
+            notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
+
             for (const listener of notificationEventListeners) {
                 listener.listener();
                 window.addEventListener(listener.type, listener.listener);
