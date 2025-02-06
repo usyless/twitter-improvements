@@ -294,6 +294,9 @@
             popup.classList.add('usyDownloadChoicePopup');
             popup.style.left = `${btnRect.x}px`;
             popup.style.top = `${btnRect.y}px`;
+
+            popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
+
             fullscreen.addEventListener('click', () => {
                 for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
                 Notification.clear();

@@ -103,14 +103,15 @@ body {
     z-index: 9999999999;
     width: 100%;
     box-sizing: border-box;
+    transition: 200ms ease-in-out;
 }
 
 .usyDownloadChoiceButton:active {
-    background-color: #2b2b2b;
+    background-color: #ffffff1f;
 }
 
 @media (hover: hover) {
     .usyDownloadChoiceButton:hover {
-        background-color: #080808;
+        background-color: #ffffff0b;
     }
 }
