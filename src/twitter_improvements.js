@@ -242,7 +242,9 @@
         resetAll: () => {
             document.querySelectorAll('.usybuttonclickdiv').forEach(b => b.remove());
             document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
-        }
+        },
+
+        closest: (elem) => elem.closest('.usybuttonclickdiv'),
     }
 
     const Notification = {
@@ -274,8 +276,10 @@
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
 
+            const btnRect = Button.closest(event.target).getBoundingClientRect();
+
             let originalScrollY = window.scrollY;
-            const fixScrollPosition = () => popup.style.top = `${event.y - (window.scrollY - originalScrollY)}px`;
+            const fixScrollPosition = () => popup.style.top = `${btnRect.y - (window.scrollY - originalScrollY)}px`;
             notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
 
             const getNotificationButton = (text, onclick) => {
@@ -288,8 +292,8 @@
             }
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
-            popup.style.left = `${event.x}px`;
-            popup.style.top = `${event.y}px`;
+            popup.style.left = `${btnRect.x}px`;
+            popup.style.top = `${btnRect.y}px`;
             fullscreen.addEventListener('click', () => {
                 for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
                 Notification.clear();
@@ -312,11 +316,12 @@
 
             const rect = popup.getBoundingClientRect();
             if (rect.left < 0) popup.style.left = '0px';
-            else if (rect.right > window.innerWidth) popup.style.left = `${event.x - popup.clientWidth}px`;
+            else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - popup.clientWidth + (btnRect.right - btnRect.left)}px`;
+
             if (rect.top < 0) popup.style.top = '0px';
             else if (rect.bottom > window.innerHeight) {
-                popup.style.top = `${event.y - popup.clientHeight}px`;
-                originalScrollY -= popup.clientHeight;
+                popup.style.top = `${btnRect.y - popup.clientHeight - btnRect.top + btnRect.bottom}px`;
+                originalScrollY -= popup.clientHeight + btnRect.top - btnRect.bottom;
             }
             for (const listener of notificationEventListeners) {
                 listener.listener();
