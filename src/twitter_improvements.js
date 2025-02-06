@@ -208,8 +208,9 @@
             button.disabled = false;
             button.classList.remove('r-icoktb'); // private tweet buttons more visible
             shareButton.querySelector('path').setAttribute("d", path);
+            const origColour = button.firstElementChild.style.color;
             shareButton.addEventListener('pointerover', () => Button.onhover(button.firstElementChild));
-            shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild));
+            shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild, origColour));
             shareButton.addEventListener('click', clickCallback);
             if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
             return shareButton;
@@ -224,13 +225,13 @@
 
         onhover: (bc) => {
             bc.classList.add('r-1cvl2hr');
-            bc.style.color = "";
+            bc.style.color = '';
             bc.firstElementChild.firstElementChild.classList.replace('r-1niwhzg', 'r-1peqgm7');
         },
 
-        stophover: (bc) => {
+        stophover: (bc, origColour) => {
             bc.classList.remove('r-1cvl2hr');
-            bc.style.color = "rgb(113, 118, 123)";
+            bc.style.color = origColour;
             bc.firstElementChild.firstElementChild.classList.replace('r-1peqgm7', 'r-1niwhzg');
         },
 
