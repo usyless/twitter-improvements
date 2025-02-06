@@ -276,7 +276,6 @@
 
             let originalScrollY = window.scrollY;
             const fixScrollPosition = () => popup.style.top = `${event.y - (window.scrollY - originalScrollY)}px`;
-            fixScrollPosition.bind(this);
             notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
 
             const getNotificationButton = (text, onclick) => {
