@@ -72,6 +72,7 @@ body {
         padding-top: 20px;
         display: flex;
         overflow-x: auto;
+        overflow-y: hidden;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
 

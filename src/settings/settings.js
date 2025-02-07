@@ -379,26 +379,19 @@ if (typeof browser === 'undefined') {
         panes.appendChild(pane);
     }
 
-    header.firstElementChild.classList.add('selected');
-    header.addEventListener('click', (e) => {
-        const t = e.target.closest('div[data-pane]');
-        if (t) {
-            const p = panes.querySelector(`div[data-pane="${t.dataset.pane}"]`);
-            panes.scrollTo({
-                left: p.offsetLeft,
-                behavior: 'smooth'
-            });
-            header.querySelector('.selected')?.classList.remove('selected');
-            t.classList.add('selected');
-        }
-    });
+    { // Settings panes scrolling
+        header.firstElementChild.classList.add('selected');
+        header.addEventListener('click', (e) => {
+            const t = e.target.closest('div[data-pane]');
+            if (t) gotoPane(panes.querySelector(`div[data-pane="${t.dataset.pane}"]`));
+        });
 
-    {
+
         let touchStartX = 0;
-        panes.addEventListener('touchstart', (e) => {
+        window.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
         });
-        panes.addEventListener('touchend', (e) => {
+        window.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].screenX;
             if (touchStartX - touchEndX > 50) changePane(true);
             if (touchEndX - touchStartX > 50) changePane(false);
@@ -406,16 +399,28 @@ if (typeof browser === 'undefined') {
         function changePane(next) {
             const currPane = header.querySelector('.selected');
             const nextPane = next ? currPane.nextElementSibling : currPane.previousElementSibling;
-            if (nextPane) {
-                currPane.classList.toggle('selected');
-                nextPane.classList.toggle('selected');
-            }
-            const paneWidth = panes.offsetWidth;
-            panes.scrollTo({
-                left: Math[next ? 'ceil' : 'floor'](panes.scrollLeft / paneWidth) * paneWidth,
-                behavior: 'smooth',
-            });
+            if (nextPane) gotoPane(panes.querySelector(`div[data-pane="${nextPane.dataset.pane}"]`));
         }
+
+        function gotoPane(pane) {
+            header.querySelector('.selected')?.classList.remove('selected');
+            header.querySelector(`div[data-pane="${pane.dataset.pane}"]`).classList.add('selected');
+            panes.scrollTo({
+                left: pane.offsetLeft,
+                behavior: 'smooth'
+            });
+            setHeight();
+        }
+
+        function setHeight() {
+            const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)
+            const top = currPane.getBoundingClientRect().top;
+            const bottom = currPane.lastElementChild.getBoundingClientRect().bottom;
+            panes.style.height = `${bottom - top + 20}px`;
+        }
+        setHeight();
+
+        window.addEventListener('resize', setHeight);
     }
 
     chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category ?? i.obj.name), (s) => {
