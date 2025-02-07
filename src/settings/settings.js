@@ -14,13 +14,13 @@ if (typeof browser === 'undefined') {
             {
                 name: 'vx_button',
                 category: 'setting',
-                description: 'Enable Share as VX Button',
+                description: 'Show Copy Tweet as VX Button',
                 default: true
             },
             {
                 name: 'url_prefix',
                 category: 'vx_preferences',
-                description: 'Set url prefix provider',
+                description: 'Url prefix provider',
                 default: 'fixvx.com',
                 type: 'choice',
                 choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}]
@@ -28,7 +28,7 @@ if (typeof browser === 'undefined') {
             {
                 name: 'custom_url',
                 category: 'vx_preferences',
-                description: 'Custom copy link host (Set prefix to \'Custom\')',
+                description: 'Custom link copy host (Set prefix to \'Custom\')',
                 default: '',
                 type: 'text',
             },
@@ -37,7 +37,7 @@ if (typeof browser === 'undefined') {
             {
                 name: 'video_button',
                 category: 'setting',
-                description: 'Enable Video/GIF Download Buttons',
+                description: 'Show Video/GIF Download Buttons',
                 default: true
             },
             {
@@ -63,7 +63,7 @@ if (typeof browser === 'undefined') {
             {
                 name: 'download_history_enabled',
                 category: 'image_preferences',
-                description: 'Store image download history (local), right click on a download button to remove from history',
+                description: 'Enable local image download history, right click on a download button to remove from history',
                 default: true
             },
             {
