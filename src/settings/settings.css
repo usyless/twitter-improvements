@@ -45,7 +45,6 @@ body {
             border-bottom: 3px solid var(--accent);
             border-radius: 5px 5px 0 0;
             cursor: pointer;
-            user-select: none;
             color: var(--text-light);
             display: inline-flex;
             justify-content: center;
