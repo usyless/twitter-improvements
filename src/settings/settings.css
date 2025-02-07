@@ -8,6 +8,11 @@ body {
     padding: 0;
     width: 100%;
     min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .wrapper {
@@ -16,114 +21,169 @@ body {
     align-items: center;
     flex-direction: column;
     padding: 15px;
+    max-width: 850px;
 }
 
 #settings {
-    display: flex;
-    flex-direction: column;
     padding: 20px;
     background-color: var(--background-lighter);
     border-radius: 15px;
-    row-gap: 20px;
+    max-width: 100%;
+    overflow: hidden;
 
-    > div {
+    #settings-header {
         display: flex;
-        flex-direction: column;
-        row-gap: 5px;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: wrap;
+        column-gap: 10px;
+
+        div {
+            font-weight: bold;
+            font-size: 20px;
+            padding: 2px 10px;
+            border-bottom: 3px solid var(--accent);
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-light);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+
+            &:not(.selected) {
+                border-bottom-color: gray;
+            }
+
+            @media (hover: hover) {
+                &:hover {
+                    background-color: var(--background-dark);
+                }
+            }
+
+            &:active {
+                background-color: var(--accent);
+            }
+        }
+    }
+
+    #settings-panes {
+        padding-top: 20px;
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
 
         > div {
-            line-height: 30px;
-            padding-left: 20px;
-            display: flex;
-            align-items: center;
-            column-gap: 6px;
-        }
-    }
+            scroll-snap-align: start;
+            min-width: 100%;
+            flex-shrink: 1;
 
-    h3 {
-        color: var(--text-light);
-        margin-bottom: 10px;
-        margin-top: 10px;
-    }
+            > div {
+                display: flex;
+                flex-direction: column;
+                flex-wrap: wrap;
+                row-gap: 5px;
 
-    button {
-        max-width: 500px;
-    }
-
-    input[type="checkbox"] {
-        accent-color: var(--accent);
-        appearance: none;
-        outline: 2px solid transparent;
-        background-color: var(--additional);
-        width: 20px;
-        height: 20px;
-        min-height: 20px;
-        min-width: 20px;
-        margin: 6px;
-        padding: 0;
-        border: solid 0 transparent;
-        border-radius: 5px;
-        background-size: cover;
-        background-repeat: no-repeat;
-        cursor: pointer;
-
-        &:not(:disabled):checked {
-            background-color: var(--accent);
-            background-image: url("/shared/Checkbox check.svg");
+                > div {
+                    line-height: 30px;
+                    padding-left: 20px;
+                    display: flex;
+                    column-gap: 6px;
+                }
+            }
         }
 
-        @media (hover: hover) {
-            &:not(:disabled):hover {
+        &::-webkit-scrollbar {
+            height: 0;
+        }
+
+        h3 {
+            color: var(--text-light);
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            max-width: 500px;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+            appearance: none;
+            outline: 2px solid transparent;
+            background-color: var(--additional);
+            width: 20px;
+            height: 20px;
+            min-height: 20px;
+            min-width: 20px;
+            margin: 6px;
+            padding: 0;
+            border: solid 0 transparent;
+            border-radius: 5px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            cursor: pointer;
+
+            &:not(:disabled):checked {
+                background-color: var(--accent);
+                background-image: url("/shared/Checkbox check.svg");
+            }
+
+            @media (hover: hover) {
+                &:not(:disabled):hover {
+                    outline-color: var(--additional-lighter);
+                }
+            }
+
+            &:focus-visible {
                 outline-color: var(--additional-lighter);
             }
         }
 
-        &:focus-visible {
-            outline-color: var(--additional-lighter);
-        }
-    }
+        input[type="text"] {
+            background-color: var(--additional);
+            color: inherit;
+            border-radius: 7px;
+            border: solid var(--background-dark) 2px;
+            font: inherit;
+            min-width: 100px;
+            flex-shrink: 1;
 
-    input[type="text"] {
-        background-color: var(--additional);
-        color: inherit;
-        border-radius: 7px;
-        border: solid var(--background-dark) 2px;
-        font: inherit;
-        min-width: 100px;
-        flex-shrink: 1;
+            &:active {
+                border-color: var(--additional-lighter);
+            }
 
-        &:active {
-            border-color: var(--additional-lighter);
-        }
-
-        &:focus-visible {
-            outline: none;
-            border-color: var(--additional-lighter);
-        }
-    }
-
-    br {
-        margin: 5px;
-    }
-
-    select {
-        background-color: var(--additional);
-        color: inherit;
-        font: inherit;
-        border-radius: 7px;
-        border: solid var(--background-dark) 2px;
-        padding: 7px;
-        min-width: 0;
-        flex-shrink: 1;
-        cursor: pointer;
-
-        &:active {
-            border-color: var(--additional-lighter);
+            &:focus-visible {
+                outline: none;
+                border-color: var(--additional-lighter);
+            }
         }
 
-        &:focus-visible {
-            outline: none;
-            border-color: var(--additional-lighter);
+        br {
+            margin: 5px;
+        }
+
+        select {
+            background-color: var(--additional);
+            color: inherit;
+            font: inherit;
+            border-radius: 7px;
+            border: solid var(--background-dark) 2px;
+            padding: 7px;
+            min-width: 0;
+            flex-shrink: 1;
+            cursor: pointer;
+
+            &:active {
+                border-color: var(--additional-lighter);
+            }
+
+            &:focus-visible {
+                outline: none;
+                border-color: var(--additional-lighter);
+            }
         }
     }
 }
