@@ -34,7 +34,7 @@ body {
 
     #settings-header {
         display: flex;
-        overflow-x: auto;
+        flex-wrap: wrap;
         white-space: wrap;
         column-gap: 10px;
 
