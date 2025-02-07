@@ -83,13 +83,13 @@ body {
             > div {
                 display: flex;
                 flex-direction: column;
-                flex-wrap: wrap;
                 row-gap: 5px;
 
                 > div {
                     line-height: 30px;
                     padding-left: 20px;
                     display: flex;
+                    align-items: center;
                     column-gap: 6px;
                 }
             }
