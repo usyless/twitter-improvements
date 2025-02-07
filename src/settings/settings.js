@@ -418,16 +418,15 @@ if (typeof browser === 'undefined') {
             const bottom = currPane.lastElementChild.getBoundingClientRect().bottom;
             panes.style.height = `${bottom - top + 20}px`;
         }
-        setHeight();
 
         function setWidth() {
             const w = window.innerWidth;
             if (w < 650) panes.style.width = `${w - 70}px`;
             else panes.style.removeProperty('width');
+            setTimeout(setHeight, 300);
         }
         setWidth();
 
-        window.addEventListener('resize', setHeight);
         window.addEventListener('resize', setWidth);
     }
 
