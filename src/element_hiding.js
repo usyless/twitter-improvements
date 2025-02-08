@@ -49,12 +49,12 @@
         ],
         hide_sidebar_footer: ['div:has(> [aria-label="Footer"])'],
 
-        hide_tweet_view_count: ['article div:has(> a[href$="/analytics"])'],
-        hide_tweet_share_button: ['article div:has(> div > button[aria-label="Share post"]:not([usy]))'],
-        hide_replies_button_tweet: ['article div:has(> button[data-testid="reply"])'],
-        hide_retweet_button_tweet: ['article div:has(> button[data-testid="retweet"])'],
-        hide_like_button_tweet: ['article div:has(> button[data-testid="like"])'],
-        hide_bookmark_button_tweet: ['article div:has(> button[data-testid="bookmark"])']
+        hide_tweet_view_count: ['div:has(> a[href$="/analytics"])'],
+        hide_tweet_share_button: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
+        hide_replies_button_tweet: ['div:has(> button[data-testid="reply"])'],
+        hide_retweet_button_tweet: ['div:has(> button[data-testid="retweet"])'],
+        hide_like_button_tweet: ['div:has(> button[data-testid="like"])'],
+        hide_bookmark_button_tweet: ['div:has(> button[data-testid="bookmark"])']
     }
 
     const start = () => loadSettings().then((enabled) => {
