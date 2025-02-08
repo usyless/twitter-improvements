@@ -47,7 +47,11 @@
         hide_post_reply_sections: [
             'div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])'
         ],
-        hide_sidebar_footer: ['div:has(> [aria-label="Footer"])']
+        hide_sidebar_footer: ['div:has(> [aria-label="Footer"])'],
+
+        hide_tweet_view_count: ['article div:has(> a[href$="/analytics"])'],
+        hide_tweet_share_button: ['article div:has(> div > button[aria-label="Share post"]:not([usy]))'],
+        hide_replies_button_tweet: ['article div:has(> button[data-testid="reply"])'],
     }
 
     const start = () => loadSettings().then((enabled) => {
@@ -56,7 +60,7 @@
 
         // Apply new enabled styles
         let style = '';
-        for (const setting in enabled) if (enabled[setting] === true) for (const s of StyleMap?.[setting]) style += s + '{display:none;}';
+        for (const setting in enabled) if (enabled[setting] === true) for (const s of StyleMap?.[setting]) style += s + '{display:none !important;}';
         if (style.length > 0) {
             const s = document.createElement('style');
             s.setAttribute('usyStyle', '');
