@@ -89,10 +89,10 @@ function getNamePartsImage(url, sourceURL) {
 function formatFilename(parts, save_format) {
     save_format = save_format || '[twitter] {username} - {tweetId} - {tweetNum}.{extension}';
     return save_format
-        .replace('{username}', parts.username)
-        .replace('{tweetId}', parts.tweetId)
-        .replace('{tweetNum}', parts.tweetNum ?? '')
-        .replace('{extension}', parts.extension ?? '');
+        .replaceAll('{username}', parts.username)
+        .replaceAll('{tweetId}', parts.tweetId)
+        .replaceAll('{tweetNum}', parts.tweetNum ?? '')
+        .replaceAll('{extension}', parts.extension ?? '');
 }
 
 chrome.webRequest.onSendHeaders.addListener((details) => {
