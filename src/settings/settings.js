@@ -488,18 +488,18 @@ if (typeof browser === 'undefined') {
             if (nextPane) window.location.hash = nextPane.dataset.pane;
         }
 
-        const hashchangeHandler = (instant) => {
+        const hashchangeHandler = (_, instant) => {
             const hash = decodeURIComponent(window.location.hash.substring(1));
             if (options.hasOwnProperty(hash)) {
                 header.querySelector('.selected')?.classList.remove('selected');
                 header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');
-                if (instant) panes.style.scrollBehavior = 'auto';
+                if (instant === true) panes.style.scrollBehavior = 'auto';
                 panes.scrollLeft = panes.querySelector(`div[data-pane="${hash}"]`).offsetLeft;
-                if (instant) panes.style.removeProperty('scrollBehavior');
+                if (instant === true) panes.style.removeProperty('scroll-behavior');
                 setHeight();
             }
         }
-        hashchangeHandler(true);
+        hashchangeHandler(null, true);
         window.addEventListener('hashchange', hashchangeHandler);
 
         function setHeight() {
