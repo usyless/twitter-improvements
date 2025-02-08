@@ -29,13 +29,20 @@
         reverseFiles(e.dataTransfer);
     });
 
-    function reverseFiles(dataTransfer) {
-        for (const item of dataTransfer.items) if (item.kind === 'file' && (item.type.includes('image/') || item.type.includes('video/'))) reverseFile(item.getAsFile());
-    }
+    const longestIntegerSubstring = (str) =>
+        str.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
 
-    function reverseFile(file) {
-        const name = file.name.split("-");
-        if (name[0].includes('twitter')) chrome.tabs.create({url: `https://x.com/hello/status/${name[1].match(/\d+/)[0].trim()}`});
-        else alert('Not a twitter file');
+    function reverseFiles(dataTransfer) {
+        for (const item of dataTransfer.items) {
+            if (item.kind === 'file' && (item.type.includes('image/') || item.type.includes('video/'))) {
+                const id = longestIntegerSubstring(item.getAsFile().name);
+                // Should be fine for any new tweet id's, no images likely being saved before 2009
+                if (id.length > 10) {
+                    chrome.tabs.create({url: `https://x.com/hello/status/${id}`});
+                } else {
+                    alert(`Error parsing file name for ${item.getAsFile().name}, are you sure this file has a tweet id in the name?`);
+                }
+            }
+        }
     }
 })();
