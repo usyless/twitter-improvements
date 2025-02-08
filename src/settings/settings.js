@@ -412,7 +412,12 @@ if (typeof browser === 'undefined') {
                             }
                         });
 
-                        elem.firstElementChild.after(document.createTextNode('Quick Picks:'), quickPicks);
+                        elem.firstElementChild.after(
+                            document.createTextNode('Changing this might break image reversing!'),
+                            document.createElement('br'),
+                            document.createTextNode('Quick Picks:'),
+                            quickPicks
+                        );
                     }
                 }
             ]
