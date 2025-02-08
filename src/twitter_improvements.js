@@ -58,7 +58,7 @@
                 const cb = () => Tweet.vxButtonCallback(article);
                 a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
 
-                const altAnchor = Image.shareButtonAnchor();
+                const altAnchor = Tweet.maximisedShareButtonAnchor(article);
                 if (altAnchor && !altAnchor.parentElement.querySelector('[usy-copy]')) {
                     altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
                 }
@@ -77,7 +77,7 @@
                     const cb = (e) => Tweet.videoButtonCallback(e, article);
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-video'));
 
-                    const altAnchor = Image.shareButtonAnchor();
+                    const altAnchor = Tweet.maximisedShareButtonAnchor(article);
                     if (altAnchor && !altAnchor.parentElement.querySelector('[usy-video]')) {
                         altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-video'));
                     }
@@ -90,7 +90,7 @@
         copyBookmarkButton: (article) => {
             try {
                 article.setAttribute('usy-bookmarked', '');
-                const a = Image.shareButtonAnchor();
+                const a = Tweet.maximisedShareButtonAnchor(article);
                 if (a) {
                     const bk = Tweet.respectiveBookmarkButton(article);
                     a.before(Button.newButton(bk, null, () => {
@@ -166,6 +166,12 @@
         maximised: () => {
             const pathname = window.location.pathname;
             return pathname.includes('/photo/') || pathname.includes('/video/');
+        },
+
+        maximisedShareButtonAnchor: (article) => {
+            if (Tweet.maximised() && article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]'))
+                for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
+                    if (!b.closest('article')) return b.parentElement.parentElement;
         }
     }
 
@@ -248,13 +254,7 @@
             document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
         },
 
-        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`),
-
-        shareButtonAnchor: () => {
-            if (Tweet.maximised())
-                for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
-                    if (!b.closest('article')) return b.parentElement.parentElement;
-        }
+        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
     }
 
     const URLS = { // URL modification functions
