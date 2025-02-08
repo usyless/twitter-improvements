@@ -88,10 +88,33 @@
             }
         },
 
+        copyBookmarkButton: (article) => {
+            try {
+                article.setAttribute('usy-bookmarked', '');
+                const a = Image.shareButtonAnchor();
+                if (a) {
+                    const bk = Tweet.respectiveBookmarkButton(article);
+                    a.before(Button.newButton(bk, null, () => {
+                        bk.firstElementChild.click();
+                        a.parentElement.removeChild(a.parentElement.querySelector('[usy-bookmark]'));
+                        article.removeAttribute('usy-bookmarked');
+                    }, 'usy-bookmark', null,
+                        [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}]));
+                }
+            } catch {
+                article.removeAttribute('usy-bookmarked');
+            }
+        },
+
         anchor: (article) => {
             const anchor = article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
             if (!Tweet.fallbackButton) Tweet.fallbackButton = anchor;
             return anchor;
+        },
+
+        respectiveBookmarkButton: (article) => {
+            return (article.querySelector('button[data-testid="bookmark"]')
+                ?? article.querySelector('button[data-testid="removeBookmark"]')).parentElement;
         },
 
         anchorWithFallback: (article) => {
@@ -138,6 +161,11 @@
                 navigator.clipboard.writeText(r.copy);
                 Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, try clicking on a new tweet to fix', 10000);
             } else Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 10000);
+        },
+
+        maximised: () => {
+            const pathname = window.location.pathname;
+            return pathname.includes('/photo/') || pathname.includes('/video/');
         }
     }
 
@@ -223,8 +251,7 @@
         getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`),
 
         shareButtonAnchor: () => {
-            const pathname = window.location.pathname;
-            if (pathname.includes('/photo/') || pathname.includes('/video/'))
+            if (Tweet.maximised())
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
         }
@@ -242,7 +269,7 @@
     }
 
     const Button = { // Button functions
-        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback) => {
+        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback, customListeners) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
@@ -250,7 +277,7 @@
             button.setAttribute('usy', '');
             button.disabled = false;
             button.classList.remove('r-icoktb'); // private tweet buttons more visible
-            shareButton.querySelector('path').setAttribute("d", path);
+            if (path) shareButton.querySelector('path').setAttribute("d", path);
             const origColour = button.firstElementChild.style.color;
             shareButton.addEventListener('pointerover', () => Button.onhover(button.firstElementChild));
             shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild, origColour));
@@ -259,6 +286,9 @@
             if (rightClickCallback) {
                 shareButton.addEventListener('contextmenu', rightClickCallback);
                 shareButton.addEventListener('contextmenu', Button.stopAllEvents);
+            }
+            for (const listener of customListeners) {
+                shareButton.addEventListener(listener.type, listener.listener);
             }
             return shareButton;
         },
@@ -423,7 +453,11 @@
                         s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])',
                         f: Image.addImageButton
                     }],
-                    show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}]
+                    show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}],
+                    bookmark_on_photo_page: [{
+                        s: 'article:not([usy-bookmarked])',
+                        f: Tweet.copyBookmarkButton
+                    }]
                 }, getCallback = () => {
                     const callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
