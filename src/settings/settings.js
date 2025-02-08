@@ -501,15 +501,10 @@ if (typeof browser === 'undefined') {
             panes.style.height = `${bottom - top + 20}px`;
         }
 
-        function setWidth() {
-            const w = window.innerWidth;
-            if (w < 650) panes.style.width = `${w - 70}px`;
-            else panes.style.removeProperty('width');
-            setTimeout(setHeight, 300);
-        }
-        setWidth();
+        const setHeightDelay = ()=>  setTimeout(setHeight, 300);
+        setHeightDelay();
 
-        window.addEventListener('resize', setWidth);
+        window.addEventListener('resize', setHeightDelay);
     }
 
     chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category ?? i.obj.name), (s) => {

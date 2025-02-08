@@ -75,11 +75,12 @@ body {
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
         max-width: 100%;
+        width: calc(min(850px, 100vw - 70px));
 
         > div {
             scroll-snap-align: start;
-            min-width: var(--width, 100%);
-            max-width: var(--width, 100%);
+            min-width: 100%;
+            max-width: 100%;
             flex-shrink: 1;
 
             > div {
