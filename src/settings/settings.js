@@ -456,6 +456,7 @@ if (typeof browser === 'undefined') {
     }
 
     { // Settings panes scrolling
+        panes.scrollLeft = 0;
         header.firstElementChild.classList.add('selected');
         header.addEventListener('click', (e) => {
             const t = e.target.closest('div[data-pane]');
