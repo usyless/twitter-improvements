@@ -55,8 +55,15 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                a.after(Button.newButton(a, vx_button_path, () => Tweet.vxButtonCallback(article), "usy-copy"));
-            } catch {
+                const cb = () => Tweet.vxButtonCallback(article);
+                a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
+
+                const altAnchor = Image.shareButtonAnchor();
+                if (altAnchor && !altAnchor.parentElement.querySelector('[usy-copy]')) {
+                    altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
+                }
+            } catch (e) {
+                console.error(e);
                 article.removeAttribute('usy');
             }
         },
@@ -68,7 +75,13 @@
                 // checks if quote tweet contains specific video component (don't show button)
                 // doesn't affect a video QRT as each video checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    a.after(Button.newButton(a, download_button_path, (e) => Tweet.videoButtonCallback(e, article), "usy-video"));
+                    const cb = (e) => Tweet.videoButtonCallback(e, article);
+                    a.after(Button.newButton(a, download_button_path, cb, 'usy-video'));
+
+                    const altAnchor = Image.shareButtonAnchor();
+                    if (altAnchor && !altAnchor.parentElement.querySelector('[usy-video]')) {
+                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-video'));
+                    }
                 }
             } catch {
                 videoComponent.removeAttribute('usy')
@@ -134,19 +147,43 @@
             try {
                 image.setAttribute('usy', '');
                 button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
-                image.after(button);
+                button.style.width = Settings.image_preferences.long_image_button ? '100%' : 'fit-content';
+                Image.buttonModes[Settings.image_preferences.image_button_position]?.(button);
 
-                if (Settings.image_preferences.download_history_enabled) { // mark image
-                    const id = Image.idWithNumber(image);
-                    button.setAttribute('ti-id', id);
-                    Background.download_history_has(id).then((response) => {
-                        if (response === true) Button.mark(button);
-                    });
+                // Inline mode
+                if (Settings.image_preferences.image_button_position === '4') {
+
+                } else {
+                    image.after(button);
+                    if (Settings.image_preferences.download_history_enabled) { // mark image
+                        const id = Image.idWithNumber(image);
+                        button.setAttribute('ti-id', id);
+                        Background.download_history_has(id).then((response) => {
+                            if (response === true) Button.mark(button);
+                        });
+                    }
                 }
             } catch {
                 image.removeAttribute('usy');
                 button?.remove();
             }
+        },
+
+        buttonModes: {
+            0: () => void(0),
+            1: (btn) => {
+                btn.style.position = 'absolute';
+                btn.firstElementChild.style.justifyContent = 'flex-end';
+                btn.style.right = '0';
+            },
+            2: (btn) => {
+                btn.style.position = 'absolute';
+                btn.style.bottom = '0';
+            },
+            3: (btn) => {
+                Image.buttonModes['1'](btn);
+                Image.buttonModes['2'](btn);
+            },
         },
 
         respectiveURL: (image) => {
@@ -165,7 +202,6 @@
         getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
 
         imageButtonCallback: (e, image) => {
-            e.preventDefault();
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 Notification.create('Image is already saved, save using right click menu, or remove from saved to override');
             } else {
@@ -175,7 +211,6 @@
         },
 
         removeImageDownloadCallback: (e, image) => {
-            e.preventDefault();
             Notification.create('Removing image from saved');
             Background.download_history_remove(Image.idWithNumber(image));
         },
@@ -185,7 +220,14 @@
             document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
         },
 
-        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
+        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`),
+
+        shareButtonAnchor: () => {
+            const pathname = window.location.pathname;
+            if (pathname.includes('/photo/') || pathname.includes('/video/'))
+                for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
+                    if (!b.closest('article')) return b.parentElement.parentElement;
+        }
     }
 
     const URLS = { // URL modification functions
@@ -204,7 +246,6 @@
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
-            if (attribute === "usy-image" && !Settings.image_preferences.long_image_button) shareButton.style.maxWidth = 'fit-content';
             const button = shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
@@ -214,12 +255,22 @@
             shareButton.addEventListener('pointerover', () => Button.onhover(button.firstElementChild));
             shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild, origColour));
             shareButton.addEventListener('click', clickCallback);
-            if (rightClickCallback) shareButton.addEventListener('contextmenu', rightClickCallback);
+            shareButton.addEventListener('click', Button.stopAllEvents);
+            if (rightClickCallback) {
+                shareButton.addEventListener('contextmenu', rightClickCallback);
+                shareButton.addEventListener('contextmenu', Button.stopAllEvents);
+            }
             return shareButton;
         },
 
         isMarked: (button) => {
             return button.classList.contains('usyMarked');
+        },
+
+        stopAllEvents: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
         },
 
         mark: (button) => button.classList.add('usyMarked'),
