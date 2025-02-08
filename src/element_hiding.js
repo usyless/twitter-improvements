@@ -72,9 +72,9 @@
         }
     });
 
-    start();
+    void start();
 
     chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local' && changes.hasOwnProperty('style')) start();
+        if (namespace === 'local' && changes.hasOwnProperty('style')) void start();
     });
 })();
