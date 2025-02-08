@@ -189,7 +189,7 @@ function download_video_from_choices(request, sendResponse) {
 function downloadVideos(urls, parts, save_format) {
     urls.forEach((url, i) => {
         parts.tweetNum = parts.tweetNum ?? i + 1;
-        parts.extension = url.includes(".mp4") ? ".mp4" : ".gif";
+        parts.extension = url.includes(".mp4") ? "mp4" : "gif";
         download(url, formatFilename(parts, save_format));
     });
 }
