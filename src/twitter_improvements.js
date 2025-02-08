@@ -98,7 +98,8 @@
                         a.parentElement.removeChild(a.parentElement.querySelector('[usy-bookmark]'));
                         article.removeAttribute('usy-bookmarked');
                     }, 'usy-bookmark', null,
-                        [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}]));
+                        [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}],
+                        [(btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff']));
                 }
             } catch {
                 article.removeAttribute('usy-bookmarked');
@@ -268,7 +269,7 @@
     }
 
     const Button = { // Button functions
-        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = []) => {
+        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = [], extras = []) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
@@ -289,6 +290,7 @@
             for (const listener of customListeners) {
                 shareButton.addEventListener(listener.type, listener.listener);
             }
+            for (const extra of extras) extra(shareButton);
             return shareButton;
         },
 
