@@ -93,10 +93,14 @@
                 const a = Tweet.maximisedShareButtonAnchor(article);
                 if (a) {
                     const bk = Tweet.respectiveBookmarkButton(article);
+                    bk.addEventListener('click', () => {
+                        setTimeout(() => {
+                            a.parentElement.removeChild(a.parentElement.querySelector('[usy-bookmark]'));
+                            article.removeAttribute('usy-bookmarked');
+                        }, 100);
+                    }, {once: true});
                     a.before(Button.newButton(bk, null, () => {
                         bk.firstElementChild.click();
-                        a.parentElement.removeChild(a.parentElement.querySelector('[usy-bookmark]'));
-                        article.removeAttribute('usy-bookmarked');
                     }, 'usy-bookmark', null,
                         [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}],
                         [(btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff']));
