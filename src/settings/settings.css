@@ -155,6 +155,10 @@ body {
             min-width: 100px;
             flex-shrink: 1;
 
+            &.wideText {
+                width: 100%;
+            }
+
             &:active {
                 border-color: var(--additional-lighter);
             }
@@ -187,6 +191,19 @@ body {
             &:focus-visible {
                 outline: none;
                 border-color: var(--additional-lighter);
+            }
+        }
+
+        .quickPicks {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            column-gap: 5px;
+            row-gap: 5px;
+
+            button {
+                width: fit-content;
+                padding: 5px 15px;
             }
         }
     }

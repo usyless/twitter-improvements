@@ -381,12 +381,39 @@ if (typeof browser === 'undefined') {
                 {
                     type: 'break'
                 },
+            ],
+            'Save file format': [
                 {
                     name: 'save_format',
                     category: 'download_preferences',
-                    description: 'Format to save files in',
+                    description: 'Remember to include the \'.\' before the extension!',
                     type: 'text',
-                    default: '[twitter] {username} - {tweetId} - {tweetNum}.{extension}'
+                    default: '[twitter] {username} - {tweetId} - {tweetNum}.{extension}',
+                    class: ['wideText'],
+                    post: (elem) => {
+                        elem.style.flexDirection = 'column';
+                        elem.style.alignItems = 'flex-start';
+                        elem.style.rowGap = '10px';
+
+                        const quickPicks = document.createElement('div');
+                        quickPicks.classList.add('quickPicks');
+                        for (const [item, name] of [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION']]) {
+                            const btn = document.createElement('button');
+                            btn.textContent = name;
+                            btn.dataset.item = item;
+                            quickPicks.appendChild(btn);
+                        }
+
+                        const input = elem.querySelector('input');
+                        quickPicks.addEventListener('click', (e) => {
+                            const btn = e.target.closest('button');
+                            if (btn) {
+                                input.value += `{${btn.dataset.item}}`;
+                            }
+                        });
+
+                        elem.firstElementChild.after(document.createTextNode('Quick Picks:'), quickPicks);
+                    }
                 }
             ]
         },
@@ -525,7 +552,9 @@ if (typeof browser === 'undefined') {
 
     function create(elem) {
         elem.init?.();
-        return typeMap[elem.type ?? 'checkbox'](elem);
+        const m = typeMap[elem.type ?? 'checkbox'](elem);
+        elem.post?.(m);
+        return m;
     }
 
     function get_generic_setting(e, element, flipOrder) {
