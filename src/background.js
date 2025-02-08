@@ -102,7 +102,7 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
 }, { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] }, ["requestHeaders"]);
 
 
-const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => Number(x?.bitrate) > Number(y?.bitrate) ? x : y).url;
+const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
 const defaultHeaders = {'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en', 'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session'};
 const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
 function download_video(request, sendResponse) {
@@ -186,7 +186,7 @@ function findVideos(data, results = {}) {
     else if (typeof data === 'object' && data != null) {
         if (Array.isArray(data.variants)) for (const variant of data.variants) if (variant.bitrate && variant.url && variant.content_type === "video/mp4") {
             const id = variant.url.match(/ext_tw_video\/(\d+)\//)?.[1];
-            if (id) results[id] = Number(results[id]?.bitrate) > variant?.bitrate ? results[id] : variant;
+            if (id) results[id] = +results[id]?.bitrate > variant?.bitrate ? results[id] : variant;
         }
         for (const key in data) findVideos(data[key], results);
     }
@@ -198,7 +198,7 @@ function versionBelowGiven(previousVersion, maxVersion) {
     previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
     maxVersion = (maxVersion?.match?.(/\d+/g) ?? []).join('');
     const length = Math.max(previousVersion.length, maxVersion.length);
-    return Number(previousVersion.padEnd(length, '0')) < Number(maxVersion.padEnd(length, '0'));
+    return +previousVersion.padEnd(length, '0') < +maxVersion.padEnd(length, '0');
 }
 
 function migrateSettings(previousVersion) {
