@@ -10,6 +10,7 @@
             video_button: true,
             image_button: true,
             show_hidden: false,
+            bookmark_on_photo_page: false,
         },
 
         vx_preferences: {
@@ -21,6 +22,7 @@
             long_image_button: false,
             download_history_enabled: true,
             download_history_prevent_download: false,
+            image_button_position: '0'
         },
 
         about: {

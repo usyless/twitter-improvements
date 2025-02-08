@@ -22,7 +22,7 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'url_prefix',
                     category: 'vx_preferences',
-                    description: 'Url prefix provider',
+                    description: 'URL prefix provider',
                     default: 'fixvx.com',
                     type: 'choice',
                     choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}]
@@ -30,7 +30,7 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'custom_url',
                     category: 'vx_preferences',
-                    description: 'Custom link copy host (Set prefix to \'Custom\')',
+                    description: 'Custom copy URL (Set prefix to \'Custom\')',
                     default: '',
                     type: 'text',
                 },
@@ -57,9 +57,17 @@ if (typeof browser === 'undefined') {
                     default: true
                 },
                 {
+                    name: 'image_button_position',
+                    category: 'image_preferences',
+                    description: 'Image download button position',
+                    type: 'choice',
+                    default: '0',
+                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}, {name: 'Inline (Experimental)', type: '4'}]
+                },
+                {
                     name: 'long_image_button',
                     category: 'image_preferences',
-                    description: 'Stretch image download button across width of image',
+                    description: 'Stretch image download button across width of image (if not inline)',
                     default: false,
                 },
                 {
@@ -172,6 +180,27 @@ if (typeof browser === 'undefined') {
                         browser.runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
                             alert(`You have downloaded approximately ${r.length} unique image(s)`);
                         });
+                    }
+                }
+            ],
+            'Extras': [
+                {
+                    name: 'show_hidden',
+                    category: 'setting',
+                    description: 'Show all hidden media',
+                    default: false
+                },
+                {
+                    name: 'reset_all_settings',
+                    description: '',
+                    type: 'button',
+                    button: 'Reset to DEFAULT settings (excluding download history)',
+                    class: ['warning'],
+                    onclick: () => {
+                        if (confirm('Are you sure you want to RESET this extensions settings?')) {
+                            clearStorage();
+                            window.location.reload();
+                        }
                     }
                 }
             ],
@@ -297,26 +326,34 @@ if (typeof browser === 'undefined') {
                 }
             ],
         },
-        'Extras': {
+        'Downloading': {
             '': [
                 {
-                    name: 'show_hidden',
-                    category: 'setting',
-                    description: 'Show all hidden media',
-                    default: false
+                    name: 'save_directory',
+                    category: 'download_preferences',
+                    description: 'Relative file save directory',
+                    type: 'text',
+                    default: ''
                 },
                 {
-                    name: 'reset_all_settings',
-                    description: '',
-                    type: 'button',
-                    button: 'Reset to DEFAULT settings (excluding download history)',
-                    class: ['warning'],
-                    onclick: () => {
-                        if (confirm('Are you sure you want to RESET this extensions settings?')) {
-                            clearStorage();
-                            window.location.reload();
-                        }
-                    }
+                    type: 'break'
+                },
+                {
+                    name: 'save_format',
+                    category: 'download_preferences',
+                    description: 'Format to save files in',
+                    type: 'text',
+                    default: '[twitter] {username} - {tweetId} - {tweetNum}.{extension}'
+                }
+            ]
+        },
+        'Experimental': {
+            'These may not work as intended for now!': [
+                {
+                    name: 'bookmark_on_photo_page',
+                    category: 'setting',
+                    description: 'Show bookmark button on the enlarged photo page',
+                    default: false
                 }
             ]
         }
