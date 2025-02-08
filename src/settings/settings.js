@@ -256,6 +256,12 @@ if (typeof browser === 'undefined') {
                     category: 'style',
                     description: 'Like button',
                     default: false
+                },
+                {
+                    name: 'hide_bookmark_button_tweet',
+                    category: 'style',
+                    description: 'Bookmark button',
+                    default: false
                 }
             ],
             'Left Sidebar': [

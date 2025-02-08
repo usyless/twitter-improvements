@@ -53,7 +53,8 @@
         hide_tweet_share_button: ['article div:has(> div > button[aria-label="Share post"]:not([usy]))'],
         hide_replies_button_tweet: ['article div:has(> button[data-testid="reply"])'],
         hide_retweet_button_tweet: ['article div:has(> button[data-testid="retweet"])'],
-        hide_like_button_tweet: ['article div:has(> button[data-testid="like"])']
+        hide_like_button_tweet: ['article div:has(> button[data-testid="like"])'],
+        hide_bookmark_button_tweet: ['article div:has(> button[data-testid="bookmark"])']
     }
 
     const start = () => loadSettings().then((enabled) => {
