@@ -484,16 +484,18 @@ if (typeof browser === 'undefined') {
             if (nextPane) window.location.hash = nextPane.dataset.pane;
         }
 
-        const hashchangeHandler = () => {
+        const hashchangeHandler = (instant) => {
             const hash = decodeURIComponent(window.location.hash.substring(1));
             if (options.hasOwnProperty(hash)) {
                 header.querySelector('.selected')?.classList.remove('selected');
                 header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');
+                if (instant) panes.style.scrollBehavior = 'auto';
                 panes.scrollLeft = panes.querySelector(`div[data-pane="${hash}"]`).offsetLeft;
+                if (instant) panes.style.removeProperty('scrollBehavior');
                 setHeight();
             }
         }
-        hashchangeHandler();
+        hashchangeHandler(true);
         window.addEventListener('hashchange', hashchangeHandler);
 
         function setHeight() {
@@ -504,7 +506,7 @@ if (typeof browser === 'undefined') {
         }
 
         const setHeightDelay = ()=>  setTimeout(setHeight, 300);
-        setHeightDelay();
+        setHeight();
 
         window.addEventListener('resize', setHeightDelay);
     }
