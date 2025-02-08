@@ -297,17 +297,16 @@ function migrateSettings(previousVersion) {
 
 function updateHistoryDb() {
     return new Promise((resolve) => {
-        indexedDB.open('download_history', 1)
-            .addEventListener('upgradeneeded', (event) => {
-                const db = event.target.result;
+        const idb = indexedDB.open('download_history', 1);
+        idb.addEventListener('upgradeneeded', (event) => {
+            const db = event.target.result;
 
-                if (event.oldVersion <= 0) {
-                    const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
-                    objectStore.createIndex('saved_image', 'saved_image', {unique: true});
-                }
-
-                resolve(true);
-            });
+            if (event.oldVersion <= 0) {
+                const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
+                objectStore.createIndex('saved_image', 'saved_image', {unique: true});
+            }
+        });
+        idb.addEventListener('success', resolve);
     });
 }
 
