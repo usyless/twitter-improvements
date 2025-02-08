@@ -62,8 +62,7 @@
                 if (altAnchor && !altAnchor.parentElement.querySelector('[usy-copy]')) {
                     altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
                 }
-            } catch (e) {
-                console.error(e);
+            } catch {
                 article.removeAttribute('usy');
             }
         },
@@ -269,7 +268,7 @@
     }
 
     const Button = { // Button functions
-        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback, customListeners) => {
+        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = []) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
