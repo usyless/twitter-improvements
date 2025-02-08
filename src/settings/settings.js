@@ -206,13 +206,47 @@ if (typeof browser === 'undefined') {
             ],
         },
         'Hidden Elements': {
-            '': [
+            'Global': [
                 {
                     name: 'hide_grok',
                     category: 'style',
                     description: 'Everything "Grok"',
                     default: false
                 },
+                {
+                    name: 'hide_premium',
+                    category: 'style',
+                    description: '"Premium" button and additional Premium ads',
+                    default: false
+                },
+                {
+                    name: 'hide_post_reply_sections',
+                    category: 'style',
+                    description: '"Post" and "Reply" sections',
+                    default: false
+                },
+            ],
+            'Tweets': [
+                {
+                    name: 'hide_tweet_view_count',
+                    category: 'style',
+                    description: 'Tweet view counts',
+                    default: false
+                },
+                {
+                    name: 'hide_tweet_share_button',
+                    category: 'style',
+                    description: 'Share button on Tweet',
+                    default: false
+                },
+                {
+                    name: 'hide_replies_button_tweet',
+                    category: 'style',
+                    description: 'Replies button on Tweet',
+                    default: false
+                }
+            ],
+            'Left Sidebar': [
                 {
                     name: 'hide_notifications',
                     category: 'style',
@@ -261,13 +295,7 @@ if (typeof browser === 'undefined') {
                     description: '"Follower requests" button',
                     default: false
                 },
-                {
-                    name: 'hide_premium',
-                    category: 'style',
-                    description: '"Premium" button and additional Premium ads',
-                    default: false
-                },
-                {
+                                {
                     name: 'hide_verified_orgs',
                     category: 'style',
                     description: '"Verified Orgs" button',
@@ -285,9 +313,8 @@ if (typeof browser === 'undefined') {
                     description: '"Ads" button',
                     default: false
                 },
-                {
-                    type: 'break'
-                },
+            ],
+            'Right Sidebar': [
                 {
                     name: 'hide_whats_happening',
                     category: 'style',
@@ -310,12 +337,6 @@ if (typeof browser === 'undefined') {
                     name: 'hide_live_on_x',
                     category: 'style',
                     description: 'Live on X tab',
-                    default: false
-                },
-                {
-                    name: 'hide_post_reply_sections',
-                    category: 'style',
-                    description: '"Post" and "Reply" sections',
                     default: false
                 },
                 {
