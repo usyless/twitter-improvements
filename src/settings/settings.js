@@ -230,19 +230,31 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'hide_tweet_view_count',
                     category: 'style',
-                    description: 'Tweet view counts',
+                    description: 'View counts',
                     default: false
                 },
                 {
                     name: 'hide_tweet_share_button',
                     category: 'style',
-                    description: 'Share button on Tweet',
+                    description: 'Share button',
                     default: false
                 },
                 {
                     name: 'hide_replies_button_tweet',
                     category: 'style',
-                    description: 'Replies button on Tweet',
+                    description: 'Replies button',
+                    default: false
+                },
+                {
+                    name: 'hide_retweet_button_tweet',
+                    category: 'style',
+                    description: 'Retweet button',
+                    default: false
+                },
+                {
+                    name: 'hide_like_button_tweet',
+                    category: 'style',
+                    description: 'Like button',
                     default: false
                 }
             ],
