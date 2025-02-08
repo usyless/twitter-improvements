@@ -36,7 +36,13 @@ chrome?.contextMenus?.onClicked?.addListener?.((info) => {
 });
 
 function download(url, filename) {
-    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : chrome.downloads.download({url, filename});
+    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : chrome.storage.local.get(['download_preferences'], (r) => {
+        const dir = r?.download_preferences?.save_directory;
+        chrome.downloads.download({
+            url,
+            filename: (dir?.length > 0 ? `${dir}${dir.endsWith('/') ? '' : '/'}` : '') + filename
+        });
+    });
 }
 
 function sendToTab(message) {
