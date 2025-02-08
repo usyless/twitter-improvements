@@ -382,7 +382,7 @@ if (typeof browser === 'undefined') {
                     type: 'break'
                 },
             ],
-            'Save file format': [
+            'Save file name': [
                 {
                     name: 'save_format',
                     category: 'download_preferences',
@@ -413,7 +413,7 @@ if (typeof browser === 'undefined') {
                         });
 
                         elem.firstElementChild.after(
-                            document.createTextNode('Changing this might break image reversing!'),
+                            document.createTextNode('Changing this might break image reversing! (Make sure to keep the Tweet ID present)'),
                             document.createElement('br'),
                             document.createTextNode('Quick Picks:'),
                             quickPicks
