@@ -7,6 +7,10 @@ if (typeof browser === 'undefined') {
 (() => {
     document.getElementById('versionDisplay').textContent += chrome?.runtime?.getManifest?.()?.version;
 
+    if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {
+        document.body.classList.add('mobile');
+    }
+
     const panes = document.getElementById('settings-panes');
     const header = document.getElementById('settings-header');
 

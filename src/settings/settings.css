@@ -267,3 +267,10 @@ button {
         }
     }
 }
+
+body.mobile {
+    /*Hide save_directory on mobile*/
+    div:has(> #save_directory) {
+        display: none !important;
+    }
+}
