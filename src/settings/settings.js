@@ -386,7 +386,6 @@ if (typeof browser === 'undefined') {
             if (t) gotoPane(panes.querySelector(`div[data-pane="${t.dataset.pane}"]`));
         });
 
-
         let touchStartX = 0;
         window.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
@@ -395,6 +394,12 @@ if (typeof browser === 'undefined') {
             const touchEndX = e.changedTouches[0].screenX;
             if (touchStartX - touchEndX > 50) changePane(true);
             if (touchEndX - touchStartX > 50) changePane(false);
+        });
+        window.addEventListener('wheel', (e) => {
+            if (e.shiftKey) {
+                e.preventDefault();
+                changePane(e.deltaY > 0);
+            }
         });
         function changePane(next) {
             const currPane = header.querySelector('.selected');
