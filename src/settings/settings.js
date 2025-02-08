@@ -460,7 +460,7 @@ if (typeof browser === 'undefined') {
         header.firstElementChild.classList.add('selected');
         header.addEventListener('click', (e) => {
             const t = e.target.closest('div[data-pane]');
-            if (t) gotoPane(panes.querySelector(`div[data-pane="${t.dataset.pane}"]`));
+            if (t) window.location.hash = t.dataset.pane;
         });
 
         let touchStartX = 0;
@@ -481,18 +481,20 @@ if (typeof browser === 'undefined') {
         function changePane(next) {
             const currPane = header.querySelector('.selected');
             const nextPane = next ? currPane.nextElementSibling : currPane.previousElementSibling;
-            if (nextPane) gotoPane(panes.querySelector(`div[data-pane="${nextPane.dataset.pane}"]`));
+            if (nextPane) window.location.hash = nextPane.dataset.pane;
         }
 
-        function gotoPane(pane) {
-            header.querySelector('.selected')?.classList.remove('selected');
-            header.querySelector(`div[data-pane="${pane.dataset.pane}"]`).classList.add('selected');
-            panes.scrollTo({
-                left: pane.offsetLeft,
-                behavior: 'smooth'
-            });
-            setHeight();
+        const hashchangeHandler = () => {
+            const hash = decodeURIComponent(window.location.hash.substring(1));
+            if (options.hasOwnProperty(hash)) {
+                header.querySelector('.selected')?.classList.remove('selected');
+                header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');
+                panes.scrollLeft = panes.querySelector(`div[data-pane="${hash}"]`).offsetLeft;
+                setHeight();
+            }
         }
+        hashchangeHandler();
+        window.addEventListener('hashchange', hashchangeHandler);
 
         function setHeight() {
             const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)

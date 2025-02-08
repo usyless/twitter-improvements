@@ -76,6 +76,7 @@ body {
         scrollbar-width: none;
         max-width: 100%;
         width: calc(min(850px, 100vw - 70px));
+        scroll-behavior: smooth;
 
         > div {
             scroll-snap-align: start;
