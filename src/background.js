@@ -62,7 +62,7 @@ function saveImage(request, sendResponse) {
         const parts = getNamePartsImage(request.url, request.sourceURL);
         download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, r.download_preferences?.save_format));
 
-        const saved_id = `${parts.username}-${parts.tweetId}`;
+        const saved_id = `${parts.tweetId}-${parts.tweetNum}`;
         if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => {
             sendToTab({type: 'image_saved'});
         });
