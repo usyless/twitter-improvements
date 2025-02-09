@@ -155,10 +155,6 @@ body {
             min-width: 100px;
             flex-shrink: 1;
 
-            &.wideText {
-                width: 100%;
-            }
-
             &:active {
                 border-color: var(--additional-lighter);
             }
@@ -211,6 +207,10 @@ body {
             flex-direction: column;
             align-items: flex-start;
             row-gap: 10px;
+
+            input {
+                width: 100%;
+            }
         }
     }
 }

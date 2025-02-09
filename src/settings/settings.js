@@ -396,7 +396,6 @@ if (typeof browser === 'undefined') {
                     type: 'quickPick',
                     quickPicks: [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION']],
                     default: '[twitter] {username} - {tweetId} - {tweetNum}',
-                    class: ['wideText'],
                     post: (elem) => {
                         const inputWrap = document.createElement('div');
                         inputWrap.classList.add('inputWrap');
@@ -413,9 +412,10 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'tweet_button_positions',
                     category: 'style',
-                    description: '',
-                    type: 'text',
-                    default: 'lol'
+                    description: 'Rearrange the button positions by setting the order they appear in the input',
+                    type: 'quickPick',
+                    quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share']],
+                    default: '{replies}{retweets}{likes}{views}{bookmark}{share}',
                 }
             ]
         }
