@@ -582,7 +582,7 @@ if (typeof browser === 'undefined') {
         let touchStartX = 0;
         let disableTouch = false;
         window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('button')) {
+            if (e.target.closest('button') || e.target.closest('input')) {
                 e.preventDefault();
                 disableTouch = true;
             } else {
