@@ -393,40 +393,29 @@ if (typeof browser === 'undefined') {
                     name: 'save_format',
                     category: 'download_preferences',
                     description: 'Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
-                    type: 'text',
+                    type: 'quickPick',
+                    quickPicks: [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION']],
                     default: '[twitter] {username} - {tweetId} - {tweetNum}',
                     class: ['wideText'],
                     post: (elem) => {
-                        elem.style.flexDirection = 'column';
-                        elem.style.alignItems = 'flex-start';
-                        elem.style.rowGap = '10px';
-
-                        const quickPicks = document.createElement('div');
-                        quickPicks.classList.add('quickPicks');
-                        for (const [item, name] of [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION']]) {
-                            const btn = document.createElement('button');
-                            btn.textContent = name;
-                            btn.dataset.item = item;
-                            quickPicks.appendChild(btn);
-                        }
-
-                        const input = elem.querySelector('input');
-                        quickPicks.addEventListener('click', (e) => {
-                            const btn = e.target.closest('button');
-                            if (btn) {
-                                input.value += `{${btn.dataset.item}}`;
-                            }
-                        });
-
                         const inputWrap = document.createElement('div');
                         inputWrap.classList.add('inputWrap');
-                        inputWrap.append(input, document.createTextNode('.{extension}'));
+                        inputWrap.append(elem.querySelector('input'), document.createTextNode('.{extension}'));
 
-                        elem.firstElementChild.after(
-                            document.createTextNode('Quick Picks:'),
-                            quickPicks, inputWrap
-                        );
+                        elem.firstElementChild.after(document.createTextNode('Quick Picks:'));
+                        elem.appendChild(inputWrap);
                     }
+                }
+            ]
+        },
+        'Button Positions': {
+            'Tweet': [
+                {
+                    name: 'tweet_button_positions',
+                    category: 'style',
+                    description: '',
+                    type: 'text',
+                    default: 'lol'
                 }
             ]
         }
@@ -464,6 +453,30 @@ if (typeof browser === 'undefined') {
             checkbox.setAttribute('type', 'checkbox');
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
             checkbox.addEventListener('change', (ev) => update_value(ev, e, 'checked'));
+            return outer;
+        },
+        quickPick: (e) => {
+            const outer = typeMap.text(e);
+            outer.classList.add('quickPicksWrapper');
+
+            const quickPicks = document.createElement('div');
+            quickPicks.classList.add('quickPicks');
+            for (const [item, name] of e.quickPicks) {
+                const btn = document.createElement('button');
+                btn.textContent = name;
+                btn.dataset.item = item;
+                quickPicks.appendChild(btn);
+            }
+
+            const input = outer.querySelector('input');
+            quickPicks.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn) {
+                    input.value += `{${btn.dataset.item}}`;
+                }
+            });
+
+            outer.firstElementChild.after(quickPicks);
             return outer;
         },
         break: () => document.createElement('br')

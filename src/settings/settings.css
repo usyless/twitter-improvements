@@ -206,6 +206,12 @@ body {
                 padding: 5px 15px;
             }
         }
+
+        .quickPicksWrapper {
+            flex-direction: column;
+            align-items: flex-start;
+            row-gap: 10px;
+        }
     }
 }
 
