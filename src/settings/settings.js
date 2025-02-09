@@ -412,10 +412,45 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'tweet_button_positions',
                     category: 'style',
-                    description: 'Rearrange the button positions by setting the order they appear in the input',
+                    description: 'Rearrange the button positions by dragging them to the desired positions. (Hidden buttons still affect placement)',
                     type: 'quickPick',
-                    quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share']],
-                    default: '{replies}{retweets}{likes}{views}{bookmark}{share}',
+                    quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download Media'], ['copy', '📋 Copy link']],
+                    default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
+                    class: ['hidden'],
+                    post: (elem) => {
+                        // REMEMBER INITIALISATION
+
+                        for (const button of elem.querySelectorAll('button')) button.draggable = 'true';
+                        const quickPicks = elem.querySelector('.quickPicks');
+                        quickPicks.classList.add('draggableWrapper');
+                        quickPicks.addEventListener('dragstart', (e) => {
+                            const btn = e.target.closest('button');
+                            if (btn) e.dataTransfer.setData('item', btn.dataset.item);
+                        });
+                        quickPicks.addEventListener('dragover', (e) => {
+                            if (e?.dataTransfer?.getData('item')) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                            }
+                        });
+                        quickPicks.addEventListener('drop', (e) => {
+                            const dragged = quickPicks.querySelector(`[data-item="${e?.dataTransfer?.getData('item')}"]`);
+                            if (dragged) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                const target = e.target.closest('button');
+                                if (target && target !== dragged) {
+                                    const draggedClone = dragged.cloneNode(true);
+
+                                    dragged.replaceWith(target.cloneNode(true));
+                                    target.replaceWith(draggedClone);
+                                }
+                            }
+                        });
+                    }
                 }
             ]
         }
