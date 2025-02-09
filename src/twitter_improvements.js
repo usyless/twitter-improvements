@@ -92,6 +92,9 @@
                 article.setAttribute('usy-bookmarked', '');
                 const a = Tweet.maximisedShareButtonAnchor(article);
                 if (a) {
+                    // Clear all previous bookmark buttons to avoid stacking
+                    for (const bk of a.parentElement.querySelectorAll('[usy-bookmark]')) bk.remove();
+
                     const bk = Tweet.respectiveBookmarkButton(article);
                     bk.addEventListener('click', () => {
                         setTimeout(() => {
