@@ -296,6 +296,12 @@ button {
     }
 }
 
+.dragging {
+    position: absolute;
+    width: fit-content;
+    transition: 0s;
+}
+
 .hidden {
     display: none;
 }

@@ -430,36 +430,34 @@ if (typeof browser === 'undefined') {
                             }
                         }, {once: true});
 
-                        // Make buttons draggable
-                        for (const button of elem.querySelectorAll('button')) {
-                            button.draggable = 'true';
-                        }
-
+                        let dragged;
                         const input = elem.querySelector('input');
                         quickPicks.classList.add('draggableWrapper');
-                        quickPicks.addEventListener('dragstart', (e) => {
+                        quickPicks.addEventListener('pointerdown', (e) => {
                             const btn = e.target.closest('button');
-                            if (btn) e.dataTransfer.setData('item', btn.dataset.item);
-                        });
-                        quickPicks.addEventListener('dragover', (e) => {
-                            if (e?.dataTransfer?.getData('item')) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.stopImmediatePropagation();
+                            if (btn) {
+                                dragged = btn.cloneNode(true);
+                                dragged.classList.add('dragging');
+                                dragged.style.top = `${e.clientY}px`;
+                                dragged.style.left = `${e.clientX}px`;
+                                document.body.appendChild(dragged);
                             }
                         });
-                        quickPicks.addEventListener('drop', (e) => {
-                            const dragged = quickPicks.querySelector(`[data-item="${e?.dataTransfer?.getData('item')}"]`);
+                        const upEvent = (e) => {
                             if (dragged) {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();
 
-                                const target = e.target.closest('button');
-                                if (target && target !== dragged) {
-                                    const draggedClone = dragged.cloneNode(true);
+                                const draggedActual = quickPicks.querySelector(`[data-item="${dragged.dataset.item}"]`);
+                                dragged.remove();
+                                dragged = null;
 
-                                    dragged.replaceWith(target.cloneNode(true));
+                                const target = e.target.closest('button');
+                                if (target && target !== draggedActual) {
+                                    const draggedClone = draggedActual.cloneNode(true);
+
+                                    draggedActual.replaceWith(target.cloneNode(true));
                                     target.replaceWith(draggedClone);
 
                                     input.value = '';
@@ -467,7 +465,19 @@ if (typeof browser === 'undefined') {
                                     input.dispatchEvent(changeEvent);
                                 }
                             }
+                        }
+                        window.addEventListener('pointermove', (e) => {
+                            if (dragged) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
+                                dragged.style.top = `${e.clientY}px`;
+                                dragged.style.left = `${e.clientX}px`;
+                            }
                         });
+                        window.addEventListener('pointerup', upEvent);
+                        window.addEventListener('pointercancel', upEvent);
                     }
                 }
             ]
