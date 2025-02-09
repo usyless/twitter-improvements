@@ -59,7 +59,8 @@
                 a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
 
                 const altAnchor = Tweet.maximisedShareButtonAnchor(article);
-                if (altAnchor && !altAnchor.parentElement.querySelector('[usy-copy]')) {
+                if (altAnchor) {
+                    for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
                     altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
                 }
             } catch {
@@ -78,7 +79,8 @@
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-video'));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
-                    if (altAnchor && !altAnchor.parentElement.querySelector('[usy-video]')) {
+                    if (altAnchor) {
+                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-video]')) copy.remove();
                         altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-video'));
                     }
                 }
@@ -117,6 +119,10 @@
             const anchor = article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
             if (!Tweet.fallbackButton) Tweet.fallbackButton = anchor;
             return anchor;
+        },
+
+        isFocused: (article) => {
+            return article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]');
         },
 
         respectiveBookmarkButton: (article) => {
@@ -176,7 +182,7 @@
         },
 
         maximisedShareButtonAnchor: (article) => {
-            if (Tweet.maximised() && article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]'))
+            if (Tweet.maximised() && Tweet.isFocused(article))
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
         }
