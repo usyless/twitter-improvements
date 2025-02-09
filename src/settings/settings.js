@@ -492,6 +492,8 @@ if (typeof browser === 'undefined') {
     }
 
     { // Settings panes scrolling
+        let lastPane;
+
         panes.scrollLeft = 0;
         header.firstElementChild.classList.add('selected');
         header.addEventListener('click', (e) => {
@@ -523,10 +525,11 @@ if (typeof browser === 'undefined') {
         const hashchangeHandler = (_, instant) => {
             const hash = decodeURIComponent(window.location.hash.substring(1));
             if (options.hasOwnProperty(hash)) {
+                lastPane = hash;
                 header.querySelector('.selected')?.classList.remove('selected');
                 header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');
                 if (instant === true) panes.style.scrollBehavior = 'auto';
-                panes.scrollLeft = panes.querySelector(`div[data-pane="${hash}"]`).offsetLeft;
+                scrollToLastPane();
                 if (instant === true) panes.style.removeProperty('scroll-behavior');
                 setHeight();
             }
@@ -534,15 +537,22 @@ if (typeof browser === 'undefined') {
         hashchangeHandler(null, true);
         window.addEventListener('hashchange', hashchangeHandler);
 
+        function scrollToLastPane() {
+            const p = panes.querySelector(`div[data-pane="${lastPane}"]`)
+            if (p) panes.scrollLeft = p.offsetLeft;
+        }
+
         function setHeight() {
             const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)
             panes.style.height = `${currPane.lastElementChild.getBoundingClientRect().bottom - currPane.getBoundingClientRect().top + 20}px`;
         }
 
         const setHeightDelay = ()=>  setTimeout(setHeight, 300);
+        const scrollLastPaneDelay = () => setTimeout(scrollToLastPane, 300);
         setHeight();
         setHeightDelay(); // Fix initial install height
 
+        window.addEventListener('resize', scrollLastPaneDelay);
         window.addEventListener('resize', setHeightDelay);
     }
 
