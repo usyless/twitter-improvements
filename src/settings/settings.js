@@ -422,7 +422,7 @@ if (typeof browser === 'undefined') {
                     class: ['hidden'],
                     post: (elem) => {
                         const quickPicks = elem.querySelector('.quickPicks');
-                        elem.addEventListener('valueLoaded', (e) => {
+                        elem.addEventListener('valueLoaded', () => {
                             // Parse into values
                             const result = elem.querySelector('input').value.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
                             for (let i = 0; i < result.length; ++i) {
@@ -529,6 +529,7 @@ if (typeof browser === 'undefined') {
                 const btn = e.target.closest('button');
                 if (btn) {
                     input.value += `{${btn.dataset.item}}`;
+                    input.dispatchEvent(changeEvent);
                 }
             });
 
