@@ -536,13 +536,12 @@ if (typeof browser === 'undefined') {
 
         function setHeight() {
             const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)
-            const top = currPane.getBoundingClientRect().top;
-            const bottom = currPane.lastElementChild.getBoundingClientRect().bottom;
-            panes.style.height = `${bottom - top + 20}px`;
+            panes.style.height = `${currPane.lastElementChild.getBoundingClientRect().bottom - currPane.getBoundingClientRect().top + 20}px`;
         }
 
         const setHeightDelay = ()=>  setTimeout(setHeight, 300);
         setHeight();
+        setHeightDelay(); // Fix initial install height
 
         window.addEventListener('resize', setHeightDelay);
     }
