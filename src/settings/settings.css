@@ -317,7 +317,7 @@ button {
 }
 
 body.mobile {
-    div:has(> #save_directory), div:has(> #bookmark_on_photo_page) {
+    div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt) {
         display: none !important;
     }
 }

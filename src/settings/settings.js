@@ -388,7 +388,12 @@ if (typeof browser === 'undefined') {
                     default: ''
                 },
                 {
-                    type: 'break'
+                    name: 'save_as_prompt',
+                    category: 'download_preferences',
+                    description: 'Prompt to "Save As" when saving files with this extension',
+                    type: 'choice',
+                    choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                    default: 'browser'
                 },
             ],
             'Save file name': [

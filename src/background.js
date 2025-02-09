@@ -39,11 +39,14 @@ chrome?.contextMenus?.onClicked?.addListener?.((info) => {
 
 function download(url, filename) {
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : chrome.storage.local.get(['download_preferences'], (r) => {
-        const dir = r?.download_preferences?.save_directory;
-        chrome.downloads.download({
-            url,
-            filename: (dir?.length > 0 ? `${dir}${dir.endsWith('/') ? '' : '/'}` : '') + filename
-        });
+        const prefs = r?.download_preferences;
+        const dir = prefs?.save_directory;
+        const downloadData = {
+            url, filename: (dir?.length > 0 ? `${dir}${dir.endsWith('/') ? '' : '/'}` : '') + filename
+        };
+        if (prefs?.save_as_prompt === 'off') downloadData.saveAs = false;
+        else if (prefs?.save_as_prompt === 'on') downloadData.saveAs = true;
+        chrome.downloads.download(downloadData);
     });
 }
 
