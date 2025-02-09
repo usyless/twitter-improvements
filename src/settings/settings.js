@@ -11,6 +11,9 @@ if (typeof browser === 'undefined') {
         document.body.classList.add('mobile');
     }
 
+    const valueLoadedEvent = new CustomEvent('valueLoaded');
+    const changeEvent = new Event('change');
+
     const panes = document.getElementById('settings-panes');
     const header = document.getElementById('settings-header');
 
@@ -418,10 +421,21 @@ if (typeof browser === 'undefined') {
                     default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
                     class: ['hidden'],
                     post: (elem) => {
-                        // REMEMBER INITIALISATION
-
-                        for (const button of elem.querySelectorAll('button')) button.draggable = 'true';
                         const quickPicks = elem.querySelector('.quickPicks');
+                        elem.addEventListener('valueLoaded', (e) => {
+                            // Parse into values
+                            const result = elem.querySelector('input').value.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
+                            for (let i = 0; i < result.length; ++i) {
+                                quickPicks.appendChild(elem.querySelector(`[data-item="${result[i]}"]`));
+                            }
+                        }, {once: true});
+
+                        // Make buttons draggable
+                        for (const button of elem.querySelectorAll('button')) {
+                            button.draggable = 'true';
+                        }
+
+                        const input = elem.querySelector('input');
                         quickPicks.classList.add('draggableWrapper');
                         quickPicks.addEventListener('dragstart', (e) => {
                             const btn = e.target.closest('button');
@@ -447,6 +461,10 @@ if (typeof browser === 'undefined') {
 
                                     dragged.replaceWith(target.cloneNode(true));
                                     target.replaceWith(draggedClone);
+
+                                    input.value = '';
+                                    input.value = Array.from(quickPicks.children).map((item) => `{${item.dataset.item}}`).join('');
+                                    input.dispatchEvent(changeEvent);
                                 }
                             }
                         });
@@ -466,6 +484,7 @@ if (typeof browser === 'undefined') {
                 o.textContent = opt.name;
                 select.appendChild(o);
             }
+            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => select.value = v});
             select.addEventListener('change', (ev) => update_value(ev, e, 'value'));
             return outer;
@@ -473,6 +492,7 @@ if (typeof browser === 'undefined') {
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
+            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('change', (ev) => update_value(ev, e, 'value'));
             return outer;
@@ -486,6 +506,7 @@ if (typeof browser === 'undefined') {
         checkbox: (e) => {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
+            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
             checkbox.addEventListener('change', (ev) => update_value(ev, e, 'checked'));
             return outer;
@@ -606,6 +627,7 @@ if (typeof browser === 'undefined') {
         for (const {obj, func} of valuesToUpdate) {
             if (obj.category != null) func(s[obj.category]?.[obj.name] ?? obj.default);
             else func(s[obj.name] ?? obj.default);
+            obj?.element.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
     });
