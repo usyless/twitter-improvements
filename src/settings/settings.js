@@ -453,12 +453,11 @@ if (typeof browser === 'undefined') {
                                 dragged.remove();
                                 dragged = null;
 
-                                const target = e.target.closest('button');
+                                // Maybe fix mobile stuff
+                                const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('button');
                                 if (target && target !== draggedActual) {
-                                    const draggedClone = draggedActual.cloneNode(true);
-
-                                    draggedActual.replaceWith(target.cloneNode(true));
-                                    target.replaceWith(draggedClone);
+                                    const rect = target.getBoundingClientRect();
+                                    target[e.clientX >= rect.left + (rect.width / 2) ? 'after' : 'before'](draggedActual);
 
                                     input.value = '';
                                     input.value = Array.from(quickPicks.children).map((item) => `{${item.dataset.item}}`).join('');
