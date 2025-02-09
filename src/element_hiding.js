@@ -14,8 +14,8 @@
         views: ['div:has(> a[href$="/analytics"])'],
         share: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
         replies: ['div:has(> button[data-testid="reply"])'],
-        retweet: ['div:has(> button[data-testid="retweet"])'],
-        like: ['div:has(> button[data-testid="like"])'],
+        retweet: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
+        like: ['div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'],
         bookmark: ['div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'],
 
         copy: ['div[usy-copy]'],
