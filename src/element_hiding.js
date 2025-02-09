@@ -7,7 +7,7 @@
 
     const Styles = {
         DISPLAY: '{display:none!important;}',
-        OPACITY: '{opacity:0!important;}',
+        OPACITY: '{opacity:0!important;pointer-events: none!important;}',
     }
 
     const StyleMap = {
