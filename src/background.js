@@ -87,12 +87,13 @@ function getNamePartsImage(url, sourceURL) {
 }
 
 function formatFilename(parts, save_format) {
-    save_format = save_format || '[twitter] {username} - {tweetId} - {tweetNum}.{extension}';
+    save_format = save_format || '[twitter] {username} - {tweetId} - {tweetNum}';
     return save_format
         .replaceAll('{username}', parts.username)
         .replaceAll('{tweetId}', parts.tweetId)
         .replaceAll('{tweetNum}', parts.tweetNum ?? '')
-        .replaceAll('{extension}', parts.extension ?? '');
+        .replaceAll('{extension}', parts.extension ?? '') +
+        (parts.extension ? `.${parts.extension}` : '');
 }
 
 chrome.webRequest.onSendHeaders.addListener((details) => {

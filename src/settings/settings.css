@@ -285,6 +285,14 @@ button {
     }
 }
 
+.inputWrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    white-space: nowrap;
+}
+
 body.mobile {
     /*Hide save_directory on mobile*/
     div:has(> #save_directory) {

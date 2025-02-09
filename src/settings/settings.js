@@ -386,9 +386,9 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'save_format',
                     category: 'download_preferences',
-                    description: 'Remember to include the \'.\' before the extension!',
+                    description: 'Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
                     type: 'text',
-                    default: '[twitter] {username} - {tweetId} - {tweetNum}.{extension}',
+                    default: '[twitter] {username} - {tweetId} - {tweetNum}',
                     class: ['wideText'],
                     post: (elem) => {
                         elem.style.flexDirection = 'column';
@@ -412,11 +412,13 @@ if (typeof browser === 'undefined') {
                             }
                         });
 
+                        const inputWrap = document.createElement('div');
+                        inputWrap.classList.add('inputWrap');
+                        inputWrap.append(input, document.createTextNode('.{extension}'));
+
                         elem.firstElementChild.after(
-                            document.createTextNode('Changing this might break image reversing! (Make sure to keep the Tweet ID present)'),
-                            document.createElement('br'),
                             document.createTextNode('Quick Picks:'),
-                            quickPicks
+                            quickPicks, inputWrap
                         );
                     }
                 }
