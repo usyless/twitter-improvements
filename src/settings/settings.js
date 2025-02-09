@@ -66,7 +66,7 @@ if (typeof browser === 'undefined') {
                     description: 'Image download button position',
                     type: 'choice',
                     default: '0',
-                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}, {name: 'Inline (Experimental)', type: '4'}]
+                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
                 },
                 {
                     name: 'long_image_button',
