@@ -294,8 +294,7 @@ button {
 }
 
 body.mobile {
-    /*Hide save_directory on mobile*/
-    div:has(> #save_directory) {
+    div:has(> #save_directory), div:has(> #bookmark_on_photo_page) {
         display: none !important;
     }
 }

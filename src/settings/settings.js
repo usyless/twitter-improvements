@@ -66,7 +66,7 @@ if (typeof browser === 'undefined') {
                     description: 'Image download button position',
                     type: 'choice',
                     default: '0',
-                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
+                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}, {name: 'Inline (Experimental)', type: '4'}]
                 },
                 {
                     name: 'long_image_button',
@@ -188,6 +188,12 @@ if (typeof browser === 'undefined') {
                 }
             ],
             'Extras': [
+                {
+                    name: 'bookmark_on_photo_page',
+                    category: 'setting',
+                    description: 'Show bookmark button on the enlarged photo page',
+                    default: false
+                },
                 {
                     name: 'show_hidden',
                     category: 'setting',
@@ -421,16 +427,6 @@ if (typeof browser === 'undefined') {
                             quickPicks, inputWrap
                         );
                     }
-                }
-            ]
-        },
-        'Experimental': {
-            'These may not work as intended for now!': [
-                {
-                    name: 'bookmark_on_photo_page',
-                    category: 'setting',
-                    description: 'Show bookmark button on the enlarged photo page',
-                    default: false
                 }
             ]
         }
