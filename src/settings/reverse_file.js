@@ -12,8 +12,10 @@
         reverseFiles(d);
     });
     window.addEventListener('paste', (e) => {
-        e.preventDefault();
-        reverseFiles(e.clipboardData);
+        if (e.target.nodeName !== 'INPUT') {
+            e.preventDefault();
+            reverseFiles(e.clipboardData);
+        }
     });
     window.addEventListener('dragover', (e) => {
         e.preventDefault()
