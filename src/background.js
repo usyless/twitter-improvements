@@ -1,3 +1,5 @@
+const DOWNLOAD_DB_VERSION = 1;
+
 const requestMap = {
     image: saveImage,
     video: download_video,
@@ -325,7 +327,7 @@ function migrateSettings(previousVersion) {
 
 function updateHistoryDb() {
     return new Promise((resolve) => {
-        const idb = indexedDB.open('download_history', 1);
+        const idb = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
         idb.addEventListener('upgradeneeded', (event) => {
             const db = event.target.result;
 
@@ -347,7 +349,7 @@ function getHistoryDB() {
         else if (db_opening) pending_db_promises.push(resolve);
         else {
             db_opening = true;
-            indexedDB.open('download_history', 1)
+            indexedDB.open('download_history', DOWNLOAD_DB_VERSION)
                 .addEventListener('success', (e) => {
                     download_history_db = e.target.result;
                     db_opening = false;
