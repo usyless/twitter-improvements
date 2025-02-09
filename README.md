@@ -9,7 +9,7 @@ A simple web extension which brings a few quality of life features to twitter/X.
 - Copy as VX/FX/Custom Button
 	- Each tweet will display a button to copy the link to the tweet directly using VXTwitter, FXTwitter, or a custom prefix to allow for better embedding when sending on other platforms.
 - Image Save Button
-	- Shows a download button in the top left corner of each image, which saves the image in the highest quality available and with a file name that can lead you back to the original tweet.
+	- Shows a download button in the top left corner of each image, which saves the image in the highest quality available and with custom reversible filenames.
 - Image Download History
 	- Can keep track of downloaded files, and even prevent you from re-saving them if enabled!
 	- Can import previously downloaded files to keep track, and export downloaded files list to re-import
@@ -19,6 +19,10 @@ A simple web extension which brings a few quality of life features to twitter/X.
 - Auto unspoiler hidden media
 	- For if twitter once again introduces forced spoilers
 - Hide various unnecessary buttons or tabs (such as premium, verified orgs, etc.)
+- Rearrange the buttons on tweets (like, reply, retweet, etc.)
+- Display bookmark button on enlarged image/video view
+
+
 - **All of the above are togglable with the extensions settings**
 - Saved Image/Video Reversing
 	- Allows you to upload any image or video saved by this extension and retrieve the original tweet it was saved from.
