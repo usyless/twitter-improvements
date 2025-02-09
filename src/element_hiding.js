@@ -10,6 +10,29 @@
         OPACITY: '{opacity:0!important;pointer-events: none!important;}',
     }
 
+    const sharedSelectors = {
+        views: ['div:has(> a[href$="/analytics"])'],
+        share: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
+        replies: ['div:has(> button[data-testid="reply"])'],
+        retweet: ['div:has(> button[data-testid="retweet"])'],
+        like: ['div:has(> button[data-testid="like"])'],
+        bookmark: ['div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'],
+
+        copy: ['div[usy-copy]'],
+        download: ['div[usy-video]']
+    }
+
+    const buttonMap = {
+        replies: sharedSelectors.replies,
+        retweets: sharedSelectors.retweet,
+        likes: sharedSelectors.like,
+        views: sharedSelectors.views,
+        bookmark: sharedSelectors.bookmark,
+        share: sharedSelectors.share,
+        download: sharedSelectors.download,
+        copy: sharedSelectors.copy,
+    }
+
     const StyleMap = {
         hide_notifications: {s: ['a[href="/notifications"]'], st: Styles.DISPLAY},
         hide_messages: {s: ['a[href="/messages"]'], st: Styles.DISPLAY},
@@ -54,15 +77,12 @@
         ], st: Styles.DISPLAY},
         hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: Styles.DISPLAY},
 
-        hide_tweet_view_count: {s: ['div:has(> a[href$="/analytics"])'], st: Styles.OPACITY},
-        hide_tweet_share_button: {s: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'], st: Styles.OPACITY},
-        hide_replies_button_tweet: {s: ['div:has(> button[data-testid="reply"])'], st: Styles.OPACITY},
-        hide_retweet_button_tweet: {s: ['div:has(> button[data-testid="retweet"])'], st: Styles.OPACITY},
-        hide_like_button_tweet: {s: ['div:has(> button[data-testid="like"])'], st: Styles.OPACITY},
-        hide_bookmark_button_tweet: {s: [
-                'div:has(> button[data-testid="bookmark"])',
-                'div:has(> button[data-testid="removeBookmark"])'
-            ], st: Styles.OPACITY}
+        hide_tweet_view_count: {s: sharedSelectors.views, st: Styles.OPACITY},
+        hide_tweet_share_button: {s: sharedSelectors.share, st: Styles.OPACITY},
+        hide_replies_button_tweet: {s: sharedSelectors.replies, st: Styles.OPACITY},
+        hide_retweet_button_tweet: {s: sharedSelectors.retweet, st: Styles.OPACITY},
+        hide_like_button_tweet: {s: sharedSelectors.like, st: Styles.OPACITY},
+        hide_bookmark_button_tweet: {s: sharedSelectors.bookmark, st: Styles.OPACITY}
     }
 
     const start = () => loadSettings().then((enabled) => {
@@ -75,6 +95,16 @@
             const st = StyleMap?.[setting], styler = st.st;
             for (const s of st.s) style += s + styler;
         }
+
+        // Apply button ordering if exists
+        const positions = enabled.tweet_button_positions;
+        if (positions) {
+            const result = positions.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
+            for (let i = 0; i < result.length; ++i) {
+                for (const s of buttonMap[result[i]] ?? []) style += `${s}{order:${i}!important}`;
+            }
+        }
+
         if (style.length > 0) {
             const s = document.createElement('style');
             s.setAttribute('usyStyle', '');
