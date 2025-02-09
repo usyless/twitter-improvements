@@ -215,6 +215,7 @@ body {
 
         .draggableWrapper *{
             cursor: grab;
+            touch-action: none;
         }
     }
 }
