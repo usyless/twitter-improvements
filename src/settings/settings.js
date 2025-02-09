@@ -569,13 +569,27 @@ if (typeof browser === 'undefined') {
         });
 
         let touchStartX = 0;
+        let disableTouch = false;
         window.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
+            if (e.target.closest('button')) {
+                e.preventDefault();
+                disableTouch = true;
+            } else {
+                touchStartX = e.changedTouches[0].screenX;
+            }
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (disableTouch) e.preventDefault();
         });
         window.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].screenX;
-            if (touchStartX - touchEndX > 50) changePane(true);
-            if (touchEndX - touchStartX > 50) changePane(false);
+            if (disableTouch) {
+                e.preventDefault();
+                disableTouch = false;
+            } else {
+                const touchEndX = e.changedTouches[0].screenX;
+                if (touchStartX - touchEndX > 50) changePane(true);
+                if (touchEndX - touchStartX > 50) changePane(false);
+            }
         });
         window.addEventListener('wheel', (e) => {
             if (e.shiftKey) {
