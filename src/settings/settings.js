@@ -423,7 +423,7 @@ if (typeof browser === 'undefined') {
                     description: 'Rearrange the button positions by dragging them to the desired positions. (Hidden buttons still affect placement)',
                     noDefaultListener: true,
                     type: 'quickPick',
-                    quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download Media'], ['copy', '📋 Copy link']],
+                    quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download'], ['copy', '📋 Copy link']],
                     default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
                     class: ['hidden'],
                     post: (elem) => {
