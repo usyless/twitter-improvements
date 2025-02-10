@@ -51,7 +51,8 @@
         hide_premium: {s: [
             'a[href="/i/premium_sign_up"]',
             'aside[aria-label*="Premium"]',
-            'div:has(> * > aside[aria-label*="Premium"])'
+            'div:has(> * > aside[aria-label*="Premium"])',
+            'div:has(> * > aside[aria-label="Ending today!"])'
         ], st: Styles.DISPLAY},
         hide_verified_orgs: {s: ['a[href="/i/verified-orgs-signup"]'], st: Styles.DISPLAY},
         hide_monetization: {s: [
