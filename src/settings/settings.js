@@ -589,7 +589,7 @@ if (typeof browser === 'undefined') {
         let touchStartX = 0;
         let disableTouch = false;
         window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('button') || e.target.closest('input')) {
+            if (e.target.closest('button') || e.target.closest('input[type="text"]')) {
                 e.preventDefault();
                 disableTouch = true;
             } else {
@@ -605,8 +605,8 @@ if (typeof browser === 'undefined') {
                 disableTouch = false;
             } else {
                 const touchEndX = e.changedTouches[0].screenX;
-                if (touchStartX - touchEndX > 50) changePane(true);
-                if (touchEndX - touchStartX > 50) changePane(false);
+                if (Math.abs(touchStartX - touchEndX) > 50) changePane(touchStartX - touchEndX > 50);
+                else scrollToLastPane();
             }
         });
         window.addEventListener('wheel', (e) => {
