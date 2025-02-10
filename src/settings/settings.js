@@ -436,7 +436,7 @@ if (typeof browser === 'undefined') {
                             }
                         }, {once: true});
 
-                        let dragged;
+                        let dragged, draggedClone;
                         const input = elem.querySelector('input');
                         quickPicks.classList.add('draggableWrapper');
                         const moveEvent = (e) => {
@@ -445,8 +445,16 @@ if (typeof browser === 'undefined') {
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();
 
-                                dragged.style.top = `${e.clientY}px`;
-                                dragged.style.left = `${e.clientX}px`;
+                                draggedClone.style.top = `${e.clientY}px`;
+                                draggedClone.style.left = `${e.clientX}px`;
+
+                                for (const target of document.elementsFromPoint(e.clientX, e.clientY)) {
+                                    if (target.closest('button:not(.draggingClone)')) {
+                                        const rect = target.getBoundingClientRect();
+                                        target[e.clientX >= rect.left + (rect.width / 2) ? 'after' : 'before'](dragged);
+                                        break;
+                                    }
+                                }
                             }
                         }
                         const upEvent = (e) => {
@@ -458,30 +466,28 @@ if (typeof browser === 'undefined') {
                                 window.removeEventListener('pointerup', upEvent);
                                 window.removeEventListener('pointercancel', upEvent);
 
-                                const draggedActual = quickPicks.querySelector(`[data-item="${dragged.dataset.item}"]`);
-                                dragged.remove();
+                                dragged.classList.remove('dragging');
                                 dragged = null;
 
-                                // Maybe fix mobile stuff
-                                const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('button');
-                                if (target && target !== draggedActual) {
-                                    const rect = target.getBoundingClientRect();
-                                    target[e.clientX >= rect.left + (rect.width / 2) ? 'after' : 'before'](draggedActual);
+                                draggedClone.remove();
+                                draggedClone = null;
 
-                                    input.value = '';
-                                    input.value = Array.from(quickPicks.children).map((item) => `{${item.dataset.item}}`).join('');
-                                    input.dispatchEvent(changeEvent);
-                                }
+                                input.value = '';
+                                input.value = Array.from(quickPicks.children).map((item) => `{${item.dataset.item}}`).join('');
+                                input.dispatchEvent(changeEvent);
                             }
                         }
                         quickPicks.addEventListener('pointerdown', (e) => {
                             const btn = e.target.closest('button');
                             if (btn) {
-                                dragged = btn.cloneNode(true);
+                                dragged = btn;
                                 dragged.classList.add('dragging');
-                                dragged.style.top = `${e.clientY}px`;
-                                dragged.style.left = `${e.clientX}px`;
-                                document.body.appendChild(dragged);
+
+                                draggedClone = dragged.cloneNode(true);
+                                draggedClone.classList.add('draggingClone');
+                                draggedClone.style.top = `${e.clientY}px`;
+                                draggedClone.style.left = `${e.clientX}px`;
+                                document.body.appendChild(draggedClone);
 
                                 window.addEventListener('pointermove', moveEvent);
                                 window.addEventListener('pointerup', upEvent, {once: true});

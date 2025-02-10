@@ -297,6 +297,10 @@ button {
 }
 
 .dragging {
+    background-color: var(--accent) !important;
+}
+
+.draggingClone {
     position: absolute;
     width: fit-content;
     transition: 0s;
