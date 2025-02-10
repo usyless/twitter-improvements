@@ -439,21 +439,24 @@ if (typeof browser === 'undefined') {
                         let dragged;
                         const input = elem.querySelector('input');
                         quickPicks.classList.add('draggableWrapper');
-                        quickPicks.addEventListener('pointerdown', (e) => {
-                            const btn = e.target.closest('button');
-                            if (btn) {
-                                dragged = btn.cloneNode(true);
-                                dragged.classList.add('dragging');
+                        const moveEvent = (e) => {
+                            if (dragged) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+
                                 dragged.style.top = `${e.clientY}px`;
                                 dragged.style.left = `${e.clientX}px`;
-                                document.body.appendChild(dragged);
                             }
-                        });
+                        }
                         const upEvent = (e) => {
                             if (dragged) {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();
+                                window.removeEventListener('pointermove', moveEvent);
+                                window.removeEventListener('pointerup', upEvent);
+                                window.removeEventListener('pointercancel', upEvent);
 
                                 const draggedActual = quickPicks.querySelector(`[data-item="${dragged.dataset.item}"]`);
                                 dragged.remove();
@@ -471,18 +474,20 @@ if (typeof browser === 'undefined') {
                                 }
                             }
                         }
-                        window.addEventListener('pointermove', (e) => {
-                            if (dragged) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.stopImmediatePropagation();
-
+                        quickPicks.addEventListener('pointerdown', (e) => {
+                            const btn = e.target.closest('button');
+                            if (btn) {
+                                dragged = btn.cloneNode(true);
+                                dragged.classList.add('dragging');
                                 dragged.style.top = `${e.clientY}px`;
                                 dragged.style.left = `${e.clientX}px`;
+                                document.body.appendChild(dragged);
+
+                                window.addEventListener('pointermove', moveEvent);
+                                window.addEventListener('pointerup', upEvent, {once: true});
+                                window.addEventListener('pointercancel', upEvent, {once: true});
                             }
                         });
-                        window.addEventListener('pointerup', upEvent);
-                        window.addEventListener('pointercancel', upEvent);
                     }
                 }
             ]
