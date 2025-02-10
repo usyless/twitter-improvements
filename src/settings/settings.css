@@ -302,7 +302,6 @@ button {
 
 .draggingClone {
     position: absolute;
-    width: fit-content;
     transition: 0s;
     touch-action: none;
     pointer-events: none;

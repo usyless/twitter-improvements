@@ -485,6 +485,8 @@ if (typeof browser === 'undefined') {
 
                                 draggedClone = dragged.cloneNode(true);
                                 draggedClone.classList.add('draggingClone');
+                                draggedClone.style.width = `${dragged.offsetWidth}px`;
+                                draggedClone.style.height = `${dragged.offsetHeight}px`;
                                 draggedClone.style.top = `${e.clientY}px`;
                                 draggedClone.style.left = `${e.clientX}px`;
                                 document.body.appendChild(draggedClone);
