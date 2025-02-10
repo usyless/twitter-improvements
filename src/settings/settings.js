@@ -421,6 +421,7 @@ if (typeof browser === 'undefined') {
                     name: 'tweet_button_positions',
                     category: 'style',
                     description: 'Rearrange the button positions by dragging them to the desired positions. (Hidden buttons still affect placement)',
+                    noDefaultListener: true,
                     type: 'quickPick',
                     quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download Media'], ['copy', '📋 Copy link']],
                     default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
@@ -538,14 +539,16 @@ if (typeof browser === 'undefined') {
                 quickPicks.appendChild(btn);
             }
 
-            const input = outer.querySelector('input');
-            quickPicks.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (btn) {
-                    input.value += `{${btn.dataset.item}}`;
-                    input.dispatchEvent(changeEvent);
-                }
-            });
+            if ((e.noDefaultListener ?? false) === false) {
+                const input = outer.querySelector('input');
+                quickPicks.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button');
+                    if (btn) {
+                        input.value += `{${btn.dataset.item}}`;
+                        input.dispatchEvent(changeEvent);
+                    }
+                });
+            }
 
             outer.firstElementChild.after(quickPicks);
             return outer;
