@@ -198,12 +198,6 @@ if (typeof browser === 'undefined') {
                     default: false
                 },
                 {
-                    name: 'show_hidden',
-                    category: 'setting',
-                    description: 'Show all hidden media',
-                    default: false
-                },
-                {
                     name: 'reset_all_settings',
                     description: '',
                     type: 'button',

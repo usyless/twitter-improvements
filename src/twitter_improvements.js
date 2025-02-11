@@ -9,7 +9,6 @@
             vx_button: true,
             video_button: true,
             image_button: true,
-            show_hidden: false,
             bookmark_on_photo_page: false,
         },
 
@@ -332,11 +331,6 @@
             bc.firstElementChild.firstElementChild.classList.replace('r-1peqgm7', 'r-1niwhzg');
         },
 
-        showHidden: (b) => {
-            b.setAttribute('usy', '');
-            if (b.innerText === 'Show' || b.innerText === 'View') b.click();
-        },
-
         resetAll: () => {
             document.querySelectorAll('.usybuttonclickdiv').forEach(b => b.remove());
             document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
@@ -467,7 +461,6 @@
                         s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])',
                         f: Image.addImageButton
                     }],
-                    show_hidden: [{s: 'button[type="button"]:not([usy])', f: Button.showHidden}],
                     bookmark_on_photo_page: [{
                         s: 'article:not([usy-bookmarked])',
                         f: Tweet.copyBookmarkButton

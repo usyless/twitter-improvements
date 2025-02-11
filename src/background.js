@@ -92,8 +92,7 @@ function getNamePartsImage(url, sourceURL) {
 }
 
 function formatFilename(parts, save_format) {
-    save_format = save_format || '[twitter] {username} - {tweetId} - {tweetNum}';
-    return save_format
+    return (save_format || '[twitter] {username} - {tweetId} - {tweetNum}')
         .replaceAll('{username}', parts.username)
         .replaceAll('{tweetId}', parts.tweetId)
         .replaceAll('{tweetNum}', parts.tweetNum ?? '')
@@ -194,7 +193,7 @@ function download_video_from_choices(request, sendResponse) {
 
 function downloadVideos(urls, parts, save_format) {
     urls.forEach((url, i) => {
-        parts.tweetNum = parts.tweetNum ?? i + 1;
+        parts.tweetNum ??= i + 1;
         parts.extension = url.includes(".mp4") ? "mp4" : "gif";
         download(url, formatFilename(parts, save_format));
     });
