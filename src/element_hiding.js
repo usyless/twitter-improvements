@@ -1,13 +1,11 @@
 'use strict';
 
 (() => {
-    const loadSettings = () => new Promise((resolve) => {
-        chrome.storage.local.get(['style'], (s) => resolve(s.style ?? {}));
-    });
+    const loadSettings = () => chrome.runtime.sendMessage({type: 'get_settings'});
 
     const Styles = {
         DISPLAY: '{display:none!important;}',
-        OPACITY: '{visibility:hidden!important;pointer-events: none!important;}',
+        VISIBILITY: '{visibility:hidden!important;pointer-events: none!important;}',
     }
 
     const sharedSelectors = {
@@ -78,15 +76,16 @@
         ], st: Styles.DISPLAY},
         hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: Styles.DISPLAY},
 
-        hide_tweet_view_count: {s: sharedSelectors.views, st: Styles.OPACITY},
-        hide_tweet_share_button: {s: sharedSelectors.share, st: Styles.OPACITY},
-        hide_replies_button_tweet: {s: sharedSelectors.replies, st: Styles.OPACITY},
-        hide_retweet_button_tweet: {s: sharedSelectors.retweet, st: Styles.OPACITY},
-        hide_like_button_tweet: {s: sharedSelectors.like, st: Styles.OPACITY},
-        hide_bookmark_button_tweet: {s: sharedSelectors.bookmark, st: Styles.OPACITY}
+        hide_tweet_view_count: {s: sharedSelectors.views, st: Styles.VISIBILITY},
+        hide_tweet_share_button: {s: sharedSelectors.share, st: Styles.VISIBILITY},
+        hide_replies_button_tweet: {s: sharedSelectors.replies, st: Styles.VISIBILITY},
+        hide_retweet_button_tweet: {s: sharedSelectors.retweet, st: Styles.VISIBILITY},
+        hide_like_button_tweet: {s: sharedSelectors.like, st: Styles.VISIBILITY},
+        hide_bookmark_button_tweet: {s: sharedSelectors.bookmark, st: Styles.VISIBILITY}
     }
 
-    const start = () => loadSettings().then((enabled) => {
+    const start = () => loadSettings().then((settings) => {
+        const enabled = settings.style;
         // Remove current styles
         for (const s of document.querySelectorAll('style[usyStyle]')) s.remove();
 
@@ -98,12 +97,9 @@
         }
 
         // Apply button ordering if exists
-        const positions = enabled.tweet_button_positions;
-        if (positions) {
-            const result = positions.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
-            for (let i = 0; i < result.length; ++i) {
-                for (const s of buttonMap[result[i]] ?? []) style += `${s}{order:${i}!important}`;
-            }
+        const result = enabled.tweet_button_positions.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
+        for (let i = 0; i < result.length; ++i) {
+            for (const s of buttonMap[result[i]] ?? []) style += `${s}{order:${i}!important}`;
         }
 
         if (style.length > 0) {
@@ -116,7 +112,7 @@
 
     void start();
 
-    chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local' && changes.hasOwnProperty('style')) void start();
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'settings_update' && message.changes.hasOwnProperty('style')) void start();
     });
 })();

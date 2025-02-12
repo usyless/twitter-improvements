@@ -133,7 +133,7 @@ const Settings = { // Setting handling
     }),
 
     loadSettings: () => new Promise(resolve => {
-        chrome.storage.local.get([], (s) => {
+        chrome.storage.local.get(null, (s) => {
             const defaults = Settings.defaults;
             for (const setting in defaults) Settings[setting] = {...defaults[setting], ...s[setting]};
             resolve();
