@@ -21,7 +21,8 @@
             long_image_button: false,
             download_history_enabled: true,
             download_history_prevent_download: false,
-            image_button_position: '0'
+            image_button_position: '0',
+            image_button_scale: 1
         },
 
         about: {
@@ -194,7 +195,7 @@
                 image.setAttribute('usy', '');
                 button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
                 button.style.width = Settings.image_preferences.long_image_button ? '100%' : 'fit-content';
-                Image.buttonModes[Settings.image_preferences.image_button_position]?.(button);
+                button.classList.add(...(Image.buttonModes[Settings.image_preferences.image_button_position] ?? []));
 
                 // Inline mode
                 if (Settings.image_preferences.image_button_position === '4') {
@@ -216,20 +217,10 @@
         },
 
         buttonModes: {
-            0: () => void(0),
-            1: (btn) => {
-                btn.style.position = 'absolute';
-                btn.firstElementChild.style.justifyContent = 'flex-end';
-                btn.style.right = '0';
-            },
-            2: (btn) => {
-                btn.style.position = 'absolute';
-                btn.style.bottom = '0';
-            },
-            3: (btn) => {
-                Image.buttonModes['1'](btn);
-                Image.buttonModes['2'](btn);
-            },
+            0: ['usy-top', 'usy-left'],
+            1: ['usy-top', 'usy-right'],
+            2: ['usy-bottom', 'usy-left'],
+            3: ['usy-bottom', 'usy-right'],
         },
 
         respectiveURL: (image) => {

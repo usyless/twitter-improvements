@@ -6,6 +6,45 @@
     cursor: pointer;
 }
 
+.usybuttonclickdiv[usy-image] {
+    position: absolute;
+
+    &.usy-top {
+        top: 0;
+
+        &.usy-left {
+            transform-origin: top left !important;
+        }
+
+        &.usy-right {
+            transform-origin: top right !important;
+        }
+    }
+
+    &.usy-bottom {
+        bottom: 0;
+
+        &.usy-left {
+            transform-origin: bottom left !important;
+        }
+
+        &.usy-right {
+            transform-origin: bottom right !important;
+        }
+    }
+
+    &.usy-left {
+        left: 0;
+    }
+
+    &.usy-right {
+        right: 0;
+        > *:first-child {
+            justify-content: flex-end;
+        }
+    }
+}
+
 .usyMarked, .usyMarked * {
     color: green;
     transition: 230ms;
