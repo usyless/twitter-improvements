@@ -451,7 +451,7 @@ function migrateSettings(previousVersion) {
     if (versionBelowGiven(previousVersion, '1.2.1.5')) {
         chrome.storage.local.get(async (s) => {
             if (s?.image_preferences?.long_image_button != null) {
-                if (s?.image_preferences?.long_image_button === true) {
+                if (s.image_preferences.long_image_button === true) {
                     s.image_preferences.image_button_width_value = '100';
                 }
                 delete s.image_preferences.long_image_button;
