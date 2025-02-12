@@ -443,7 +443,7 @@ if (typeof browser === 'undefined') {
                                 draggedClone.style.left = `${e.clientX - xOffset}px`;
 
                                 for (const target of document.elementsFromPoint(e.clientX, e.clientY)) {
-                                    if (target.closest('button:not(.draggingClone)')) {
+                                    if (target.closest('button:not(.draggingClone)') && target !== dragged) {
                                         const rect = target.getBoundingClientRect();
                                         target[e.clientX >= rect.left + (rect.width / 2) ? 'after' : 'before'](dragged);
                                         break;
@@ -481,8 +481,8 @@ if (typeof browser === 'undefined') {
 
                                 draggedClone = dragged.cloneNode(true);
                                 draggedClone.classList.add('draggingClone');
-                                draggedClone.style.width = `${dragged.offsetWidth}px`;
-                                draggedClone.style.height = `${dragged.offsetHeight}px`;
+                                draggedClone.style.width = `${box.width}px`;
+                                draggedClone.style.height = `${box.height}px`;
                                 draggedClone.style.top = `${e.clientY - yOffset}px`;
                                 draggedClone.style.left = `${e.clientX - xOffset}px`;
                                 document.body.appendChild(draggedClone);
