@@ -115,8 +115,12 @@ function get_settings(_, sendResponse) {
     });
 }
 
-chrome.storage.onChanged.addListener(async (_, namespace) => {
-    if (namespace === 'local') void Settings.loadSettings();
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+    if (namespace === 'local') {
+        Settings.loadSettings().then(() => {
+            send_to_all_tabs({type: 'settings_update', changes});
+        });
+    }
 });
 
 function download(url, filename) {

@@ -472,16 +472,6 @@
 
     Settings.loadSettings().then(Observer.start);
 
-    chrome.storage.onChanged.addListener(async (changes, namespace) => {
-        if (namespace === 'local') {
-            Settings.loadSettings().then(() => {
-                // only need to reload for vx setting change
-                if (changes.hasOwnProperty('setting')) Observer.start();
-                else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(Image.resetAll);
-            });
-        }
-    });
-
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
             case 'history_change_add': {
@@ -491,6 +481,14 @@
             case 'history_change_remove': {
                 for (const button of Image.getButtons(message.id)) Button.unmark(button);
                 break;
+            }
+            case 'settings_update': {
+                Settings.loadSettings().then(() => {
+                    const changes = message.changes;
+                    // only need to reload for vx setting change
+                    if (changes.hasOwnProperty('setting')) Observer.start();
+                    else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(Image.resetAll);
+                });
             }
             case 'history_change': {
                 Observer.forceUpdate?.(Image.resetAll);
