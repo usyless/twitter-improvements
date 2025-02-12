@@ -62,7 +62,8 @@ const Settings = { // Setting handling
             download_history_prevent_download: false,
             image_button_position: '0',
             image_button_scale: '1',
-            image_button_height_value: '1'
+            image_button_height_value: '1',
+            image_button_width_value: '1'
         },
 
         download_preferences: {
@@ -133,7 +134,7 @@ const Settings = { // Setting handling
     }),
 
     loadSettings: () => new Promise(resolve => {
-        chrome.storage.local.get(null, (s) => {
+        chrome.storage.local.get((s) => {
             const defaults = Settings.defaults;
             for (const setting in defaults) Settings[setting] = {...defaults[setting], ...s[setting]};
             resolve();
@@ -432,7 +433,7 @@ function migrateSettings(previousVersion) {
     }
 
     // migrate history to indexed db
-    if (versionBelowGiven(previousVersion, 'v1.1.1.4')) {
+    if (versionBelowGiven(previousVersion, '1.1.1.4')) {
         getHistoryDB().then((db) => {
             chrome.storage.local.get(['download_history'], (r) => {
                 const history = r.download_history ?? {};
@@ -443,6 +444,19 @@ function migrateSettings(previousVersion) {
 
                 chrome.storage.local.remove('download_history');
             });
+        });
+    }
+
+    // remove long image button and replace with width setting
+    if (versionBelowGiven(previousVersion, '1.2.1.5')) {
+        chrome.storage.local.get(async (s) => {
+            if (s?.image_preferences?.long_image_button != null) {
+                if (s?.image_preferences?.long_image_button === true) {
+                    s.image_preferences.image_button_width_value = '100';
+                }
+                delete s.image_preferences.long_image_button;
+                await chrome.storage.local.set(s);
+            }
         });
     }
 }

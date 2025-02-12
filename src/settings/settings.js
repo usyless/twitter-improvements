@@ -69,25 +69,30 @@ if (typeof browser === 'undefined') {
                     choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
                 },
                 {
-                    name: 'long_image_button',
-                    category: 'image_preferences',
-                    description: 'Stretch image download button across width of image',
-                },
-                {
                     name: 'image_button_scale',
                     category: 'image_preferences',
-                    description: 'Scale of image button on image',
+                    description: 'Image download button scale',
                     type: 'number',
                     validate: (value) => value > 0
                 },
                 {
                     name: 'image_button_height_value',
                     category: 'image_preferences',
-                    description: 'Height of image download button clickable area (1 for default)',
+                    description: 'Image download button height (1 for default)',
                     type: 'number',
-                    validate: (value) => value > 0,
+                    validate: (value) => value > 0 && value <= 100,
                     post: (elem) => {
                         elem.appendChild(document.createTextNode('% (of Image height)'))
+                    }
+                },
+                {
+                    name: 'image_button_width_value',
+                    category: 'image_preferences',
+                    description: 'Image download button width (1 for default)',
+                    type: 'number',
+                    validate: (value) => value > 0 && value <= 100,
+                    post: (elem) => {
+                        elem.appendChild(document.createTextNode('% (of Image width)'))
                     }
                 },
                 {

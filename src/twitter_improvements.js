@@ -178,7 +178,8 @@
                 image.setAttribute('usy', '');
                 button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
                 const prefs = Settings.image_preferences;
-                button.style.width = prefs.long_image_button ? `${100 / +prefs.image_button_scale}%` : 'fit-content';
+                button.style.width = (prefs.image_button_width_value === Settings.defaults.image_preferences.image_button_width_value)
+                    ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
                 button.style.height = (prefs.image_button_height_value === Settings.defaults.image_preferences.image_button_height_value)
                     ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
                 button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
