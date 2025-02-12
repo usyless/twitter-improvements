@@ -9,6 +9,10 @@
 .usybuttonclickdiv[usy-image] {
     position: absolute;
 
+    button {
+        height: fit-content;
+    }
+
     &.usy-top {
         top: 0;
 

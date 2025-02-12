@@ -59,7 +59,8 @@ const Settings = { // Setting handling
         download_history_enabled: true,
         download_history_prevent_download: false,
         image_button_position: '0',
-        image_button_scale: 1
+        image_button_scale: '1',
+        image_button_height_value: '1'
     },
 
     download_preferences: {

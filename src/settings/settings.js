@@ -82,8 +82,19 @@ if (typeof browser === 'undefined') {
                     category: 'image_preferences',
                     description: 'Scale of image button on image',
                     type: 'number',
-                    default: 1,
+                    default: '1',
                     validate: (value) => value > 0
+                },
+                {
+                    name: 'image_button_height_value',
+                    category: 'image_preferences',
+                    description: 'Height of image download button clickable area (1 for default)',
+                    type: 'number',
+                    default: '1',
+                    validate: (value) => value > 0,
+                    post: (elem) => {
+                        elem.appendChild(document.createTextNode('% (of Image height)'))
+                    }
                 },
                 {
                     name: 'download_history_enabled',
