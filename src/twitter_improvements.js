@@ -489,6 +489,7 @@
                     if (changes.hasOwnProperty('setting')) Observer.start();
                     else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(Image.resetAll);
                 });
+                break;
             }
             case 'history_change': {
                 Observer.forceUpdate?.(Image.resetAll);
