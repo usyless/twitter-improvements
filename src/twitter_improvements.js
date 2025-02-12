@@ -196,6 +196,7 @@
                 button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
                 button.style.width = Settings.image_preferences.long_image_button ? '100%' : 'fit-content';
                 button.classList.add(...(Image.buttonModes[Settings.image_preferences.image_button_position] ?? []));
+                button.style.transform = `scale(${Settings.image_preferences.image_button_scale})`;
 
                 image.after(button);
                 if (Settings.image_preferences.download_history_enabled) { // mark image
