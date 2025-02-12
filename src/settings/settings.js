@@ -11,12 +11,15 @@ if (typeof browser === 'undefined') {
         document.body.classList.add('mobile');
     }
 
+    let defaults;
+
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
 
     const panes = document.getElementById('settings-panes');
     const header = document.getElementById('settings-header');
 
+    // Make sure category is set for updatable objects
     const options = {
         'Settings': {
             'Link Copying': [
@@ -24,13 +27,11 @@ if (typeof browser === 'undefined') {
                     name: 'vx_button',
                     category: 'setting',
                     description: 'Show Copy Tweet as VX Button',
-                    default: true
                 },
                 {
                     name: 'url_prefix',
                     category: 'vx_preferences',
                     description: 'URL prefix provider',
-                    default: 'fixvx.com',
                     type: 'choice',
                     choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}]
                 },
@@ -38,7 +39,6 @@ if (typeof browser === 'undefined') {
                     name: 'custom_url',
                     category: 'vx_preferences',
                     description: 'Custom copy URL (Set prefix to \'Custom\')',
-                    default: '',
                     type: 'text',
                 },
             ],
@@ -47,13 +47,11 @@ if (typeof browser === 'undefined') {
                     name: 'video_button',
                     category: 'setting',
                     description: 'Show Video/GIF Download Buttons',
-                    default: true
                 },
                 {
                     name: 'video_download_fallback',
                     category: 'video_preferences',
                     description: 'Fallback to opening video in new cobalt.tools tab if local download fails',
-                    default: true,
                 }
             ],
             'Image Saving': [
@@ -61,28 +59,24 @@ if (typeof browser === 'undefined') {
                     name: 'image_button',
                     category: 'setting',
                     description: 'Show Image Download Buttons',
-                    default: true
                 },
                 {
                     name: 'image_button_position',
                     category: 'image_preferences',
                     description: 'Image download button position',
                     type: 'choice',
-                    default: '0',
                     choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
                 },
                 {
                     name: 'long_image_button',
                     category: 'image_preferences',
                     description: 'Stretch image download button across width of image',
-                    default: false,
                 },
                 {
                     name: 'image_button_scale',
                     category: 'image_preferences',
                     description: 'Scale of image button on image',
                     type: 'number',
-                    default: '1',
                     validate: (value) => value > 0
                 },
                 {
@@ -90,7 +84,6 @@ if (typeof browser === 'undefined') {
                     category: 'image_preferences',
                     description: 'Height of image download button clickable area (1 for default)',
                     type: 'number',
-                    default: '1',
                     validate: (value) => value > 0,
                     post: (elem) => {
                         elem.appendChild(document.createTextNode('% (of Image height)'))
@@ -100,13 +93,11 @@ if (typeof browser === 'undefined') {
                     name: 'download_history_enabled',
                     category: 'image_preferences',
                     description: 'Enable local image download history, right click on a download button to remove from history',
-                    default: true
                 },
                 {
                     name: 'download_history_prevent_download',
                     category: 'image_preferences',
                     description: 'Prevent downloading of previously downloaded items',
-                    default: false
                 },
                 {
                     type: 'break',
@@ -214,7 +205,6 @@ if (typeof browser === 'undefined') {
                     name: 'bookmark_on_photo_page',
                     category: 'setting',
                     description: 'Show bookmark button on the enlarged photo page',
-                    default: false
                 },
                 {
                     name: 'reset_all_settings',
@@ -237,19 +227,16 @@ if (typeof browser === 'undefined') {
                     name: 'hide_grok',
                     category: 'style',
                     description: 'Everything "Grok"',
-                    default: false
                 },
                 {
                     name: 'hide_premium',
                     category: 'style',
                     description: '"Premium" button and additional Premium ads',
-                    default: false
                 },
                 {
                     name: 'hide_post_reply_sections',
                     category: 'style',
                     description: '"Post" and "Reply" sections',
-                    default: false
                 },
             ],
             'Tweets': [
@@ -257,37 +244,31 @@ if (typeof browser === 'undefined') {
                     name: 'hide_tweet_view_count',
                     category: 'style',
                     description: 'View counts',
-                    default: false
                 },
                 {
                     name: 'hide_tweet_share_button',
                     category: 'style',
                     description: 'Share button',
-                    default: false
                 },
                 {
                     name: 'hide_replies_button_tweet',
                     category: 'style',
                     description: 'Replies button',
-                    default: false
                 },
                 {
                     name: 'hide_retweet_button_tweet',
                     category: 'style',
                     description: 'Retweet button',
-                    default: false
                 },
                 {
                     name: 'hide_like_button_tweet',
                     category: 'style',
                     description: 'Like button',
-                    default: false
                 },
                 {
                     name: 'hide_bookmark_button_tweet',
                     category: 'style',
                     description: 'Bookmark button',
-                    default: false
                 }
             ],
             'Left Sidebar': [
@@ -295,67 +276,56 @@ if (typeof browser === 'undefined') {
                     name: 'hide_notifications',
                     category: 'style',
                     description: '"Notifications" button',
-                    default: false
                 },
                 {
                     name: 'hide_messages',
                     category: 'style',
                     description: '"Messages" button',
-                    default: false
                 },
                 {
                     name: 'hide_jobs',
                     category: 'style',
                     description: '"Jobs" button',
-                    default: false
                 },
                 {
                     name: 'hide_lists',
                     category: 'style',
                     description: '"Lists" button',
-                    default: false
                 },
                 {
                     name: 'hide_communities',
                     category: 'style',
                     description: '"Communities" button',
-                    default: false
                 },
                 {
                     name: 'hide_create_your_space',
                     category: 'style',
                     description: '"Create your space" button',
-                    default: false
                 },
                 {
                     name: 'hide_post_button',
                     category: 'style',
                     description: '"Post" button',
-                    default: false
                 },
                 {
                     name: 'hide_follower_requests',
                     category: 'style',
                     description: '"Follower requests" button',
-                    default: false
                 },
                                 {
                     name: 'hide_verified_orgs',
                     category: 'style',
                     description: '"Verified Orgs" button',
-                    default: false
                 },
                 {
                     name: 'hide_monetization',
                     category: 'style',
                     description: '"Monetization" button',
-                    default: false
                 },
                 {
                     name: 'hide_ads_button',
                     category: 'style',
                     description: '"Ads" button',
-                    default: false
                 },
             ],
             'Right Sidebar': [
@@ -363,31 +333,26 @@ if (typeof browser === 'undefined') {
                     name: 'hide_whats_happening',
                     category: 'style',
                     description: "What's Happening tab",
-                    default: false
                 },
                 {
                     name: 'hide_who_to_follow',
                     category: 'style',
                     description: 'Who To Follow tab',
-                    default: false
                 },
                 {
                     name: 'hide_relevant_people',
                     category: 'style',
                     description: 'Relevant people tab',
-                    default: false
                 },
                 {
                     name: 'hide_live_on_x',
                     category: 'style',
                     description: 'Live on X tab',
-                    default: false
                 },
                 {
                     name: 'hide_sidebar_footer',
                     category: 'style',
                     description: 'Additional sidebar urls, under the search bar',
-                    default: false
                 }
             ],
         },
@@ -398,7 +363,6 @@ if (typeof browser === 'undefined') {
                     category: 'download_preferences',
                     description: 'Relative file save directory',
                     type: 'text',
-                    default: ''
                 },
                 {
                     name: 'save_as_prompt',
@@ -406,7 +370,6 @@ if (typeof browser === 'undefined') {
                     description: 'Prompt to "Save As" when saving files with this extension',
                     type: 'choice',
                     choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
-                    default: 'browser'
                 },
             ],
             'Save file name': [
@@ -416,7 +379,6 @@ if (typeof browser === 'undefined') {
                     description: 'Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
                     type: 'quickPick',
                     quickPicks: [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION']],
-                    default: '[twitter] {username} - {tweetId} - {tweetNum}',
                     post: (elem) => {
                         const inputWrap = document.createElement('div');
                         inputWrap.classList.add('inputWrap');
@@ -437,7 +399,6 @@ if (typeof browser === 'undefined') {
                     noDefaultListener: true,
                     type: 'quickPick',
                     quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download'], ['copy', '📋 Copy link']],
-                    default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
                     class: ['hidden'],
                     post: (elem) => {
                         const quickPicks = elem.querySelector('.quickPicks');
@@ -558,8 +519,8 @@ if (typeof browser === 'undefined') {
             input.type = 'number';
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('input', (ev) => {
-                if (e?.validate(input.value)) update_value(ev, e, 'value');
-                else input.value = e.default;
+                if (e.validate(input.value)) update_value(ev, e, 'value');
+                else input.value = defaults[e.category][e.name];
             });
             return outer;
         },
@@ -612,6 +573,17 @@ if (typeof browser === 'undefined') {
         header.appendChild(cat);
         panes.appendChild(pane);
     }
+
+    browser.runtime.sendMessage({type: 'get_default_settings'}).then((d) => {
+        defaults = d;
+        chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category), (s) => {
+            for (const {obj, func} of valuesToUpdate) {
+                func(s[obj.category]?.[obj.name] ?? defaults[obj.category][obj.name]);
+                obj.element?.dispatchEvent(valueLoadedEvent);
+            }
+            valuesToUpdate.length = 0;
+        });
+    });
 
     { // Settings panes scrolling
         let lastPane;
@@ -692,15 +664,6 @@ if (typeof browser === 'undefined') {
         window.addEventListener('resize', setHeightDelay);
     }
 
-    chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category ?? i.obj.name), (s) => {
-        for (const {obj, func} of valuesToUpdate) {
-            if (obj.category != null) func(s[obj.category]?.[obj.name] ?? obj.default);
-            else func(s[obj.name] ?? obj.default);
-            obj?.element.dispatchEvent(valueLoadedEvent);
-        }
-        valuesToUpdate.length = 0;
-    });
-
     function create(elem) {
         elem.init?.();
         const m = typeMap[elem.type ?? 'checkbox'](elem);
@@ -721,13 +684,9 @@ if (typeof browser === 'undefined') {
     }
 
     function update_value(e, obj, property) {
-        chrome.storage.local.get([obj.category ?? obj.name], (r) => {
-            if (obj.category != null) {
-                if (r[obj.category] == null) r[obj.category] = {};
-                r[obj.category][obj.name] = e.target[property];
-            } else {
-                r[obj.name] = e.target[property];
-            }
+        chrome.storage.local.get([obj.category], (r) => {
+            if (r[obj.category] == null) r[obj.category] = {};
+            r[obj.category][obj.name] = e.target[property];
             setStorage(r);
         });
     }
