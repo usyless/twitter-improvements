@@ -16,8 +16,6 @@ A simple web extension which brings a few quality of life features to twitter/X.
 - Video Download Button
 	- Displays next to the Copy as VX button on each tweet with a video or a gif, and clicking it allows you to save all media in that tweet with the same good naming scheme!
     - Downloads videos locally with a fallback to opening them in a cobalt.tools tab if it fails.
-- Auto unspoiler hidden media
-	- For if twitter once again introduces forced spoilers
 - Hide various unnecessary buttons or tabs (such as premium, verified orgs, etc.)
 - Rearrange the buttons on tweets (like, reply, retweet, etc.)
 - Display bookmark button on enlarged image/video view
