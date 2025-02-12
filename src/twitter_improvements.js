@@ -197,18 +197,13 @@
                 button.style.width = Settings.image_preferences.long_image_button ? '100%' : 'fit-content';
                 button.classList.add(...(Image.buttonModes[Settings.image_preferences.image_button_position] ?? []));
 
-                // Inline mode
-                if (Settings.image_preferences.image_button_position === '4') {
-
-                } else {
-                    image.after(button);
-                    if (Settings.image_preferences.download_history_enabled) { // mark image
-                        const id = Image.idWithNumber(image);
-                        button.setAttribute('ti-id', id);
-                        Background.download_history_has(id).then((response) => {
-                            if (response === true) Button.mark(button);
-                        });
-                    }
+                image.after(button);
+                if (Settings.image_preferences.download_history_enabled) { // mark image
+                    const id = Image.idWithNumber(image);
+                    button.setAttribute('ti-id', id);
+                    Background.download_history_has(id).then((response) => {
+                        if (response === true) Button.mark(button);
+                    });
                 }
             } catch {
                 image.removeAttribute('usy');
