@@ -12,7 +12,8 @@ const requestMap = {
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
 
-    get_settings: get_settings
+    get_settings: get_settings,
+    get_default_settings: get_default_settings,
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -112,7 +113,6 @@ const Settings = { // Setting handling
         },
     },
 
-    loadedCategories: ['setting', 'vx_preferences', 'image_preferences', 'download_preferences', 'video_details', 'video_preferences', 'style'],
     loaded: false,
     loading: false,
     promiseQueue: [],
@@ -133,9 +133,9 @@ const Settings = { // Setting handling
     }),
 
     loadSettings: () => new Promise(resolve => {
-        chrome.storage.local.get(Settings.loadedCategories, (s) => {
+        chrome.storage.local.get([], (s) => {
             const defaults = Settings.defaults;
-            for (const setting of Settings.loadedCategories) Settings[setting] = {...defaults[setting], ...s[setting]};
+            for (const setting in defaults) Settings[setting] = {...defaults[setting], ...s[setting]};
             resolve();
         });
     }),
@@ -144,9 +144,13 @@ const Settings = { // Setting handling
 function get_settings(_, sendResponse) {
     Settings.getSettings().then(() => {
         const data = {};
-        for (const setting of Settings.loadedCategories) data[setting] = Settings[setting];
+        for (const setting in Settings.defaults) data[setting] = Settings[setting];
         sendResponse(data);
     });
+}
+
+function get_default_settings(_, sendResponse) {
+    sendResponse(Settings.defaults);
 }
 
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
