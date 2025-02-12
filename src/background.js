@@ -197,13 +197,10 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
             features, fieldToggles
         }
         Settings.getSettings().then(() => {
-            const result = Settings.video_details;
-            if (result == null || Object.keys(result).length !== 4) chrome.storage.local.set({video_details: data});
-            else {
-                for (const n in data) if (result.hasOwnProperty(n) && result[n] !== data[n]) {
-                    chrome.storage.local.set({video_details: data})
-                    break;
-                }
+            const details = Settings.video_details;
+            for (const n in data) if (details[n] !== data[n]) {
+                chrome.storage.local.set({video_details: data})
+                break;
             }
         });
     }
