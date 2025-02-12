@@ -249,7 +249,10 @@
 
         imageButtonCallback: (e, image) => {
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
-                Notification.create('Image is already saved, save using right click menu, or remove from saved to override');
+                const notif = Notification.create('Image is already saved, click here to save again');
+                notif.addEventListener('click', () => {
+                    Background.save_image(Image.respectiveURL(image), image.src);
+                });
             } else {
                 Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
                 Background.save_image(Image.respectiveURL(image), image.src);
@@ -351,11 +354,10 @@
             setTimeout(() => {
                 inner.classList.add('usyFadeOut');
                 inner.addEventListener('transitionend', (e) => {
-                    if (e.target === e.currentTarget) {
-                        outer.remove();
-                    }
+                    if (e.target === e.currentTarget) outer.remove();
                 });
             }, timeout);
+            return inner;
         },
 
         clear: () => {
