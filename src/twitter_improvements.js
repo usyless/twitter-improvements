@@ -38,7 +38,7 @@
             try {
                 article.setAttribute('usy', '');
                 const a = Tweet.anchor(article);
-                const cb = () => Tweet.vxButtonCallback(article);
+                const cb = Tweet.vxButtonCallback.bind(null, article);
                 a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
 
                 const altAnchor = Tweet.maximisedShareButtonAnchor(article);
@@ -58,7 +58,7 @@
                 // checks if quote tweet contains specific video component (don't show button)
                 // doesn't affect a video QRT as each video checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    const cb = (e) => Tweet.videoButtonCallback(e, article);
+                    const cb = Tweet.videoButtonCallback.bind(null, article);
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-video'));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
@@ -145,7 +145,7 @@
             }
         },
 
-        videoButtonCallback: (event, article) => {
+        videoButtonCallback: (article, event) => {
             Notification.create(`Saving Tweet Video(s)${About.android ? ' (This may take a second on android)' : ''}`);
             Background.save_video(Tweet.url(article)).then((r) => Tweet.videoResponseHandler(event, r));
         },
@@ -176,7 +176,7 @@
             let button;
             try {
                 image.setAttribute('usy', '');
-                button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, (e) => Image.imageButtonCallback(e, image), "usy-image", (e) => Image.removeImageDownloadCallback(e, image));
+                button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
                 const prefs = Settings.image_preferences;
                 button.style.width = prefs.long_image_button ? `${100 / +prefs.image_button_scale}%` : 'fit-content';
                 button.style.height = (prefs.image_button_height_value === Settings.defaults.image_preferences.image_button_height_value)
@@ -220,7 +220,7 @@
 
         getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
 
-        imageButtonCallback: (e, image) => {
+        imageButtonCallback: (image) => {
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 const notif = Notification.create('Image is already saved, click here to save again');
                 notif.style.cursor = 'pointer';
@@ -233,7 +233,7 @@
             }
         },
 
-        removeImageDownloadCallback: (e, image) => {
+        removeImageDownloadCallback: (image) => {
             Notification.create('Removing image from saved');
             Background.download_history_remove(Image.idWithNumber(image));
         },
@@ -267,9 +267,8 @@
             button.disabled = false;
             button.classList.remove('r-icoktb'); // private tweet buttons more visible
             if (path) shareButton.querySelector('path').setAttribute("d", path);
-            const origColour = button.firstElementChild.style.color;
-            shareButton.addEventListener('pointerover', () => Button.onhover(button.firstElementChild));
-            shareButton.addEventListener('pointerout', () => Button.stophover(button.firstElementChild, origColour));
+            shareButton.addEventListener('pointerover', Button.onhover.bind(null, button.firstElementChild));
+            shareButton.addEventListener('pointerout', Button.stophover.bind(null, button.firstElementChild, button.firstElementChild.style.color));
             shareButton.addEventListener('click', clickCallback);
             shareButton.addEventListener('click', Button.stopAllEvents);
             if (rightClickCallback) {
@@ -349,14 +348,6 @@
             const originalScrollY = window.scrollY;
             let fixScrollPosition = () => popup.style.top = `${btnRect.y - (window.scrollY - originalScrollY)}px`;
 
-            const getNotificationButton = (text, onclick) => {
-                const b = document.createElement('button'), t = document.createElement('b');
-                b.classList.add('usyDownloadChoiceButton');
-                t.textContent = text;
-                b.appendChild(t);
-                b.addEventListener('click', onclick);
-                return b;
-            }
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
             popup.style.left = `${btnRect.x}px`;
@@ -375,11 +366,11 @@
                 chrome.runtime.sendMessage(data).then((r) => Tweet.videoResponseHandler(null, r));
             }
             for (let id = 0; id < choices.urls.length; ++id) {
-                popup.appendChild(getNotificationButton(`Video ${id + 1}`, (e) => {
+                popup.appendChild(Notification.getNotificationButton(`Video ${id + 1}`, (e) => {
                     sendResponse(parseInt(e.target.textContent.split(" ")[1]) - 1);
                 }));
             }
-            popup.appendChild(getNotificationButton('Download All', () => sendResponse()));
+            popup.appendChild(Notification.getNotificationButton('Download All', () => sendResponse()));
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
@@ -402,12 +393,21 @@
                 listener.listener();
                 window.addEventListener(listener.type, listener.listener);
             }
+        },
+
+        getNotificationButton: (text, onclick) => {
+            const b = document.createElement('button'), t = document.createElement('b');
+            b.classList.add('usyDownloadChoiceButton');
+            t.textContent = text;
+            b.appendChild(t);
+            b.addEventListener('click', onclick);
+            return b;
         }
     }
 
     const Helpers = {
         download: (url, filename) => {
-            fetch(url).then(r => r.blob()).then(blob => {
+            fetch(url).then(r => r.blob()).then((blob) => {
                 const link = document.createElement('a'),
                     objectURL = URL.createObjectURL(blob);
                 link.href = objectURL;
