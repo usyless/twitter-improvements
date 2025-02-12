@@ -78,6 +78,14 @@ if (typeof browser === 'undefined') {
                     default: false,
                 },
                 {
+                    name: 'image_button_scale',
+                    category: 'image_preferences',
+                    description: 'Scale of image button on image',
+                    type: 'number',
+                    default: 1,
+                    validate: (value) => value > 0
+                },
+                {
                     name: 'download_history_enabled',
                     category: 'image_preferences',
                     description: 'Enable local image download history, right click on a download button to remove from history',
@@ -510,7 +518,6 @@ if (typeof browser === 'undefined') {
                 o.textContent = opt.name;
                 select.appendChild(o);
             }
-            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => select.value = v});
             select.addEventListener('change', (ev) => update_value(ev, e, 'value'));
             return outer;
@@ -518,7 +525,6 @@ if (typeof browser === 'undefined') {
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
-            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('change', (ev) => update_value(ev, e, 'value'));
             return outer;
@@ -532,9 +538,18 @@ if (typeof browser === 'undefined') {
         checkbox: (e) => {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
-            e.element = outer;
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
             checkbox.addEventListener('change', (ev) => update_value(ev, e, 'checked'));
+            return outer;
+        },
+        number: (e) => {
+            const [outer, input] = get_generic_setting(e, 'input');
+            input.type = 'number';
+            valuesToUpdate.push({obj: e, func: (v) => input.value = v});
+            input.addEventListener('input', (ev) => {
+                if (e?.validate(input.value)) update_value(ev, e, 'value');
+                else input.value = e.default;
+            });
             return outer;
         },
         quickPick: (e) => {
@@ -678,6 +693,7 @@ if (typeof browser === 'undefined') {
     function create(elem) {
         elem.init?.();
         const m = typeMap[elem.type ?? 'checkbox'](elem);
+        elem.element = m;
         elem.post?.(m);
         return m;
     }

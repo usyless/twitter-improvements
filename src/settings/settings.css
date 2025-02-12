@@ -146,13 +146,12 @@ body {
             }
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="number"] {
             background-color: var(--additional);
             color: inherit;
             border-radius: 7px;
             border: solid var(--background-dark) 2px;
             font: inherit;
-            min-width: 100px;
             flex-shrink: 1;
 
             &:active {
@@ -163,6 +162,15 @@ body {
                 outline: none;
                 border-color: var(--additional-lighter);
             }
+        }
+
+        input[type="text"] {
+            min-width: 100px;
+        }
+
+        input[type="number"] {
+            min-width: 10px;
+            width: 80px;
         }
 
         br {
