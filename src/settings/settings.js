@@ -543,7 +543,7 @@ if (typeof browser === 'undefined') {
                 quickPicks.appendChild(btn);
             }
 
-            if ((e.noDefaultListener ?? false) === false) {
+            if (!e.noDefaultListener) {
                 const input = outer.querySelector('input');
                 quickPicks.addEventListener('click', (e) => {
                     const btn = e.target.closest('button');
