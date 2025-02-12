@@ -1,3 +1,5 @@
+'use strict';
+
 const DOWNLOAD_DB_VERSION = 1;
 
 const requestMap = {
@@ -37,15 +39,68 @@ chrome?.contextMenus?.onClicked?.addListener?.((info) => {
     if (info.menuItemId === "save-image") saveImage({url: info.linkUrl ?? info.pageUrl, sourceURL: info.srcUrl});
 });
 
+const Settings = { // Setting handling
+    download_preferences: {
+        save_as_prompt: 'browser',
+        save_directory: '',
+        save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
+    },
+
+    image_preferences: {
+        download_history_enabled: true,
+    },
+
+    video_details: {
+        detailsURL: '',
+        authorization: '',
+        features: '',
+        fieldToggles: ''
+    },
+
+    video_preferences: {
+        video_download_fallback: true
+    },
+
+    loadedCategories: ['download_preferences', 'image_preferences', 'video_details', 'video_preferences'],
+    loaded: false,
+    loading: false,
+    promiseQueue: [],
+
+    getSettings: () => new Promise((resolve) => {
+        if (Settings.loading) Settings.promiseQueue.push(resolve);
+        else if (Settings.loaded) resolve();
+        else {
+            Settings.loading = true;
+            Settings.loadSettings().then(() => {
+                Settings.loading = false;
+                Settings.loaded = true;
+                for (const promise of Settings.promiseQueue) promise();
+                delete Settings.promiseQueue;
+                resolve();
+            });
+        }
+    }),
+
+    loadSettings: () => new Promise(resolve => {
+        chrome.storage.local.get(Settings.loadedCategories, (s) => {
+            for (const setting of Settings.loadedCategories) Settings[setting] = {...Settings[setting], ...s[setting]};
+            resolve();
+        });
+    }),
+}
+
+chrome.storage.onChanged.addListener(async (_, namespace) => {
+    if (namespace === 'local') void Settings.loadSettings();
+});
+
 function download(url, filename) {
-    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : chrome.storage.local.get(['download_preferences'], (r) => {
-        const prefs = r?.download_preferences;
-        const dir = prefs?.save_directory;
+    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
+        const dir = Settings.download_preferences.save_directory;
         const downloadData = {
             url, filename: (dir?.length > 0 ? `${dir}${dir.endsWith('/') ? '' : '/'}` : '') + filename
         };
-        if (prefs?.save_as_prompt === 'off') downloadData.saveAs = false;
-        else if (prefs?.save_as_prompt === 'on') downloadData.saveAs = true;
+        if (Settings.download_preferences.save_as_prompt === 'off') downloadData.saveAs = false;
+        else if (Settings.download_preferences.save_as_prompt === 'on') downloadData.saveAs = true;
         chrome.downloads.download(downloadData);
     });
 }
@@ -63,12 +118,12 @@ function send_to_all_tabs(message) {
 }
 
 function saveImage(request, sendResponse) {
-    chrome.storage.local.get(['image_preferences', 'download_preferences'], (r) => {
+    Settings.getSettings().then(() => {
         const parts = getNamePartsImage(request.url, request.sourceURL);
-        download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, r.download_preferences?.save_format));
+        download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
 
         const saved_id = `${parts.tweetId}-${parts.tweetNum}`;
-        if (r.image_preferences?.download_history_enabled ?? true) download_history_add(saved_id).then(() => {
+        if (Settings.image_preferences.download_history_enabled) download_history_add(saved_id).then(() => {
             sendToTab({type: 'image_saved'});
         });
     })
@@ -92,7 +147,7 @@ function getNamePartsImage(url, sourceURL) {
 }
 
 function formatFilename(parts, save_format) {
-    return (save_format || '[twitter] {username} - {tweetId} - {tweetNum}')
+    return save_format
         .replaceAll('{username}', parts.username)
         .replaceAll('{tweetId}', parts.tweetId)
         .replaceAll('{tweetNum}', parts.tweetNum ?? '')
@@ -110,12 +165,12 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
             authorization: authorization.value,
             features, fieldToggles
         }
-        chrome.storage.local.get(['video_details'], async (result) => {
-            result = result.video_details;
-            if (result == null || Object.keys(result).length !== 4) await chrome.storage.local.set({video_details: data});
+        Settings.getSettings().then(() => {
+            const result = Settings.video_details;
+            if (result == null || Object.keys(result).length !== 4) chrome.storage.local.set({video_details: data});
             else {
                 for (const n in data) if (result.hasOwnProperty(n) && result[n] !== data[n]) {
-                    await chrome.storage.local.set({video_details: data})
+                    chrome.storage.local.set({video_details: data})
                     break;
                 }
             }
@@ -128,10 +183,10 @@ const getBestQuality = (variants) => variants.filter(v => v?.content_type === "v
 const defaultHeaders = {'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en', 'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session'};
 const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
 function download_video(request, sendResponse) {
-    chrome.storage.local.get(['video_details', 'video_preferences', 'download_preferences'], async (preferences) => {
+    Settings.getSettings().then(async () => {
         const parts = getNamePartsGeneric(request.url);
-        const save_format = preferences.download_preferences?.save_format;
-        const id = parts.tweetId, details = preferences.video_details;
+        const save_format = Settings.download_preferences.save_format;
+        const id = parts.tweetId, details = Settings.video_details;
         try {
             const tweetDetailsURL = new URL(details.detailsURL);
             tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
@@ -171,7 +226,7 @@ function download_video(request, sendResponse) {
             }
         } catch (error) {
             console.error(error);
-            if (preferences.video_preferences?.video_download_fallback ?? true) { // default value for fallback
+            if (Settings.video_preferences.video_download_fallback) {
                 sendResponse({status: 'newpage', copy: formatFilename(parts, save_format)});
                 chrome.tabs.create({url: `https://cobalt.tools/#${request.url}`});
             } else sendResponse({status: 'error'});

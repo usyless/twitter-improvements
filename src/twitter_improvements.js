@@ -29,9 +29,11 @@
             android: /Android/i.test(navigator.userAgent)
         },
 
+        loadedCategories: ['setting', 'vx_preferences', 'image_preferences'],
+
         loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(['setting', 'vx_preferences', 'image_preferences'], (s) => {
-                for (const setting of ['setting', 'vx_preferences', 'image_preferences']) Settings[setting] = {...Settings[setting], ...s[setting]};
+            chrome.storage.local.get(Settings.loadedCategories, (s) => {
+                for (const setting of Settings.loadedCategories) Settings[setting] = {...Settings[setting], ...s[setting]};
                 resolve();
             });
         }),
