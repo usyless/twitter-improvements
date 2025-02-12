@@ -481,7 +481,7 @@
 
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings()]).then(Observer.start);
 
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    chrome.runtime.onMessage.addListener((message) => {
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
