@@ -583,15 +583,16 @@ if (typeof browser === 'undefined') {
     // Now that the building is done, append to the page
     document.getElementById('settings').replaceWith(settingsElem);
 
-    browser.runtime.sendMessage({type: 'get_default_settings'}).then((d) => {
+    Promise.all([
+        browser.runtime.sendMessage({type: 'get_default_settings'}),
+        browser.storage.local.get(valuesToUpdate.map(i => i.obj.category))
+    ]).then(([d, storage]) => {
         defaults = d;
-        chrome.storage.local.get(valuesToUpdate.map(i => i.obj.category), (s) => {
-            for (const {obj, func} of valuesToUpdate) {
-                func(s[obj.category]?.[obj.name] ?? defaults[obj.category][obj.name]);
-                obj.element?.dispatchEvent(valueLoadedEvent);
-            }
-            valuesToUpdate.length = 0;
-        });
+        for (const {obj, func} of valuesToUpdate) {
+            func(storage[obj.category]?.[obj.name] ?? defaults[obj.category][obj.name]);
+            obj.element?.dispatchEvent(valueLoadedEvent);
+        }
+        valuesToUpdate.length = 0;
     });
 
     { // Settings panes scrolling
