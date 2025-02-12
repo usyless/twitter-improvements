@@ -5,19 +5,14 @@
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z";
 
     const Settings = {
-        loadSettings: () => new Promise((resolve) => {
-            Background.get_settings().then((r) => {
-                for (const setting in r) Settings[setting] = r[setting];
-                resolve();
-            });
-        }),
+        loadSettings: async () => {
+            const r = await Background.get_settings();
+            for (const setting in r) Settings[setting] = r[setting];
+        },
 
-        loadDefaults: () => new Promise((resolve) => {
-            Background.get_default_settings().then((r) => {
-                Settings.defaults = r;
-                resolve();
-            })
-        }),
+        loadDefaults: async () => {
+            Settings.defaults = await Background.get_default_settings();
+        },
     };
     const About = {
         android: /Android/i.test(navigator.userAgent)
