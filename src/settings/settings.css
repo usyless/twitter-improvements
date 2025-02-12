@@ -297,14 +297,13 @@ button {
 }
 
 .dragging {
-    background-color: var(--accent) !important;
+    visibility: hidden;
 }
 
 .draggingClone {
     position: absolute;
     transition: 0s;
     touch-action: none;
-    pointer-events: none;
 }
 
 .hidden {

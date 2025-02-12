@@ -430,7 +430,7 @@ if (typeof browser === 'undefined') {
                             }
                         }, {once: true});
 
-                        let dragged, draggedClone;
+                        let dragged, draggedClone, xOffset, yOffset;
                         const input = elem.querySelector('input');
                         quickPicks.classList.add('draggableWrapper');
                         const moveEvent = (e) => {
@@ -439,8 +439,8 @@ if (typeof browser === 'undefined') {
                                 e.stopPropagation();
                                 e.stopImmediatePropagation();
 
-                                draggedClone.style.top = `${e.clientY}px`;
-                                draggedClone.style.left = `${e.clientX}px`;
+                                draggedClone.style.top = `${e.clientY - yOffset}px`;
+                                draggedClone.style.left = `${e.clientX - xOffset}px`;
 
                                 for (const target of document.elementsFromPoint(e.clientX, e.clientY)) {
                                     if (target.closest('button:not(.draggingClone)')) {
@@ -475,15 +475,19 @@ if (typeof browser === 'undefined') {
                             const btn = e.target.closest('button');
                             if (btn) {
                                 dragged = btn;
-                                dragged.classList.add('dragging');
+                                const box = dragged.getBoundingClientRect();
+                                yOffset = e.clientY - box.top;
+                                xOffset = e.clientX - box.left;
 
                                 draggedClone = dragged.cloneNode(true);
                                 draggedClone.classList.add('draggingClone');
                                 draggedClone.style.width = `${dragged.offsetWidth}px`;
                                 draggedClone.style.height = `${dragged.offsetHeight}px`;
-                                draggedClone.style.top = `${e.clientY}px`;
-                                draggedClone.style.left = `${e.clientX}px`;
+                                draggedClone.style.top = `${e.clientY - yOffset}px`;
+                                draggedClone.style.left = `${e.clientX - xOffset}px`;
                                 document.body.appendChild(draggedClone);
+
+                                dragged.classList.add('dragging');
 
                                 window.addEventListener('pointermove', moveEvent);
                                 window.addEventListener('pointerup', upEvent, {once: true});
