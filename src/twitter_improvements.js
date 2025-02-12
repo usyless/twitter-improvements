@@ -250,6 +250,7 @@
         imageButtonCallback: (e, image) => {
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 const notif = Notification.create('Image is already saved, click here to save again');
+                notif.style.cursor = 'pointer';
                 notif.addEventListener('click', () => {
                     Background.save_image(Image.respectiveURL(image), image.src);
                 });
