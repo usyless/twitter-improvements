@@ -16,8 +16,9 @@ if (typeof browser === 'undefined') {
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
 
-    const panes = document.getElementById('settings-panes');
-    const header = document.getElementById('settings-header');
+    const settingsElem = document.getElementById('settings').cloneNode(true);
+    const panes = settingsElem.querySelector('#settings-panes');
+    const header = settingsElem.querySelector('#settings-header');
 
     // Make sure category is set for updatable objects
     const options = {
@@ -573,6 +574,9 @@ if (typeof browser === 'undefined') {
         header.appendChild(cat);
         panes.appendChild(pane);
     }
+
+    // Now that the building is done, append to the page
+    document.getElementById('settings').replaceWith(settingsElem);
 
     browser.runtime.sendMessage({type: 'get_default_settings'}).then((d) => {
         defaults = d;
