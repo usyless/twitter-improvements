@@ -4,40 +4,17 @@
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z";
 
-    const Settings = { // Setting handling
-        setting: {
-            vx_button: true,
-            video_button: true,
-            image_button: true,
-            bookmark_on_photo_page: false,
-        },
-
-        vx_preferences: {
-            url_prefix: 'fixvx.com',
-            custom_url: '',
-        },
-
-        image_preferences: {
-            long_image_button: false,
-            download_history_enabled: true,
-            download_history_prevent_download: false,
-            image_button_position: '0',
-            image_button_scale: 1
-        },
-
-        about: {
-            android: /Android/i.test(navigator.userAgent)
-        },
-
-        loadedCategories: ['setting', 'vx_preferences', 'image_preferences'],
-
-        loadSettings: () => new Promise(resolve => {
-            chrome.storage.local.get(Settings.loadedCategories, (s) => {
-                for (const setting of Settings.loadedCategories) Settings[setting] = {...Settings[setting], ...s[setting]};
+    let Settings = {
+        loadSettings: () => new Promise((resolve) => {
+            Background.get_settings().then((r) => {
+                for (const setting in r) Settings[setting] = r[setting];
                 resolve();
             });
-        }),
-    }
+        })
+    };
+    const About = {
+        android: /Android/i.test(navigator.userAgent)
+    };
 
     const Background = {
         download_history_has: (id) => chrome.runtime.sendMessage({type: 'download_history_has', id}),
@@ -47,7 +24,8 @@
             type: 'video', url,
             cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
         }),
-        save_image: (url, sourceURL) => chrome.runtime.sendMessage({type: 'image', url, sourceURL})
+        save_image: (url, sourceURL) => chrome.runtime.sendMessage({type: 'image', url, sourceURL}),
+        get_settings: () => chrome.runtime.sendMessage({type: 'get_settings'}),
     }
 
     const Tweet = { // Tweet functions
@@ -165,7 +143,7 @@
         },
 
         videoButtonCallback: (event, article) => {
-            Notification.create(`Saving Tweet Video(s)${Settings.about.android ? ' (This may take a second on android)' : ''}`);
+            Notification.create(`Saving Tweet Video(s)${About.android ? ' (This may take a second on android)' : ''}`);
             Background.save_video(Tweet.url(article)).then((r) => Tweet.videoResponseHandler(event, r));
         },
 
@@ -244,7 +222,7 @@
                     Background.save_image(Image.respectiveURL(image), image.src);
                 });
             } else {
-                Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? ' (This may take a second on android)' : ''}`);
                 Background.save_image(Image.respectiveURL(image), image.src);
             }
         },
@@ -519,7 +497,7 @@
                 break;
             }
             case 'image_saved': {
-                Notification.create(`Saving Image${Settings.about.android ? ' (This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? ' (This may take a second on android)' : ''}`);
                 break;
             }
             case 'download': {

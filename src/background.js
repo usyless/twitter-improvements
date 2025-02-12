@@ -11,6 +11,8 @@ const requestMap = {
     download_history_clear: download_history_clear,
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
+
+    get_settings: get_settings
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -40,14 +42,30 @@ chrome?.contextMenus?.onClicked?.addListener?.((info) => {
 });
 
 const Settings = { // Setting handling
+    setting: {
+        vx_button: true,
+        video_button: true,
+        image_button: true,
+        bookmark_on_photo_page: false,
+    },
+
+    vx_preferences: {
+        url_prefix: 'fixvx.com',
+        custom_url: '',
+    },
+
+    image_preferences: {
+        long_image_button: false,
+        download_history_enabled: true,
+        download_history_prevent_download: false,
+        image_button_position: '0',
+        image_button_scale: 1
+    },
+
     download_preferences: {
         save_as_prompt: 'browser',
         save_directory: '',
         save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
-    },
-
-    image_preferences: {
-        download_history_enabled: true,
     },
 
     video_details: {
@@ -61,7 +79,7 @@ const Settings = { // Setting handling
         video_download_fallback: true
     },
 
-    loadedCategories: ['download_preferences', 'image_preferences', 'video_details', 'video_preferences'],
+    loadedCategories: ['setting', 'vx_preferences', 'image_preferences', 'download_preferences', 'video_details', 'video_preferences'],
     loaded: false,
     loading: false,
     promiseQueue: [],
@@ -87,6 +105,14 @@ const Settings = { // Setting handling
             resolve();
         });
     }),
+}
+
+function get_settings(_, sendResponse) {
+    Settings.getSettings().then(() => {
+        const data = {};
+        for (const setting of Settings.loadedCategories) data[setting] = Settings[setting];
+        sendResponse(data);
+    });
 }
 
 chrome.storage.onChanged.addListener(async (_, namespace) => {
