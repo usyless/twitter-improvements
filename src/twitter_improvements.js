@@ -4,14 +4,16 @@
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z";
 
+    const Defaults = {
+        loadDefaults: async () => {
+            const r = await Background.get_default_settings();
+            for (const def in r) Defaults[def] = r[def];
+        },
+    };
     const Settings = {
         loadSettings: async () => {
             const r = await Background.get_settings();
             for (const setting in r) Settings[setting] = r[setting];
-        },
-
-        loadDefaults: async () => {
-            Settings.defaults = await Background.get_default_settings();
         },
     };
     const About = {
@@ -29,7 +31,7 @@
         save_image: (url, sourceURL) => chrome.runtime.sendMessage({type: 'image', url, sourceURL}),
         get_settings: () => chrome.runtime.sendMessage({type: 'get_settings'}),
         get_default_settings: () => chrome.runtime.sendMessage({type: 'get_default_settings'}),
-    }
+    };
 
     const Tweet = { // Tweet functions
         fallbackButton: null,
@@ -169,7 +171,7 @@
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
         }
-    }
+    };
 
     const Image = { // Image element functions
         addImageButton: (image) => {
@@ -178,9 +180,9 @@
                 image.setAttribute('usy', '');
                 button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
                 const prefs = Settings.image_preferences;
-                button.style.width = (prefs.image_button_width_value === Settings.defaults.image_preferences.image_button_width_value)
+                button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
                     ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-                button.style.height = (prefs.image_button_height_value === Settings.defaults.image_preferences.image_button_height_value)
+                button.style.height = (prefs.image_button_height_value === Defaults.image_preferences.image_button_height_value)
                     ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
                 button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
                 button.style.transform = `scale(${prefs.image_button_scale})`;
@@ -245,7 +247,7 @@
         },
 
         getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
-    }
+    };
 
     const URLS = { // URL modification functions
         vxIfy: (url) => {
@@ -256,7 +258,7 @@
             if (Settings.vx_preferences.url_prefix === 'x.com') return Settings.vx_preferences.custom_url;
             return Settings.vx_preferences.url_prefix;
         }
-    }
+    };
 
     const Button = { // Button functions
         newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = [], extras = []) => {
@@ -314,7 +316,7 @@
         },
 
         closest: (elem) => elem.closest('.usybuttonclickdiv'),
-    }
+    };
 
     const Notification = {
         create: (text, timeout = 5000) => {
@@ -404,7 +406,7 @@
             b.addEventListener('click', onclick);
             return b;
         }
-    }
+    };
 
     const Helpers = {
         download: (url, filename) => {
@@ -417,7 +419,7 @@
                 URL.revokeObjectURL(objectURL);
             });
         }
-    }
+    };
 
     const Observer = {
         observer: null,
@@ -475,9 +477,9 @@
             Observer.observer = null;
             Observer.forceUpdate = null;
         }
-    }
+    };
 
-    Promise.all([Settings.loadDefaults(), Settings.loadSettings()]).then(Observer.start);
+    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()]).then(Observer.start);
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         switch (message.type) {
