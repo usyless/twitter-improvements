@@ -236,7 +236,10 @@
             if (url) return url;
 
             url = window.location.href;
-            if (url.includes('/photo/')) return url;
+            if (url.includes('/photo/')) {
+                const li = image.closest('li');
+                return `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}`;
+            }
         },
 
         idWithNumber: (image) => {
@@ -470,7 +473,7 @@
                 }, getCallback = () => {
                     const callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
-                    const update = (pre) => {
+                    const update = (_, __, pre) => {
                         Observer.observer?.disconnect();
                         pre?.();
                         for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
@@ -478,18 +481,7 @@
                     };
                     update();
                     Observer.forceUpdate = update;
-                    // Fix green button on switching image
-                    let previousURL = window.location.href;
-                    const imageFix = () => {
-                        const newUrl = window.location.href;
-                        previousURL.includes("/photo/") && newUrl !== previousURL &&
-                        newUrl.includes("/photo/") && Settings.setting.image_button &&
-                        Settings.image_preferences.download_history_enabled && Image.resetAll();
-                        previousURL = newUrl;
-                    }
-
-                    if (callbacks.length > 0) return () => update(imageFix);
-                    return Observer.disable;
+                    return (callbacks.length > 0) ? update : Observer.disable;
                 };
             Observer.observer = new MutationObserver(getCallback());
             Observer.observer?.observe(document.body, observerSettings);
@@ -519,12 +511,12 @@
                     const changes = message.changes;
                     // only need to reload for vx setting change
                     if (changes.hasOwnProperty('setting')) Observer.start();
-                    else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(Image.resetAll);
+                    else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(null, null, Image.resetAll);
                 });
                 break;
             }
             case 'history_change': {
-                Observer.forceUpdate?.(Image.resetAll);
+                Observer.forceUpdate?.(null, null, Image.resetAll);
                 break;
             }
             case 'image_saved': {
