@@ -238,7 +238,7 @@
             url = window.location.href;
             if (url.includes('/photo/')) {
                 const li = image.closest('li');
-                return `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}`;
+                return li ? url : `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}`;
             }
         },
 
