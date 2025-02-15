@@ -62,6 +62,9 @@ if (typeof browser === 'undefined') {
                     description: 'Show Image Download Buttons',
                 },
                 {
+                    type: 'break'
+                },
+                {
                     name: 'image_button_position',
                     category: 'image_preferences',
                     description: 'Image download button position',
@@ -75,6 +78,9 @@ if (typeof browser === 'undefined') {
                     type: 'number',
                     validate: (value) => value > 0,
                     attributes: {step: '0.1'}
+                },
+                {
+                    type: 'break'
                 },
                 {
                     name: 'image_button_width_value',
@@ -111,6 +117,9 @@ if (typeof browser === 'undefined') {
                     validate: (value) => value > 0,
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
                     attributes: {step: '20'}
+                },
+                {
+                    type: 'break'
                 },
                 {
                     name: 'download_history_enabled',
