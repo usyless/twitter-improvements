@@ -157,7 +157,7 @@
             else if (r.status === 'choice') Notification.createVideoChoice(r.choices, event);
             else if (r.status === 'newpage') {
                 navigator.clipboard.writeText(r.copy);
-                Notification.create('Error occurred downloading video, copied file name to clipboard, use cobalt.tools website to download, try clicking on a new tweet to fix', 10000);
+                Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 10000);
             } else Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 10000);
         },
 
@@ -225,7 +225,7 @@
 
         imageButtonCallback: (image) => {
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
-                const notif = Notification.create('Image is already saved, click here to save again');
+                const notif = Notification.create('Image is already saved\nClick here to save again');
                 notif.style.cursor = 'pointer';
                 notif.addEventListener('click', () => {
                     Background.save_image(Image.respectiveURL(image), image.src);

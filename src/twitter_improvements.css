@@ -99,7 +99,7 @@ body {
     max-width: 22em;
 
     word-wrap: break-word;
-    white-space: wrap;
+    white-space: pre-line;
 
     position: absolute;
     bottom: 2em;
