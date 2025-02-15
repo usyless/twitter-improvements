@@ -73,7 +73,8 @@ if (typeof browser === 'undefined') {
                     category: 'image_preferences',
                     description: 'Image download button scale',
                     type: 'number',
-                    validate: (value) => value > 0
+                    validate: (value) => value > 0,
+                    attributes: {step: '0.1'}
                 },
                 {
                     name: 'image_button_height_value',
@@ -83,7 +84,8 @@ if (typeof browser === 'undefined') {
                     validate: (value) => value > 0 && value <= 100,
                     post: (elem) => {
                         elem.appendChild(document.createTextNode('% (of Image height)'))
-                    }
+                    },
+                    attributes: {step: '5'}
                 },
                 {
                     name: 'image_button_width_value',
@@ -93,7 +95,8 @@ if (typeof browser === 'undefined') {
                     validate: (value) => value > 0 && value <= 100,
                     post: (elem) => {
                         elem.appendChild(document.createTextNode('% (of Image width)'))
-                    }
+                    },
+                    attributes: {step: '5'}
                 },
                 {
                     name: 'download_history_enabled',
@@ -688,6 +691,14 @@ if (typeof browser === 'undefined') {
         label.setAttribute('for', e.name);
         elem.id = e.name;
         if (e.class) elem.classList.add(...e.class);
+        if (e.attributes) {
+            const attrs = e.attributes;
+            for (const attribute of attrs) {
+                const attr = attrs[attribute];
+                if (typeof attr === 'boolean') elem[attr ? 'setAttribute' : 'removeAttribute'](attribute, '');
+                else elem.setAttribute(attribute, attr);
+            }
+        }
         if (flipOrder) outer.append(elem, label);
         else outer.append(label, elem);
         return [outer, elem];
