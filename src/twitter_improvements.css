@@ -6,49 +6,6 @@
     cursor: pointer;
 }
 
-.usybuttonclickdiv[usy-image] {
-    position: absolute;
-
-    button {
-        height: fit-content;
-    }
-
-    &.usy-top {
-        top: 0;
-
-        &.usy-left {
-            transform-origin: top left !important;
-        }
-
-        &.usy-right {
-            transform-origin: top right !important;
-        }
-    }
-
-    &.usy-bottom {
-        bottom: 0;
-
-        &.usy-left {
-            transform-origin: bottom left !important;
-        }
-
-        &.usy-right {
-            transform-origin: bottom right !important;
-        }
-    }
-
-    &.usy-left {
-        left: 0;
-    }
-
-    &.usy-right {
-        right: 0;
-        > *:first-child {
-            justify-content: flex-end;
-        }
-    }
-}
-
 .usyMarked, .usyMarked * {
     color: green;
     transition: 230ms;
@@ -140,6 +97,86 @@ body {
     &.animate {
         animation: usyProgressIn 1s ease-out forwards;
         opacity: 1;
+    }
+}
+
+.usyImageButton {
+    position: absolute;
+    display: flex;
+
+    button {
+        background: none;
+        outline: none;
+        border: none;
+        padding: 0;
+        height: fit-content;
+        position: relative;
+    }
+
+    svg {
+        width: 24px;
+        height: 24px;
+
+        path {
+            transition: 0.2s;
+        }
+    }
+
+    svg:not(.r-1cvl2hr) {
+        color: grey;
+    }
+
+    button::before {
+        transition: 0.3s;
+        position: absolute;
+        content: "";
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: lightblue;
+        opacity: 0;
+        z-index: -1;
+    }
+
+    button:has(.r-1cvl2hr)::before {
+        opacity: 0.3;
+    }
+
+    &.usy-top {
+        top: 0;
+
+        &.usy-left {
+            transform-origin: top left !important;
+        }
+
+        &.usy-right {
+            transform-origin: top right !important;
+        }
+    }
+
+    &.usy-bottom {
+        bottom: 0;
+        align-items: flex-end;
+
+        &.usy-left {
+            transform-origin: bottom left !important;
+        }
+
+        &.usy-right {
+            transform-origin: bottom right !important;
+        }
+    }
+
+    &.usy-left {
+        left: 0;
+    }
+
+    &.usy-right {
+        right: 0;
+        justify-content: flex-end;
     }
 }
 

@@ -178,7 +178,7 @@
             let button;
             try {
                 image.setAttribute('usy', '');
-                button = Button.newButton(Tweet.anchorWithFallback(Tweet.nearestTweet(image)), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
+                button = Button.newButton(Image.createDownloadButton(), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
                 const prefs = Settings.image_preferences;
                 button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
                     ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
@@ -207,6 +207,26 @@
             2: ['usy-bottom', 'usy-left'],
             3: ['usy-bottom', 'usy-right'],
         },
+
+        createDownloadButton: (() => {
+            const outer = document.createElement('div'),
+                button = document.createElement('button'),
+                svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+                g = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+            g.appendChild(path);
+            svg.appendChild(g);
+            button.appendChild(svg);
+            outer.appendChild(button);
+
+            svg.setAttributeNS(null, 'viewBox', '0 0 24 24');
+            path.setAttributeNS(null, 'fill', 'currentColor');
+
+            outer.classList.add('usyImageButton');
+
+            return () => outer.cloneNode(true);
+        })(),
 
         respectiveURL: (image) => {
             let url = image.closest('[href]')?.href;
