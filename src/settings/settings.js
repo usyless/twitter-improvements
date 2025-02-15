@@ -59,7 +59,7 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'image_button',
                     category: 'setting',
-                    description: 'Show Image Download Buttons',
+                    description: 'Show Image Download Buttons on images',
                 },
                 {
                     type: 'break'
