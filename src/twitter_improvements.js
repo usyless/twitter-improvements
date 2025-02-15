@@ -265,8 +265,8 @@
         },
 
         resetAll: () => {
-            document.querySelectorAll('div[usy-image].usybuttonclickdiv').forEach((e) => e.remove());
-            document.querySelectorAll('img[usy]').forEach((e) => e.removeAttribute('usy'));
+            for (const button of document.querySelectorAll('div[usy-image].usybuttonclickdiv')) button.remove();
+            for (const image of document.querySelectorAll('img[usy]')) image.removeAttribute('usy');
         },
 
         getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
