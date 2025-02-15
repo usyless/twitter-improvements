@@ -82,9 +82,7 @@ if (typeof browser === 'undefined') {
                     description: 'Image download button width (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => {
-                        elem.appendChild(document.createTextNode('% (of Image width)'))
-                    },
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image width)')),
                     attributes: {step: '5'}
                 },
                 {
@@ -93,9 +91,7 @@ if (typeof browser === 'undefined') {
                     description: 'Image download button height (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => {
-                        elem.appendChild(document.createTextNode('% (of Image height)'))
-                    },
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image height)')),
                     attributes: {step: '5'}
                 },
                 {
@@ -104,9 +100,7 @@ if (typeof browser === 'undefined') {
                     description: 'Image download button height -> small images (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => {
-                        elem.appendChild(document.createTextNode('% (of Image height)'))
-                    },
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image height)')),
                     attributes: {step: '5'}
                 },
                 {
