@@ -34,8 +34,6 @@
     };
 
     const Tweet = { // Tweet functions
-        fallbackButton: null,
-
         addVXButton: (article) => {
             try {
                 article.setAttribute('usy', '');
@@ -101,26 +99,18 @@
         },
 
         anchor: (article) => {
-            const anchor = article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
-            if (!Tweet.fallbackButton) Tweet.fallbackButton = anchor;
-            return anchor;
+           return article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
         },
 
         isFocused: (article) => {
-            return article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]');
+            // checks for reply section, or "Who can reply?" on limited reply tweets
+            return article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]') ||
+                article.querySelector('div[aria-live="polite"][role="status"]');
         },
 
         respectiveBookmarkButton: (article) => {
             return (article.querySelector('button[data-testid="bookmark"]')
                 ?? article.querySelector('button[data-testid="removeBookmark"]')).parentElement;
-        },
-
-        anchorWithFallback: (article) => {
-            try {
-                return Tweet.anchor(article);
-            } catch {
-                return Tweet.fallbackButton;
-            }
         },
 
         url: (article) => {
