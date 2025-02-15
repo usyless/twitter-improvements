@@ -693,7 +693,7 @@ if (typeof browser === 'undefined') {
         if (e.class) elem.classList.add(...e.class);
         if (e.attributes) {
             const attrs = e.attributes;
-            for (const attribute of attrs) {
+            for (const attribute in attrs) {
                 const attr = attrs[attribute];
                 if (typeof attr === 'boolean') elem[attr ? 'setAttribute' : 'removeAttribute'](attribute, '');
                 else elem.setAttribute(attribute, attr);
