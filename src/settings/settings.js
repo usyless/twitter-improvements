@@ -77,6 +77,17 @@ if (typeof browser === 'undefined') {
                     attributes: {step: '0.1'}
                 },
                 {
+                    name: 'image_button_width_value',
+                    category: 'image_preferences',
+                    description: 'Image download button width (1 for default)',
+                    type: 'number',
+                    validate: (value) => value > 0 && value <= 100,
+                    post: (elem) => {
+                        elem.appendChild(document.createTextNode('% (of Image width)'))
+                    },
+                    attributes: {step: '5'}
+                },
+                {
                     name: 'image_button_height_value',
                     category: 'image_preferences',
                     description: 'Image download button height (1 for default)',
@@ -99,15 +110,13 @@ if (typeof browser === 'undefined') {
                     attributes: {step: '5'}
                 },
                 {
-                    name: 'image_button_width_value',
+                    name: 'small_image_size_threshold',
                     category: 'image_preferences',
-                    description: 'Image download button width (1 for default)',
+                    description: 'Threshold in pixels for an image to be considered small',
                     type: 'number',
-                    validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => {
-                        elem.appendChild(document.createTextNode('% (of Image width)'))
-                    },
-                    attributes: {step: '5'}
+                    validate: (value) => value > 0,
+                    post: (elem) => elem.appendChild(document.createTextNode('px')),
+                    attributes: {step: '20'}
                 },
                 {
                     name: 'download_history_enabled',

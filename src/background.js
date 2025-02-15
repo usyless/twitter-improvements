@@ -64,6 +64,7 @@ const Settings = { // Setting handling
             image_button_scale: '1',
             image_button_height_value: '1',
             image_button_height_value_small: '1',
+            small_image_size_threshold: '350',
             image_button_width_value: '1'
         },
 

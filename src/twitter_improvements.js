@@ -202,7 +202,7 @@
         setButtonHeight: (image, button) => {
             const prefs = Settings.image_preferences;
             const box = image.getBoundingClientRect();
-            if (Math.max(box.width, box.height) >= 350) {
+            if (Math.max(box.width, box.height) > +prefs.small_image_size_threshold) {
                 button.style.height = (prefs.image_button_height_value === Defaults.image_preferences.image_button_height_value)
                     ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
             } else {
