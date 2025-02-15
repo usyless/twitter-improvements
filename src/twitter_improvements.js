@@ -172,10 +172,11 @@
                 const prefs = Settings.image_preferences;
                 button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
                     ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-                button.style.height = (prefs.image_button_height_value === Defaults.image_preferences.image_button_height_value)
-                    ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
                 button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
                 button.style.transform = `scale(${prefs.image_button_scale})`;
+
+                if (image.complete) Image.setButtonHeight(image, button);
+                else image.addEventListener('load', Image.setButtonHeight.bind(null, image, button));
 
                 image.after(button);
                 if (prefs.download_history_enabled) { // mark image
@@ -196,6 +197,18 @@
             1: ['usy-top', 'usy-right'],
             2: ['usy-bottom', 'usy-left'],
             3: ['usy-bottom', 'usy-right'],
+        },
+
+        setButtonHeight: (image, button) => {
+            const prefs = Settings.image_preferences;
+            const box = image.getBoundingClientRect();
+            if (Math.max(box.width, box.height) >= 350) {
+                button.style.height = (prefs.image_button_height_value === Defaults.image_preferences.image_button_height_value)
+                    ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
+            } else {
+                button.style.height = (prefs.image_button_height_value_small === Defaults.image_preferences.image_button_height_value_small)
+                    ? 'fit-content' : `${+prefs.image_button_height_value_small / +prefs.image_button_scale}%`;
+            }
         },
 
         createDownloadButton: (() => {

@@ -88,6 +88,17 @@ if (typeof browser === 'undefined') {
                     attributes: {step: '5'}
                 },
                 {
+                    name: 'image_button_height_value_small',
+                    category: 'image_preferences',
+                    description: 'Image download button height -> small images (1 for default)',
+                    type: 'number',
+                    validate: (value) => value > 0 && value <= 100,
+                    post: (elem) => {
+                        elem.appendChild(document.createTextNode('% (of Image height)'))
+                    },
+                    attributes: {step: '5'}
+                },
+                {
                     name: 'image_button_width_value',
                     category: 'image_preferences',
                     description: 'Image download button width (1 for default)',
