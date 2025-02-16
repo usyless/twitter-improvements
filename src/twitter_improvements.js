@@ -150,8 +150,19 @@
         },
 
         videoDownloader: (article, index=0, trueIndexes=[1]) => {
-            Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
-            Background.save_video(Tweet.url(article), index, trueIndexes).then(Tweet.videoResponseHandler);
+            const url = Tweet.url(article);
+            Background.download_history_has(Helpers.idWithNumber(url, index)).then((r) => {
+                if (r) {
+                    const notif = Notification.create('Video is already saved\nClick here to save again');
+                    notif.style.cursor = 'pointer';
+                    notif.addEventListener('click', () => {
+                        Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
+                    });
+                } else {
+                    Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+                    Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
+                }
+            });
         },
 
         videoResponseHandler: (r) => {
@@ -294,10 +305,7 @@
             }
         },
 
-        idWithNumber: (image) => {
-            const a = Image.respectiveURL(image).split("/").slice(-3);
-            return `${a[0]}-${a[2]}`;
-        },
+        idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
         getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
 
@@ -507,7 +515,12 @@
                 link.dispatchEvent(new MouseEvent('click'));
                 URL.revokeObjectURL(objectURL);
             });
-        }
+        },
+
+        idWithNumber: (url, override) => {
+            const a = url.split("/").slice(-3);
+            return `${a[0]}-${override ?? a[2]}`;
+        },
     };
 
     const Observer = {
