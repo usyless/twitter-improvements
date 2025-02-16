@@ -1,5 +1,9 @@
 'use strict';
 
+if (typeof browser === 'undefined') {
+    var browser = chrome;
+}
+
 const DOWNLOAD_DB_VERSION = 1;
 
 const requestMap = {
@@ -16,19 +20,19 @@ const requestMap = {
     get_default_settings: get_default_settings,
 }
 
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
+browser.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
 });
 
-chrome?.runtime?.onInstalled?.addListener?.((details) => {
+browser?.runtime?.onInstalled?.addListener?.((details) => {
     updateHistoryDb().then(() => {
-        if (details.reason === 'install') chrome.tabs.create({url: chrome.runtime.getURL('/settings/settings.html?installed=true')});
+        if (details.reason === 'install') browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
         else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
     });
 });
 
-chrome?.contextMenus?.create?.(
+browser?.contextMenus?.create?.(
     {
         id: "save-image",
         title: "Save Image",
@@ -38,7 +42,7 @@ chrome?.contextMenus?.create?.(
     }
 );
 
-chrome?.contextMenus?.onClicked?.addListener?.((info) => {
+browser?.contextMenus?.onClicked?.addListener?.((info) => {
     if (info.menuItemId === "save-image") saveImage({url: info.linkUrl ?? info.pageUrl, sourceURL: info.srcUrl});
 });
 
@@ -136,7 +140,7 @@ const Settings = { // Setting handling
     }),
 
     loadSettings: () => new Promise(resolve => {
-        chrome.storage.local.get((s) => {
+        browser.storage.local.get().then((s) => {
             const defaults = Settings.defaults;
             for (const setting in defaults) Settings[setting] = {...defaults[setting], ...s[setting]};
             resolve();
@@ -156,11 +160,9 @@ function get_default_settings(_, sendResponse) {
     sendResponse(Settings.defaults);
 }
 
-chrome.storage.onChanged.addListener(async (changes, namespace) => {
+browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-        Settings.loadSettings().then(() => {
-            send_to_all_tabs({type: 'settings_update', changes});
-        });
+        Settings.loadSettings().then(() => send_to_all_tabs({type: 'settings_update', changes}));
     }
 });
 
@@ -172,19 +174,21 @@ function download(url, filename) {
         };
         if (Settings.download_preferences.save_as_prompt === 'off') downloadData.saveAs = false;
         else if (Settings.download_preferences.save_as_prompt === 'on') downloadData.saveAs = true;
-        chrome.downloads.download(downloadData);
+        browser.downloads.download(downloadData);
     });
 }
 
+const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'}
 function sendToTab(message) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, message);
+    browser.tabs.query(singleTabQuery).then((tabs) => {
+        browser.tabs.sendMessage(tabs[0].id, message);
     });
 }
 
+const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function send_to_all_tabs(message) {
-    chrome.tabs.query({}, (tabs) => {
-        for (const tab of tabs) if (tab.status === 'complete') chrome.tabs.sendMessage(tab.id, message);
+    browser.tabs.query(tabQuery).then((tabs) => {
+        for (const tab of tabs) browser.tabs.sendMessage(tab.id, message);
     });
 }
 
@@ -226,7 +230,7 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
-chrome.webRequest.onSendHeaders.addListener((details) => {
+browser.webRequest.onSendHeaders.addListener((details) => {
     const url = new URL(decodeURIComponent(details.url));
     const authorization = details.requestHeaders?.find?.(a => a.name === 'authorization');
     const features = url.searchParams.get("features"), fieldToggles = url.searchParams.get("fieldToggles");
@@ -239,7 +243,7 @@ chrome.webRequest.onSendHeaders.addListener((details) => {
         Settings.getSettings().then(() => {
             const details = Settings.video_details;
             for (const n in data) if (details[n] !== data[n]) {
-                chrome.storage.local.set({video_details: data})
+                browser.storage.local.set({video_details: data})
                 break;
             }
         });
@@ -296,7 +300,7 @@ function download_video(request, sendResponse) {
             console.error(error);
             if (Settings.video_preferences.video_download_fallback) {
                 sendResponse({status: 'newpage', copy: formatFilename(parts, save_format)});
-                chrome.tabs.create({url: `https://cobalt.tools/#${request.url}`});
+                browser.tabs.create({url: `https://cobalt.tools/#${request.url}`});
             } else sendResponse({status: 'error'});
         }
     });
@@ -360,9 +364,9 @@ async function migrateSettings(previousVersion) {
     // Fix for old link copying setting
     if (versionBelowGiven(previousVersion, '1.0.7.3')) {
         console.log("Migrating vx and fx settings to new format");
-        chrome.storage.local.get(['url_prefix'], async (s) => {
-            if (s.url_prefix === 'vx') await chrome.storage.local.set({url_prefix: 'fixvx.com'});
-            if (s.url_prefix === 'fx') await chrome.storage.local.set({url_prefix: 'fixupx.com'});
+        browser.storage.local.get(['url_prefix']).then(async (s) => {
+            if (s.url_prefix === 'vx') await browser.storage.local.set({url_prefix: 'fixvx.com'});
+            if (s.url_prefix === 'fx') await browser.storage.local.set({url_prefix: 'fixupx.com'});
         });
     }
 
@@ -370,7 +374,7 @@ async function migrateSettings(previousVersion) {
     if (versionBelowGiven(previousVersion, '1.1.1.1')) {
         console.log("Migrating settings to new format");
         await new Promise((resolve) => {
-            chrome.storage.local.get(async (s) => {
+            browser.storage.local.get().then(async (s) => {
                 const {
                     // styles
                     hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
@@ -386,7 +390,7 @@ async function migrateSettings(previousVersion) {
                     detailsURL, authorization, features, fieldToggles
                 } = s;
 
-                await chrome.storage.local.clear();
+                await browser.storage.local.clear();
                 const newSettings = {style: {}, setting: {}, vx_preferences: {}, video_details: {},
                     image_preferences: {}, video_preferences: {}};
 
@@ -431,7 +435,7 @@ async function migrateSettings(previousVersion) {
 
                 if (download_history != null) newSettings.download_history = download_history;
 
-                await chrome.storage.local.set(newSettings);
+                await browser.storage.local.set(newSettings);
 
                 resolve();
             });
@@ -443,7 +447,7 @@ async function migrateSettings(previousVersion) {
         console.log("Migrating history to indexed db");
         await new Promise((resolve) => {
             getHistoryDB().then((db) => {
-                chrome.storage.local.get(['download_history'], async (r) => {
+                browser.storage.local.get(['download_history']).then(async (r) => {
                     const history = r.download_history ?? {};
                     const transaction = db.transaction(['download_history'], 'readwrite');
                     if (Object.keys(history).length > 0) {
@@ -451,7 +455,7 @@ async function migrateSettings(previousVersion) {
                         for (const saved_image in history) objectStore.put({saved_image});
                     }
 
-                    await chrome.storage.local.remove('download_history');
+                    await browser.storage.local.remove('download_history');
 
                     transaction.addEventListener('complete', resolve);
                 });
@@ -463,13 +467,13 @@ async function migrateSettings(previousVersion) {
     if (versionBelowGiven(previousVersion, '1.2.1.5')) {
         console.log("Removing and replacing long image button");
         await new Promise((resolve) => {
-            chrome.storage.local.get(async (s) => {
+            browser.storage.local.get().then(async (s) => {
                 if (s?.image_preferences?.long_image_button != null) {
                     if (s.image_preferences.long_image_button === true) {
                         s.image_preferences.image_button_width_value = '100';
                     }
                     delete s.image_preferences.long_image_button;
-                    await chrome.storage.local.set(s);
+                    await browser.storage.local.set(s);
                 }
 
                 resolve();
