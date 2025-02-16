@@ -197,8 +197,7 @@ function saveImage(request, sendResponse) {
         const parts = getNamePartsImage(request.url, request.sourceURL);
         download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
 
-        const saved_id = `${parts.tweetId}-${parts.tweetNum}`;
-        if (Settings.image_preferences.download_history_enabled) download_history_add(saved_id).then(() => {
+        if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
             sendToTab({type: 'image_saved'});
         });
     })
@@ -219,6 +218,10 @@ function getNamePartsImage(url, sourceURL) {
         ...getNamePartsGeneric(url),
         extension: sourceURL.match(/format=(\w+)/)[1]
     }
+}
+
+function formatPartsForStorage(parts) {
+    return `${parts.tweetId}-${parts.tweetNum}`
 }
 
 function formatFilename(parts, save_format) {
@@ -311,7 +314,7 @@ function downloadVideos(urls, parts, save_format, trueIndexes) {
         parts.extension = url.includes(".mp4") ? "mp4" : "gif";
         // No need to alert tabs of video saved
         if (Settings.image_preferences.download_history_enabled)
-            void download_history_add(`${parts.tweetId}-${parts.tweetNum}`);
+            void download_history_add(formatPartsForStorage(parts));
         download(url, formatFilename(parts, save_format));
     });
 }
