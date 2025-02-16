@@ -85,7 +85,7 @@
                 {
                     name: 'inline_image_button',
                     category: 'setting',
-                    description: 'Show image downloads under video download buttons (Experimental)',
+                    description: 'Show image downloads under video download buttons',
                 },
                 {
                     type: 'break'
