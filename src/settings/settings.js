@@ -149,7 +149,7 @@
                 {
                     name: 'download_history_enabled',
                     category: 'image_preferences',
-                    description: 'Enable download history for media\nRight click on a download button, or download popup to remove',
+                    description: 'Enable download history (To remove: right click on a download or popup button)',
                 },
                 {
                     name: 'download_history_prevent_download',
