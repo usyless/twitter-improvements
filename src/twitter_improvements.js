@@ -62,7 +62,7 @@
                 // checks if quote tweet contains specific media (don't show button)
                 // doesn't affect a video QRT as each media checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
+                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article, media);
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-download'));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
@@ -72,7 +72,7 @@
                     }
                 }
             } catch {
-                media.removeAttribute('usy');
+                media.removeAttribute('usy-download');
             }
         },
 
@@ -141,12 +141,12 @@
             }
         },
 
-        mediaDownloadCallback: (article, ev) => {
-            const media = Tweet.getMedia(article);
+        mediaDownloadCallback: async (article, m, ev) => {
+            const media = await Tweet.getMedia(article, m);
             if (media.length === 1) {
                 if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
                 else Tweet.videoDownloader(article);
-            } else Notification.createDownloadChoices(Tweet.getMedia(article), ev);
+            } else Notification.createDownloadChoices(media, ev);
         },
 
         videoDownloader: (article, index=0) => {
@@ -173,7 +173,7 @@
                     if (!b.closest('article')) return b.parentElement.parentElement;
         },
 
-        getMediaNotMaximised: (article, elem) => {
+        getMediaFromElements: (article, elem) => {
             const data = [];
             let videoindex = 0;
             for (const media of elem.querySelectorAll(
@@ -186,13 +186,30 @@
             return data;
         },
 
-        getMedia: (article) => {
+        getMedia: async (article, media) => {
             // /photo/ or /video/ mode
-            if (Tweet.maximised()) {
-
+            if (Tweet.maximised() && Tweet.isFocused(article)) {
+                const ul = media.closest('ul');
+                if (ul.lastElementChild.childElementCount === 0) {
+                    const nextButton = ul.parentElement.nextElementSibling.lastElementChild;
+                    let count = 0;
+                    // Wait until end of list is scrolled to, indicated by last element having children,
+                    // or the button disappearing, then wait an extra 100ms to allow all media to load before continuing
+                    await new Promise((resolve) => {
+                        const clickNext = () => {
+                            setTimeout(() => {
+                                nextButton.click();
+                                if (count++ < 10 && nextButton.isConnected && (ul.lastElementChild.childElementCount === 0)) clickNext();
+                                else setTimeout(resolve, 100);
+                            }, 10);
+                        }
+                        clickNext();
+                    });
+                }
+                return Tweet.getMediaFromElements(article, ul);
             } else {
                 const quote = article.querySelector('div[id] > div[id]');
-                return Tweet.getMediaNotMaximised(article, (quote) ? quote.parentElement.firstElementChild : article);
+                return Tweet.getMediaFromElements(article, (quote) ? quote.parentElement.firstElementChild : article);
             }
         }
     };
