@@ -1,10 +1,11 @@
 'use strict';
 
-if (typeof browser === 'undefined') {
-    var browser = chrome;
-}
-
 (() => {
+    console.log(this.browser);
+    if (typeof this.browser === 'undefined') {
+        this.browser = chrome;
+    }
+
     document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
 
     if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {

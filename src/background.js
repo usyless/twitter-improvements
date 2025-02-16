@@ -1,7 +1,7 @@
 'use strict';
 
-if (typeof browser === 'undefined') {
-    var browser = chrome;
+if (typeof this.browser === 'undefined') {
+    this.browser = chrome;
 }
 
 const DOWNLOAD_DB_VERSION = 1;

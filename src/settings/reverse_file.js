@@ -1,6 +1,10 @@
 'use strict';
 
 (() => {
+    if (typeof this.browser === 'undefined') {
+        this.browser = chrome;
+    }
+
     document.getElementById('reverseFile').parentElement.addEventListener('click', (e) => {
         if (e.target.id === 'reverseFile' || e.target === e.currentTarget) {
             document.getElementById('reverseFileInput').click();
@@ -40,7 +44,7 @@
                 const id = longestIntegerSubstring(item.getAsFile().name);
                 // Should be fine for any new tweet id's, no images likely being saved before 2009
                 if (id.length > 10) {
-                    chrome.tabs.create({url: `https://x.com/hello/status/${id}`});
+                    browser.tabs.create({url: `https://x.com/hello/status/${id}`});
                 } else {
                     alert(`Error parsing file name for ${item.getAsFile().name}, are you sure this file has a tweet id in the name?`);
                 }
