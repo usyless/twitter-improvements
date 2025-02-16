@@ -421,7 +421,7 @@
 
             fullscreen.addEventListener('click', () => {
                 for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
-                Notification.clear();
+                fullscreen.remove();
             });
 
             const handleDownload = (_, choice) => {
