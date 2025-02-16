@@ -424,7 +424,7 @@
                 Notification.clear();
             });
 
-            const handleDownload = (choice) => {
+            const handleDownload = (_, choice) => {
                 if (choice == null) { // download everything
                     let video = null;
                     for (const c of choices) {
@@ -440,7 +440,7 @@
             }
             for (let id = 0; id < choices.length; ++id) {
                 const btn = Notification.getNotificationButton(`${choices[id].type} ${id + 1}`, (e) => {
-                    handleDownload(+e.currentTarget.dataset.index);
+                    handleDownload(null, +e.currentTarget.dataset.index);
                 });
                 btn.dataset.index = id.toString();
                 popup.appendChild(btn);
