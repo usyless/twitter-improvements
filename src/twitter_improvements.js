@@ -143,6 +143,7 @@
 
         mediaDownloadCallback: (article) => {
             Notification.create('Clicked media download');
+            console.log(Tweet.getMedia(article));
         },
 
         videoButtonCallback: (article, event) => {
@@ -168,6 +169,33 @@
             if (Tweet.maximised() && Tweet.isFocused(article))
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
+        },
+
+        getMediaNotMaximised: (elem) => {
+            const data = [];
+            for (const media of elem.querySelectorAll(
+                'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
+                if (media.nodeName === 'IMG') {
+                    if (media.getAttribute('alt') === 'Embedded video') {
+                        data.push({type: 'video'});
+                    } else {
+                        data.push({type: 'image', url: Image.respectiveURL(media), sourceURL: media.getAttribute('src')});
+                    }
+                } else {
+                    data.push({type: 'video'});
+                }
+            }
+            return data;
+        },
+
+        getMedia: (article) => {
+            // /photo/ or /video/ mode
+            if (Tweet.maximised()) {
+
+            } else {
+                const quote = article.querySelector('div[id] > div[id]');
+                return Tweet.getMediaNotMaximised((quote) ? quote.parentElement.firstElementChild : article);
+            }
         }
     };
 
@@ -344,8 +372,10 @@
         },
 
         resetAll: () => {
-            document.querySelectorAll('.usybuttonclickdiv').forEach(b => b.remove());
-            document.querySelectorAll('[usy]').forEach((e) => e.removeAttribute('usy'));
+            for (const e of document.querySelectorAll('.usybuttonclickdiv')) e.remove();
+            for (const attr of ['usy', 'usy-bookmarked', 'usy-download']) {
+                for (const e of document.querySelectorAll(`[${attr}]`)) e.removeAttribute(attr);
+            }
         },
 
         closest: (elem) => elem.closest('.usybuttonclickdiv'),
