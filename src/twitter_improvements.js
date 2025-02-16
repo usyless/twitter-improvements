@@ -151,7 +151,7 @@
 
         videoDownloader: (article, index=0) => {
             Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
-            Background.save_video(Tweet.url(article, index)).then(Tweet.videoResponseHandler);
+            Background.save_video(Tweet.url(article), index).then(Tweet.videoResponseHandler);
         },
 
         videoResponseHandler: (r) => {
