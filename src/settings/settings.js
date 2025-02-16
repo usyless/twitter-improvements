@@ -541,14 +541,14 @@ if (typeof browser === 'undefined') {
                 select.appendChild(o);
             }
             valuesToUpdate.push({obj: e, func: (v) => select.value = v});
-            select.addEventListener('change', update_value.bind(null, e, 'value'));
+            select.addEventListener('change', update_value.bind(null, 'value'));
             return outer;
         },
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
-            input.addEventListener('change', update_value.bind(null, e, 'value'));
+            input.addEventListener('change', update_value.bind(null, 'value'));
             return outer;
         },
         button: (e) => {
@@ -561,7 +561,7 @@ if (typeof browser === 'undefined') {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
-            checkbox.addEventListener('change', update_value.bind(null, e, 'checked'));
+            checkbox.addEventListener('change', update_value.bind(null, 'checked'));
             return outer;
         },
         number: (e) => {
@@ -569,7 +569,7 @@ if (typeof browser === 'undefined') {
             input.type = 'number';
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('input', (ev) => {
-                if (e.validate(input.value)) update_value(e, 'value', ev);
+                if (e.validate(input.value)) update_value('value', ev);
                 else input.value = Defaults[e.category][e.name];
             });
             return outer;
@@ -725,6 +725,8 @@ if (typeof browser === 'undefined') {
 
     function get_generic_setting(e, element, flipOrder) {
         const outer = document.createElement('div'), label = document.createElement('label'), elem = document.createElement(element);
+        outer.properties = e;
+        outer.dataset.setting = '';
         label.textContent = e.description;
         label.setAttribute('for', e.name);
         elem.id = e.name;
@@ -742,8 +744,8 @@ if (typeof browser === 'undefined') {
         return [outer, elem];
     }
 
-    function update_value(obj, property, e) {
-        const elem = e.currentTarget;
+    function update_value(property, ev) {
+        const elem = ev.currentTarget, obj = elem.closest('[data-setting]').properties;
         chrome.storage.local.get([obj.category], (r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = elem[property];
