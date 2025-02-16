@@ -190,14 +190,14 @@
         },
 
         getMediaFromElements: (article, elem) => {
-            const data = [];
+            const data = [], url = Tweet.url(article);
             let videoindex = 0, index = 0;
             for (const media of elem.querySelectorAll(
                 'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
                 if (media.nodeName === 'IMG') {
-                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index});
-                    else data.push({type: 'Image', elem: media, trueindex: ++index});
-                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index});
+                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
+                    else data.push({type: 'Image', elem: media, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
+                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
             }
             return data;
         },
@@ -481,9 +481,7 @@
                 btn.dataset.index = id.toString();
 
                 if (Settings.image_preferences.download_history_enabled) {
-                    Background.download_history_has(c.type === 'Image' ? Image.idWithNumber(c.elem) : Helpers.idWithNumber(Tweet.url(c.elem), c.trueindex)).then((r) => {
-                        if (r) Button.mark(btn);
-                    });
+                    Background.download_history_has(c.save_id).then((r) => r && Button.mark(btn));
                 }
 
                 popup.appendChild(btn);
