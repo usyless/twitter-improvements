@@ -255,9 +255,7 @@
             if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
                 const notif = Notification.create('Image is already saved\nClick here to save again');
                 notif.style.cursor = 'pointer';
-                notif.addEventListener('click', () => {
-                    Background.save_image(Image.respectiveURL(image), image.src);
-                });
+                notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
             } else {
                 Notification.create(`Saving Image${About.android ? ' (This may take a second on android)' : ''}`);
                 Background.save_image(Image.respectiveURL(image), image.src);
