@@ -288,7 +288,7 @@
             if (url) return url;
 
             url = window.location.href;
-            if (url.includes('/photo/')) {
+            if (Tweet.maximised()) {
                 const li = image.closest('li');
                 return (li) ? `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}` : url;
             }
