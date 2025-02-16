@@ -1,7 +1,11 @@
 'use strict';
 
 (() => {
-    const loadSettings = () => chrome.runtime.sendMessage({type: 'get_settings'});
+    if (typeof browser === 'undefined') {
+        var browser = chrome;
+    }
+
+    const loadSettings = () => browser.runtime.sendMessage({type: 'get_settings'});
 
     const Styles = {
         DISPLAY: '{display:none!important;}',
@@ -112,7 +116,7 @@
 
     void start();
 
-    chrome.runtime.onMessage.addListener((message) => {
+    browser.runtime.onMessage.addListener((message) => {
         if (message.type === 'settings_update' && message.changes.hasOwnProperty('style')) void start();
     });
 })();
