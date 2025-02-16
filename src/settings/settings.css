@@ -327,6 +327,19 @@ button {
     white-space: nowrap;
 }
 
+.fullscreenOverlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+
+    .contextmenu {
+        position: absolute;
+        width: fit-content;
+
+        padding: 8px 13px;
+    }
+}
+
 body.mobile {
     div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt) {
         display: none !important;

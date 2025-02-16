@@ -458,7 +458,7 @@ if (typeof browser === 'undefined') {
                             for (let i = 0; i < result.length; ++i) {
                                 quickPicks.appendChild(elem.querySelector(`[data-item="${result[i]}"]`));
                             }
-                        }, {once: true});
+                        });
 
                         let dragged, draggedClone, xOffset, yOffset;
                         const input = elem.querySelector('input');
@@ -540,19 +540,22 @@ if (typeof browser === 'undefined') {
                 o.textContent = opt.name;
                 select.appendChild(o);
             }
+            e.valueProperty = 'value';
             valuesToUpdate.push({obj: e, func: (v) => select.value = v});
-            select.addEventListener('change', update_value.bind(null, 'value'));
+            select.addEventListener('change', update_value);
             return outer;
         },
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
-            input.addEventListener('change', update_value.bind(null, 'value'));
+            e.valueProperty = 'value';
+            input.addEventListener('change', update_value);
             return outer;
         },
         button: (e) => {
             const [outer, button] = get_generic_setting(e, 'button');
+            outer.dataset.noDefault = '';
             button.textContent = e.button;
             button.addEventListener('click', e.onclick);
             return outer;
@@ -561,15 +564,17 @@ if (typeof browser === 'undefined') {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
-            checkbox.addEventListener('change', update_value.bind(null, 'checked'));
+            e.valueProperty = 'checked';
+            checkbox.addEventListener('change', update_value);
             return outer;
         },
         number: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = 'number';
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
-            input.addEventListener('input', (ev) => {
-                if (e.validate(input.value)) update_value('value', ev);
+            e.valueProperty = 'value';
+            input.addEventListener('change', (ev) => {
+                if (e.validate(input.value)) update_value(ev);
                 else input.value = Defaults[e.category][e.name];
             });
             return outer;
@@ -715,10 +720,41 @@ if (typeof browser === 'undefined') {
         window.addEventListener('resize', setHeightDelay);
     }
 
+    { // Resetting single settings to defaults
+        panes.addEventListener('contextmenu', (e) => {
+            const setting = e.target.closest('[data-setting]');
+            if (setting?.dataset?.noDefault !== '') {
+                e.preventDefault();
+
+                const outer = document.createElement('div'),
+                    d = document.createElement('button');
+                outer.classList.add('fullscreenOverlay');
+                d.textContent = 'Reset this setting to its default';
+                d.classList.add('contextmenu');
+                d.style.top = `${e.clientY}px`;
+                d.style.left = `${e.clientX}px`;
+
+                outer.addEventListener('click', (ev) => {
+                    if (!ev.target.closest('.contextmenu')) outer.remove();
+                });
+
+                d.addEventListener('click', () => {
+                    const props = setting.properties;
+                    props.valueElement[props.valueProperty] = Defaults[props.category][props.name];
+                    props.element.dispatchEvent(valueLoadedEvent);
+                    props.valueElement.dispatchEvent(changeEvent);
+                    outer.click();
+                });
+
+                outer.appendChild(d);
+                document.body.appendChild(outer);
+            }
+        });
+    }
+
     function create(elem) {
         elem.init?.();
         const m = typeMap[elem.type ?? 'checkbox'](elem);
-        elem.element = m;
         elem.post?.(m);
         return m;
     }
@@ -727,6 +763,8 @@ if (typeof browser === 'undefined') {
         const outer = document.createElement('div'), label = document.createElement('label'), elem = document.createElement(element);
         outer.properties = e;
         outer.dataset.setting = '';
+        e.element = outer;
+        e.valueElement = elem;
         label.textContent = e.description;
         label.htmlFor = e.name;
         elem.id = e.name;
@@ -744,11 +782,11 @@ if (typeof browser === 'undefined') {
         return [outer, elem];
     }
 
-    function update_value(property, ev) {
+    function update_value(ev) {
         const elem = ev.currentTarget, obj = elem.closest('[data-setting]').properties;
         chrome.storage.local.get([obj.category], (r) => {
             if (r[obj.category] == null) r[obj.category] = {};
-            r[obj.category][obj.name] = elem[property];
+            r[obj.category][obj.name] = elem[obj.valueProperty];
             setStorage(r);
         });
     }
