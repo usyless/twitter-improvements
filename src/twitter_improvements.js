@@ -176,7 +176,7 @@
                 button.style.transform = `scale(${prefs.image_button_scale})`;
 
                 if (image.complete) Image.setButtonHeight(image, button);
-                else image.addEventListener('load', Image.setButtonHeight.bind(null, image, button));
+                else image.addEventListener('load', Image.setButtonHeight.bind(null, image, button), {once: true});
 
                 image.after(button);
                 if (prefs.download_history_enabled) { // mark image
