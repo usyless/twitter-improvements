@@ -9,7 +9,6 @@ const DOWNLOAD_DB_VERSION = 1;
 const requestMap = {
     image: saveImage,
     video: download_video,
-    videoChoice: download_video_from_choices,
     download_history_has: download_history_has,
     download_history_remove: download_history_remove,
     download_history_clear: download_history_clear,
@@ -278,10 +277,9 @@ function download_video(request, sendResponse) {
             urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
                 ?.map?.(m => getBestQuality(m?.video_info?.variants));
             const download = () => {
-                if (urls.length === 1) {
-                    downloadVideos(urls, parts, save_format);
-                    sendResponse({status: 'success'});
-                } else sendResponse({status: 'choice', choices: {parts, save_format, urls: urls}});
+                if (request.index === -1) downloadVideos(urls, parts, save_format);
+                else downloadVideos([urls[request.index]], parts, save_format);
+                sendResponse({status: 'success'});
             }
             if (urls?.length > 0) download();
             else {
@@ -307,21 +305,9 @@ function download_video(request, sendResponse) {
     });
 }
 
-function download_video_from_choices(request, sendResponse) {
-    const choices = request.choices;
-    if (request.choice != null) {
-        choices.parts.tweetNum = request.choice + 1;
-        downloadVideos([choices.urls[request.choice]], choices.parts, choices.save_format);
-    }
-    else {
-        downloadVideos(choices.urls, choices.parts, choices.save_format);
-    }
-    sendResponse({status: 'success'});
-}
-
 function downloadVideos(urls, parts, save_format) {
     urls.forEach((url, i) => {
-        parts.tweetNum ??= i + 1;
+        parts.tweetNum = i + 1;
         parts.extension = url.includes(".mp4") ? "mp4" : "gif";
         download(url, formatFilename(parts, save_format));
     });
