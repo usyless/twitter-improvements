@@ -307,8 +307,6 @@
 
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
-        getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
-
         imageButtonCallback: (image) => {
             if (Settings.image_preferences.download_history_prevent_download) {
                 Background.download_history_has(Image.idWithNumber(image)).then((r) => {
