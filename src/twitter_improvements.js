@@ -28,8 +28,8 @@
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
 
-        save_video: (url) => browser.runtime.sendMessage({
-            type: 'video', url,
+        save_video: (url, index) => browser.runtime.sendMessage({
+            type: 'video', url, index,
             cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
         }),
         save_image: (url, sourceURL) => browser.runtime.sendMessage({type: 'image', url, sourceURL}),
@@ -145,11 +145,13 @@
             const media = Tweet.getMedia(article);
             if (media.length === 1) {
                 if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
-                else {
-                    Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
-                    Background.save_video(Tweet.url(article)).then(Tweet.videoResponseHandler);
-                }
+                else Tweet.videoDownloader(article);
             } else Notification.createDownloadChoices(Tweet.getMedia(article), ev);
+        },
+
+        videoDownloader: (article, index=0) => {
+            Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+            Background.save_video(Tweet.url(article, index)).then(Tweet.videoResponseHandler);
         },
 
         videoResponseHandler: (r) => {
@@ -171,19 +173,15 @@
                     if (!b.closest('article')) return b.parentElement.parentElement;
         },
 
-        getMediaNotMaximised: (elem) => {
+        getMediaNotMaximised: (article, elem) => {
             const data = [];
+            let videoindex = 0;
             for (const media of elem.querySelectorAll(
                 'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
                 if (media.nodeName === 'IMG') {
-                    if (media.getAttribute('alt') === 'Embedded video') {
-                        data.push({type: 'Video'});
-                    } else {
-                        data.push({type: 'Image', elem: media});
-                    }
-                } else {
-                    data.push({type: 'Video'});
-                }
+                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++});
+                    else data.push({type: 'Image', elem: media});
+                } else data.push({type: 'Video', elem: article, index: videoindex++});
             }
             return data;
         },
@@ -194,7 +192,7 @@
 
             } else {
                 const quote = article.querySelector('div[id] > div[id]');
-                return Tweet.getMediaNotMaximised((quote) ? quote.parentElement.firstElementChild : article);
+                return Tweet.getMediaNotMaximised(article, (quote) ? quote.parentElement.firstElementChild : article);
             }
         }
     };
@@ -426,17 +424,28 @@
                 Notification.clear();
             });
 
-            const sendResponse = (choice) => {
-                const data = {type: 'videoChoice', choices};
-                if (choice != null) data.choice = choice;
-                browser.runtime.sendMessage(data).then((r) => Tweet.videoResponseHandler(r));
+            const handleDownload = (choice) => {
+                if (choice == null) { // download everything
+                    let video = null;
+                    for (const c of choices) {
+                        if (c.type === 'Image') Image.imageButtonCallback(c.elem);
+                        else video = c;
+                    }
+                    if (video != null) Tweet.videoDownloader(video.elem, -1);
+                } else {
+                    const c = choices[choice];
+                    if (c.type === 'Image') Image.imageButtonCallback(c.elem);
+                    else Tweet.videoDownloader(c.elem, c.index);
+                }
             }
             for (let id = 0; id < choices.length; ++id) {
-                popup.appendChild(Notification.getNotificationButton(`${choices[id].type} ${id + 1}`, (e) => {
-                    // sendResponse(parseInt(e.target.textContent.split(" ")[1]) - 1);
-                }));
+                const btn = Notification.getNotificationButton(`${choices[id].type} ${id + 1}`, (e) => {
+                    handleDownload(+e.currentTarget.dataset.index);
+                });
+                btn.dataset.index = id.toString();
+                popup.appendChild(btn);
             }
-            popup.appendChild(Notification.getNotificationButton('Download All'));
+            popup.appendChild(Notification.getNotificationButton('Download All', handleDownload));
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
