@@ -379,10 +379,6 @@
             return shareButton;
         },
 
-        isMarked: (button) => {
-            return button.classList.contains('usyMarked');
-        },
-
         stopAllEvents: (e) => {
             e.preventDefault();
             e.stopPropagation();
