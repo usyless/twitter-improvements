@@ -277,8 +277,8 @@ function download_video(request, sendResponse) {
             urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
                 ?.map?.(m => getBestQuality(m?.video_info?.variants));
             const download = () => {
-                if (request.index === -1) downloadVideos(urls, parts, save_format);
-                else downloadVideos([urls[request.index]], parts, save_format);
+                if (request.index === -1) downloadVideos(urls, parts, save_format, request.trueIndexes);
+                else downloadVideos([urls[request.index]], parts, save_format, request.trueIndexes);
                 sendResponse({status: 'success'});
             }
             if (urls?.length > 0) download();
@@ -305,9 +305,9 @@ function download_video(request, sendResponse) {
     });
 }
 
-function downloadVideos(urls, parts, save_format) {
+function downloadVideos(urls, parts, save_format, trueIndexes) {
     urls.forEach((url, i) => {
-        parts.tweetNum = i + 1;
+        parts.tweetNum = trueIndexes[i];
         parts.extension = url.includes(".mp4") ? "mp4" : "gif";
         download(url, formatFilename(parts, save_format));
     });

@@ -143,14 +143,13 @@
                     validate: (value) => value > 0,
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
                     attributes: {step: '20'}
-                },
-                {
-                    type: 'break'
-                },
+                }
+            ],
+            'Download History': [
                 {
                     name: 'download_history_enabled',
                     category: 'image_preferences',
-                    description: 'Enable local image download history, right click on a download button to remove from history',
+                    description: 'Enable download history for media\nRight click on a download button, or download popup to remove',
                 },
                 {
                     name: 'download_history_prevent_download',
@@ -166,7 +165,7 @@
                     type: 'button',
                     button: 'Clear download history',
                     onclick: () => {
-                        if (confirm('Are you sure you want to clear your image download history?')) {
+                        if (confirm('Are you sure you want to clear your media download history?')) {
                             Background.clear_download_history();
                         }
                     }
@@ -202,7 +201,7 @@
                     name: 'import_download_history_from_files',
                     description: '',
                     type: 'button',
-                    button: 'Import download history from saved images\n(This only works for images saved in the default save format)',
+                    button: 'Import download history from saved files\n(This only works for files saved in the default save format)',
                     onclick: () => {
                         document.getElementById('download_history_files_input').click();
                     },
@@ -212,7 +211,7 @@
                         i.id = 'download_history_files_input';
                         i.hidden = true;
                         i.multiple = true;
-                        i.accept = 'image/*';
+                        i.accept = 'image/*, video/*';
                         i.addEventListener('change', async (e) => {
                             const saved_images = [];
                             let accepted = 0;
@@ -233,7 +232,7 @@
                     name: 'export_download_history',
                     description: '',
                     type: 'button',
-                    button: 'Export downloaded history\nExports as {tweet id}-{image number}',
+                    button: 'Export downloaded history\nExports as {tweet id}-{media number}',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
                             const link = document.createElement('a');
@@ -248,10 +247,10 @@
                     name: 'saved_image_count',
                     description: '',
                     type: 'button',
-                    button: 'Get saved image count',
+                    button: 'Get saved media count',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            alert(`You have downloaded approximately ${r.length} unique image(s)`);
+                            alert(`You have downloaded approximately ${r.length} unique medias`);
                         });
                     }
                 }

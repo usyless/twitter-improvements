@@ -28,8 +28,8 @@
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
 
-        save_video: (url, index) => browser.runtime.sendMessage({
-            type: 'video', url, index,
+        save_video: (url, index, trueIndexes) => browser.runtime.sendMessage({
+            type: 'video', url, index, trueIndexes,
             cookie: document.cookie.split(';').find(a => a.trim().startsWith("ct0")).trim().substring(4)
         }),
         save_image: (url, sourceURL) => browser.runtime.sendMessage({type: 'image', url, sourceURL}),
@@ -149,9 +149,9 @@
             } else Notification.createDownloadChoices(media, ev);
         },
 
-        videoDownloader: (article, index=0) => {
+        videoDownloader: (article, index=0, trueIndexes=[1]) => {
             Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
-            Background.save_video(Tweet.url(article), index).then(Tweet.videoResponseHandler);
+            Background.save_video(Tweet.url(article), index, trueIndexes).then(Tweet.videoResponseHandler);
         },
 
         videoResponseHandler: (r) => {
@@ -175,13 +175,13 @@
 
         getMediaFromElements: (article, elem) => {
             const data = [];
-            let videoindex = 0;
+            let videoindex = 0, index = 0;
             for (const media of elem.querySelectorAll(
                 'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
                 if (media.nodeName === 'IMG') {
-                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++});
-                    else data.push({type: 'Image', elem: media});
-                } else data.push({type: 'Video', elem: article, index: videoindex++});
+                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index});
+                    else data.push({type: 'Image', elem: media, trueindex: ++index});
+                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index});
             }
             return data;
         },
@@ -302,7 +302,7 @@
         getRespectiveButton: (image) => image.parentElement.querySelector('div.usybuttonclickdiv'),
 
         imageButtonCallback: (image) => {
-            if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) {
+            if (Settings.image_preferences.download_history_prevent_download && Button.isMarked(Image.getRespectiveButton(image))) { // UPDATE THIS MECHANISM
                 const notif = Notification.create('Image is already saved\nClick here to save again');
                 notif.style.cursor = 'pointer';
                 notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
@@ -448,11 +448,11 @@
                         if (c.type === 'Image') Image.imageButtonCallback(c.elem);
                         else video = c;
                     }
-                    if (video != null) Tweet.videoDownloader(video.elem, -1);
+                    if (video != null) Tweet.videoDownloader(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
                 } else {
                     const c = choices[choice];
                     if (c.type === 'Image') Image.imageButtonCallback(c.elem);
-                    else Tweet.videoDownloader(c.elem, c.index);
+                    else Tweet.videoDownloader(c.elem, c.index, [c.trueindex]);
                 }
             }
             for (let id = 0; id < choices.length; ++id) {
