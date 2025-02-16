@@ -132,7 +132,7 @@ if (typeof browser === 'undefined') {
                 {
                     name: 'small_image_size_threshold',
                     category: 'image_preferences',
-                    description: 'Threshold in pixels for an image to be considered small',
+                    description: 'Height threshold in pixels for an image to be considered small',
                     type: 'number',
                     validate: (value) => value > 0,
                     post: (elem) => elem.appendChild(document.createTextNode('px')),

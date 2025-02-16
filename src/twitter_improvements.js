@@ -207,8 +207,7 @@
 
             if (ibh === dibh && ibhs === dibhs) return;
 
-            const box = image.getBoundingClientRect();
-            if (Math.max(box.width, box.height) > +prefs.small_image_size_threshold) {
+            if (image.clientHeight > +prefs.small_image_size_threshold) {
                 if (ibh !== dibh) button.style.height = `${+ibh / +prefs.image_button_scale}%`;
             } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +prefs.image_button_scale}%`;
         },
