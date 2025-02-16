@@ -267,6 +267,8 @@ button {
     border-radius: 7px;
     cursor: pointer;
     text-align: center;
+    word-wrap: break-word;
+    white-space: pre-line;
 
     @media (hover: hover) {
         &:hover {

@@ -5,7 +5,7 @@ if (typeof browser === 'undefined') {
 }
 
 (() => {
-    document.getElementById('versionDisplay').textContent += chrome?.runtime?.getManifest?.()?.version;
+    document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
 
     if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {
         document.body.classList.add('mobile');
@@ -260,7 +260,7 @@ if (typeof browser === 'undefined') {
                     name: 'reset_all_settings',
                     description: '',
                     type: 'button',
-                    button: 'Reset to DEFAULT settings (excluding download history)',
+                    button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',
                     class: ['warning'],
                     onclick: () => {
                         if (confirm('Are you sure you want to RESET this extensions settings?')) {
@@ -784,7 +784,7 @@ if (typeof browser === 'undefined') {
 
     function update_value(ev) {
         const elem = ev.currentTarget, obj = elem.closest('[data-setting]').properties;
-        chrome.storage.local.get([obj.category], (r) => {
+        browser.storage.local.get([obj.category], (r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = elem[obj.valueProperty];
             setStorage(r);
@@ -792,10 +792,10 @@ if (typeof browser === 'undefined') {
     }
 
     function setStorage(data) {
-        chrome.storage.local.set(data); // potentially add little saved message with .then
+        browser.storage.local.set(data); // potentially add little saved message with .then
     }
 
     function clearStorage() {
-        chrome.storage.local.clear();
+        browser.storage.local.clear();
     }
 })();
