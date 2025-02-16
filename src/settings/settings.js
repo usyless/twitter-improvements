@@ -791,10 +791,10 @@
     }
 
     function update_value(ev) {
-        const elem = ev.currentTarget, obj = elem.closest('[data-setting]').properties;
+        const obj = ev.currentTarget.closest('[data-setting]').properties;
         browser.storage.local.get([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};
-            r[obj.category][obj.name] = elem[obj.valueProperty];
+            r[obj.category][obj.name] = obj.valueElement[obj.valueProperty];
             setStorage(r);
         });
     }
