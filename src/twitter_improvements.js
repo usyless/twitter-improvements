@@ -151,8 +151,8 @@
 
         videoDownloader: (article, index=0, trueIndexes=[1]) => {
             const url = Tweet.url(article);
-            if (Settings.image_preferences.download_history_enabled) {
-                Background.download_history_has(Helpers.idWithNumber(url, index)).then((r) => {
+            if (index !== -1 && Settings.image_preferences.download_history_enabled) {
+                Background.download_history_has(Helpers.idWithNumber(url, trueIndexes[0])).then((r) => {
                     if (r) {
                         const notif = Notification.create('Video is already saved\nClick here to save again');
                         notif.style.cursor = 'pointer';
