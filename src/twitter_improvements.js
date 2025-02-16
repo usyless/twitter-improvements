@@ -72,7 +72,7 @@
                     }
                 }
             } catch {
-                media.removeAttribute('usy')
+                media.removeAttribute('usy');
             }
         },
 
