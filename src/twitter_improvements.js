@@ -151,18 +151,23 @@
 
         videoDownloader: (article, index=0, trueIndexes=[1]) => {
             const url = Tweet.url(article);
-            Background.download_history_has(Helpers.idWithNumber(url, index)).then((r) => {
-                if (r) {
-                    const notif = Notification.create('Video is already saved\nClick here to save again');
-                    notif.style.cursor = 'pointer';
-                    notif.addEventListener('click', () => {
+            if (Settings.image_preferences.download_history_enabled) {
+                Background.download_history_has(Helpers.idWithNumber(url, index)).then((r) => {
+                    if (r) {
+                        const notif = Notification.create('Video is already saved\nClick here to save again');
+                        notif.style.cursor = 'pointer';
+                        notif.addEventListener('click', () => {
+                            Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
+                        });
+                    } else {
+                        Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
                         Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-                    });
-                } else {
-                    Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
-                    Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-                }
-            });
+                    }
+                });
+            } else {
+                Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+                Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
+            }
         },
 
         videoResponseHandler: (r) => {
@@ -469,10 +474,18 @@
                 }
             }
             for (let id = 0; id < choices.length; ++id) {
-                const btn = Notification.getNotificationButton(`${choices[id].type} ${id + 1}`, (e) => {
+                const c = choices[id];
+                const btn = Notification.getNotificationButton(`${c.type} ${id + 1}`, (e) => {
                     handleDownload(null, +e.currentTarget.dataset.index);
                 });
                 btn.dataset.index = id.toString();
+
+                if (Settings.image_preferences.download_history_enabled) {
+                    Background.download_history_has(c.type === 'Image' ? Image.idWithNumber(c.elem) : Helpers.idWithNumber(Tweet.url(c.elem), c.trueindex)).then((r) => {
+                        if (r) Button.mark(btn);
+                    });
+                }
+
                 popup.appendChild(btn);
             }
             popup.appendChild(Notification.getNotificationButton('Download All', handleDownload));
