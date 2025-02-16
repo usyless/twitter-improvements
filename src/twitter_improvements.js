@@ -200,15 +200,17 @@
         },
 
         setButtonHeight: (image, button) => {
-            const prefs = Settings.image_preferences;
+            const prefs = Settings.image_preferences, ibh = prefs.image_button_height_value,
+                ibhs = prefs.image_button_height_value_small,
+                dibh = Defaults.image_preferences.image_button_height_value,
+                dibhs = Defaults.image_preferences.image_button_height_value_small;
+
+            if (ibh === dibh && ibhs === dibhs) return;
+
             const box = image.getBoundingClientRect();
             if (Math.max(box.width, box.height) > +prefs.small_image_size_threshold) {
-                button.style.height = (prefs.image_button_height_value === Defaults.image_preferences.image_button_height_value)
-                    ? 'fit-content' : `${+prefs.image_button_height_value / +prefs.image_button_scale}%`;
-            } else {
-                button.style.height = (prefs.image_button_height_value_small === Defaults.image_preferences.image_button_height_value_small)
-                    ? 'fit-content' : `${+prefs.image_button_height_value_small / +prefs.image_button_scale}%`;
-            }
+                if (ibh !== dibh) button.style.height = `${+ibh / +prefs.image_button_scale}%`;
+            } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +prefs.image_button_scale}%`;
         },
 
         createDownloadButton: (() => {
