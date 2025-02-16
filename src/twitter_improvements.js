@@ -534,8 +534,8 @@
         },
 
         idWithNumber: (url, override) => {
-            const a = url.split("/").slice(-3);
-            return `${a[0]}-${override ?? a[2]}`;
+            const a = url.split("/");
+            return `${a[5]}-${override ?? a[7]}`;
         },
     };
 
