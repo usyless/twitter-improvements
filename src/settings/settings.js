@@ -728,7 +728,7 @@ if (typeof browser === 'undefined') {
         outer.properties = e;
         outer.dataset.setting = '';
         label.textContent = e.description;
-        label.setAttribute('for', e.name);
+        label.htmlFor = e.name;
         elem.id = e.name;
         if (e.class) elem.classList.add(...e.class);
         if (e.attributes) {
