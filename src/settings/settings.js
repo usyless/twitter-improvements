@@ -724,7 +724,7 @@
     { // Resetting single settings to defaults
         panes.addEventListener('contextmenu', (e) => {
             const setting = e.target.closest('[data-setting]');
-            if (setting?.dataset?.noDefault !== '') {
+            if (setting && setting.dataset?.noDefault !== '') {
                 e.preventDefault();
 
                 setting.classList.add('highlighted');
