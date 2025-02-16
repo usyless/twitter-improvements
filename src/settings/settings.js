@@ -523,14 +523,14 @@ if (typeof browser === 'undefined') {
                 select.appendChild(o);
             }
             valuesToUpdate.push({obj: e, func: (v) => select.value = v});
-            select.addEventListener('change', (ev) => update_value(ev, e, 'value'));
+            select.addEventListener('change', update_value.bind(null, e, 'value'));
             return outer;
         },
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
-            input.addEventListener('change', (ev) => update_value(ev, e, 'value'));
+            input.addEventListener('change', update_value.bind(null, e, 'value'));
             return outer;
         },
         button: (e) => {
@@ -543,7 +543,7 @@ if (typeof browser === 'undefined') {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
             valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
-            checkbox.addEventListener('change', (ev) => update_value(ev, e, 'checked'));
+            checkbox.addEventListener('change', update_value.bind(null, e, 'checked'));
             return outer;
         },
         number: (e) => {
@@ -551,7 +551,7 @@ if (typeof browser === 'undefined') {
             input.type = 'number';
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('input', (ev) => {
-                if (e.validate(input.value)) update_value(ev, e, 'value');
+                if (e.validate(input.value)) update_value(e, 'value', ev);
                 else input.value = defaults[e.category][e.name];
             });
             return outer;
@@ -659,7 +659,7 @@ if (typeof browser === 'undefined') {
                 e.preventDefault();
                 changePane(e.deltaY > 0);
             }
-        });
+        }, {passive: false});
         function changePane(next) {
             const currPane = header.querySelector('.selected');
             const nextPane = next ? currPane.nextElementSibling : currPane.previousElementSibling;
@@ -673,7 +673,7 @@ if (typeof browser === 'undefined') {
                 header.querySelector('.selected')?.classList.remove('selected');
                 header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');
                 if (instant === true) panes.style.scrollBehavior = 'auto';
-                scrollToLastPane();
+                scrollToLastPane(instant);
                 if (instant === true) panes.style.removeProperty('scroll-behavior');
                 setHeight();
             }
@@ -681,9 +681,9 @@ if (typeof browser === 'undefined') {
         hashchangeHandler(null, true);
         window.addEventListener('hashchange', hashchangeHandler);
 
-        function scrollToLastPane() {
+        function scrollToLastPane(instant) {
             const p = panes.querySelector(`div[data-pane="${lastPane}"]`)
-            if (p) panes.scrollLeft = p.offsetLeft;
+            if (p) panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
         }
 
         function setHeight() {
@@ -727,10 +727,11 @@ if (typeof browser === 'undefined') {
         return [outer, elem];
     }
 
-    function update_value(e, obj, property) {
+    function update_value(obj, property, e) {
+        const elem = e.currentTarget;
         chrome.storage.local.get([obj.category], (r) => {
             if (r[obj.category] == null) r[obj.category] = {};
-            r[obj.category][obj.name] = e.target[property];
+            r[obj.category][obj.name] = elem[property];
             setStorage(r);
         });
     }
