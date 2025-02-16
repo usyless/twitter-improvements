@@ -11,7 +11,27 @@ if (typeof browser === 'undefined') {
         document.body.classList.add('mobile');
     }
 
-    let defaults;
+    const Defaults = {
+        loadDefaults: async () => {
+            const r = await Background.get_default_settings();
+            for (const def in r) Defaults[def] = r[def];
+        },
+    };
+    const Settings = {
+        loadSettings: async () => {
+            const r = await Background.get_settings();
+            for (const setting in r) Settings[setting] = r[setting];
+        },
+    };
+
+    const Background = {
+        get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
+        get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
+
+        clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
+        download_history_add_all: (saved_images) => browser.runtime.sendMessage({type: 'download_history_add_all', saved_images}),
+        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'})
+    };
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
@@ -141,7 +161,7 @@ if (typeof browser === 'undefined') {
                     button: 'Clear download history',
                     onclick: () => {
                         if (confirm('Are you sure you want to clear your image download history?')) {
-                            browser.runtime.sendMessage({type: 'download_history_clear'});
+                            Background.clear_download_history();
                         }
                     }
                 },
@@ -164,9 +184,8 @@ if (typeof browser === 'undefined') {
                                 if (!file) return;
                                 const reader = new FileReader();
                                 reader.onload = async (r) => {
-                                    browser.runtime.sendMessage({
-                                        type: 'download_history_add_all', saved_images: r.target.result.split(' ')
-                                    }).then(() => alert('Successfully imported!'));
+                                    Background.download_history_add_all(r.target.result.split(' '))
+                                        .then(() => alert('Successfully imported!'));
                                 };
                                 reader.readAsText(file);
                         });
@@ -198,9 +217,8 @@ if (typeof browser === 'undefined') {
                                     ++accepted;
                                 } catch {}
                             }
-                            browser.runtime.sendMessage({
-                                type: 'download_history_add_all', saved_images
-                            }).then(() => alert(`Successfully imported ${accepted} files!`));
+                            Background.download_history_add_all(saved_images)
+                                .then(() => alert(`Successfully imported ${accepted} files!`));
                         });
                         document.body.appendChild(i);
                     }
@@ -211,7 +229,7 @@ if (typeof browser === 'undefined') {
                     type: 'button',
                     button: 'Export downloaded history (Exported as {tweet id}-{image number})',
                     onclick: () => {
-                        browser.runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                        Background.download_history_get_all().then((r) => {
                             const link = document.createElement('a');
                             link.href = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
                             link.download = 'export.twitterimprovements';
@@ -226,7 +244,7 @@ if (typeof browser === 'undefined') {
                     type: 'button',
                     button: 'Get saved image count',
                     onclick: () => {
-                        browser.runtime.sendMessage({type: 'download_history_get_all'}).then((r) => {
+                        Background.download_history_get_all().then((r) => {
                             alert(`You have downloaded approximately ${r.length} unique image(s)`);
                         });
                     }
@@ -552,7 +570,7 @@ if (typeof browser === 'undefined') {
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             input.addEventListener('input', (ev) => {
                 if (e.validate(input.value)) update_value(e, 'value', ev);
-                else input.value = defaults[e.category][e.name];
+                else input.value = Defaults[e.category][e.name];
             });
             return outer;
         },
@@ -609,13 +627,10 @@ if (typeof browser === 'undefined') {
     // Now that the building is done, append to the page
     document.getElementById('settings').replaceWith(settingsElem);
 
-    Promise.all([
-        browser.runtime.sendMessage({type: 'get_default_settings'}),
-        browser.storage.local.get(valuesToUpdate.map(i => i.obj.category))
-    ]).then(([d, storage]) => {
-        defaults = d;
+    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()])
+        .then(() => {
         for (const {obj, func} of valuesToUpdate) {
-            func(storage[obj.category]?.[obj.name] ?? defaults[obj.category][obj.name]);
+            func(Settings[obj.category][obj.name]);
             obj.element?.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
