@@ -141,19 +141,19 @@
             }
         },
 
-        mediaDownloadCallback: (article) => {
-            Notification.create('Clicked media download');
-            console.log(Tweet.getMedia(article));
+        mediaDownloadCallback: (article, ev) => {
+            const media = Tweet.getMedia(article);
+            if (media.length === 1) {
+                if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
+                else {
+                    Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+                    Background.save_video(Tweet.url(article)).then(Tweet.videoResponseHandler);
+                }
+            } else Notification.createDownloadChoices(Tweet.getMedia(article), ev);
         },
 
-        videoButtonCallback: (article, event) => {
-            Notification.create(`Saving Tweet Video(s)${About.android ? ' (This may take a second on android)' : ''}`);
-            Background.save_video(Tweet.url(article)).then((r) => Tweet.videoResponseHandler(event, r));
-        },
-
-        videoResponseHandler: (event, r) => {
+        videoResponseHandler: (r) => {
             if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
-            else if (r.status === 'choice') Notification.createVideoChoice(r.choices, event);
             else if (r.status === 'newpage') {
                 navigator.clipboard.writeText(r.copy);
                 Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 10000);
@@ -177,12 +177,12 @@
                 'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
                 if (media.nodeName === 'IMG') {
                     if (media.getAttribute('alt') === 'Embedded video') {
-                        data.push({type: 'video'});
+                        data.push({type: 'Video'});
                     } else {
-                        data.push({type: 'image', url: Image.respectiveURL(media), sourceURL: media.getAttribute('src')});
+                        data.push({type: 'Image', elem: media});
                     }
                 } else {
-                    data.push({type: 'video'});
+                    data.push({type: 'Video'});
                 }
             }
             return data;
@@ -292,7 +292,7 @@
                 notif.style.cursor = 'pointer';
                 notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
             } else {
-                Notification.create(`Saving Image${About.android ? ' (This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`);
                 Background.save_image(Image.respectiveURL(image), image.src);
             }
         },
@@ -403,7 +403,7 @@
             document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
         },
 
-        createVideoChoice: (choices, event) => {
+        createDownloadChoices: (choices, event) => {
             Notification.clear();
             const notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
@@ -429,14 +429,14 @@
             const sendResponse = (choice) => {
                 const data = {type: 'videoChoice', choices};
                 if (choice != null) data.choice = choice;
-                browser.runtime.sendMessage(data).then((r) => Tweet.videoResponseHandler(null, r));
+                browser.runtime.sendMessage(data).then((r) => Tweet.videoResponseHandler(r));
             }
-            for (let id = 0; id < choices.urls.length; ++id) {
-                popup.appendChild(Notification.getNotificationButton(`Video ${id + 1}`, (e) => {
-                    sendResponse(parseInt(e.target.textContent.split(" ")[1]) - 1);
+            for (let id = 0; id < choices.length; ++id) {
+                popup.appendChild(Notification.getNotificationButton(`${choices[id].type} ${id + 1}`, (e) => {
+                    // sendResponse(parseInt(e.target.textContent.split(" ")[1]) - 1);
                 }));
             }
-            popup.appendChild(Notification.getNotificationButton('Download All', () => sendResponse()));
+            popup.appendChild(Notification.getNotificationButton('Download All'));
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
@@ -561,7 +561,7 @@
                 break;
             }
             case 'image_saved': {
-                Notification.create(`Saving Image${About.android ? ' (This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`);
                 break;
             }
             case 'download': {
