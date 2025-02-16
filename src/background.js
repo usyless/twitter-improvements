@@ -52,6 +52,7 @@ const Settings = { // Setting handling
             vx_button: true,
             video_button: true,
             image_button: true,
+            inline_image_button: false,
             bookmark_on_photo_page: false,
         },
 

@@ -21,7 +21,7 @@
         bookmark: ['div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'],
 
         copy: ['div[usy-copy]'],
-        download: ['div[usy-video]']
+        download: ['div[usy-download]']
     }
 
     const buttonMap = {

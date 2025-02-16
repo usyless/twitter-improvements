@@ -55,24 +55,24 @@
             }
         },
 
-        addVideoButton: (videoComponent)=> {
+        addDownloadButton: (media)=> {
             try {
-                videoComponent.setAttribute('usy', '');
-                const article = Tweet.nearestTweet(videoComponent), a = Tweet.anchor(article);
-                // checks if quote tweet contains specific video component (don't show button)
-                // doesn't affect a video QRT as each video checked separately
-                if (!(article.querySelector('div[id] > div[id]')?.contains(videoComponent)) && !article.querySelector('.usybuttonclickdiv[usy-video]')) {
-                    const cb = Tweet.videoButtonCallback.bind(null, article);
-                    a.after(Button.newButton(a, download_button_path, cb, 'usy-video'));
+                media.setAttribute('usy-download', '');
+                const article = Tweet.nearestTweet(media);
+                // checks if quote tweet contains specific media (don't show button)
+                // doesn't affect a video QRT as each media checked separately
+                if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
+                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
+                    a.after(Button.newButton(a, download_button_path, cb, 'usy-download'));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
                     if (altAnchor) {
-                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-video]')) copy.remove();
-                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-video'));
+                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
+                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-download'));
                     }
                 }
             } catch {
-                videoComponent.removeAttribute('usy')
+                media.removeAttribute('usy')
             }
         },
 
@@ -139,6 +139,10 @@
             } catch {
                 Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');
             }
+        },
+
+        mediaDownloadCallback: (article) => {
+            Notification.create('Clicked media download');
         },
 
         videoButtonCallback: (article, event) => {
@@ -462,9 +466,9 @@
                 callbackMappings = {
                     vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
                     video_button: [{
-                        s: 'div[data-testid="videoComponent"]:not([usy])',
-                        f: Tweet.addVideoButton
-                    }, {s: 'img[alt="Embedded video"]:not([usy])', f: Tweet.addVideoButton}],
+                        s: 'div[data-testid="videoComponent"]:not([usy-download])',
+                        f: Tweet.addDownloadButton
+                    }, {s: 'img[alt="Embedded video"]:not([usy-download])', f: Tweet.addDownloadButton}],
                     image_button: [{
                         s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])',
                         f: Image.addImageButton
@@ -472,6 +476,10 @@
                     bookmark_on_photo_page: [{
                         s: 'article:not([usy-bookmarked])',
                         f: Tweet.copyBookmarkButton
+                    }],
+                    inline_image_button: [{
+                        s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy-download])',
+                        f: Tweet.addDownloadButton
                     }]
                 }, getCallback = () => {
                     const callbacks = [];

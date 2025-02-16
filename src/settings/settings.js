@@ -83,6 +83,11 @@
                     description: 'Show Image Download Buttons on images',
                 },
                 {
+                    name: 'inline_image_button',
+                    category: 'setting',
+                    description: 'Show image downloads under video download buttons (Experimental)',
+                },
+                {
                     type: 'break'
                 },
                 {
