@@ -35,6 +35,7 @@
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
+    const resizeEvent = new Event('resize');
 
     const settingsElem = document.getElementById('settings').cloneNode(true);
     const panes = settingsElem.querySelector('#settings-panes');
@@ -726,6 +727,9 @@
             if (setting?.dataset?.noDefault !== '') {
                 e.preventDefault();
 
+                setting.classList.add('highlighted');
+                window.dispatchEvent(resizeEvent);
+
                 const outer = document.createElement('div'),
                     d = document.createElement('button');
                 outer.classList.add('fullscreenOverlay');
@@ -735,7 +739,11 @@
                 d.style.left = `${e.clientX}px`;
 
                 outer.addEventListener('click', (ev) => {
-                    if (!ev.target.closest('.contextmenu')) outer.remove();
+                    if (!ev.target.closest('.contextmenu')) {
+                        outer.remove();
+                        setting.classList.remove('highlighted');
+                        window.dispatchEvent(resizeEvent);
+                    }
                 });
 
                 d.addEventListener('click', () => {

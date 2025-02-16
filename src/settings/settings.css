@@ -95,6 +95,11 @@ body {
                     display: flex;
                     align-items: center;
                     column-gap: 6px;
+
+                    &.highlighted {
+                        border: 3px solid var(--accent);
+                        border-radius: 5px;
+                    }
                 }
             }
         }
