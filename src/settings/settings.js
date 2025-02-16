@@ -784,7 +784,7 @@ if (typeof browser === 'undefined') {
 
     function update_value(ev) {
         const elem = ev.currentTarget, obj = elem.closest('[data-setting]').properties;
-        browser.storage.local.get([obj.category], (r) => {
+        browser.storage.local.get([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = elem[obj.valueProperty];
             setStorage(r);
