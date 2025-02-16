@@ -309,6 +309,9 @@ function downloadVideos(urls, parts, save_format, trueIndexes) {
     urls.forEach((url, i) => {
         parts.tweetNum = trueIndexes[i];
         parts.extension = url.includes(".mp4") ? "mp4" : "gif";
+        // No need to alert tabs of video saved
+        if (Settings.image_preferences.download_history_enabled)
+            void download_history_add(`${parts.tweetId}-${parts.tweetNum}`);
         download(url, formatFilename(parts, save_format));
     });
 }
