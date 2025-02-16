@@ -170,7 +170,7 @@
                     name: 'import_download_history',
                     description: '',
                     type: 'button',
-                    button: 'Import download history (Follow format from export)',
+                    button: 'Import download history from export',
                     onclick: () => {
                         document.getElementById('download_history_input').click();
                     },
@@ -197,7 +197,7 @@
                     name: 'import_download_history_from_files',
                     description: '',
                     type: 'button',
-                    button: 'Import download history from saved images',
+                    button: 'Import download history from saved images\n(This only works for images saved in the default save format)',
                     onclick: () => {
                         document.getElementById('download_history_files_input').click();
                     },
@@ -228,7 +228,7 @@
                     name: 'export_download_history',
                     description: '',
                     type: 'button',
-                    button: 'Export downloaded history (Exported as {tweet id}-{image number})',
+                    button: 'Export downloaded history\nExports as {tweet id}-{image number}',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
                             const link = document.createElement('a');
