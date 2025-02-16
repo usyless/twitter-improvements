@@ -312,8 +312,8 @@
 
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
-        imageButtonCallback: (image) => {
-            if (Settings.image_preferences.download_history_prevent_download) {
+        imageButtonCallback: (image, _, overrideSave) => {
+            if (!overrideSave && Settings.image_preferences.download_history_prevent_download) {
                 Background.download_history_has(Image.idWithNumber(image)).then((r) => {
                     if (r) {
                         const notif = Notification.create('Image is already saved\nClick here to save again');
@@ -459,7 +459,7 @@
                 if (choice == null) { // download everything
                     let video = null;
                     for (const c of choices) {
-                        if (c.type === 'Image') Image.imageButtonCallback(c.elem);
+                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, null, true);
                         else video = c;
                     }
                     if (video != null) Tweet.videoDownloader(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
