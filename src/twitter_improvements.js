@@ -79,7 +79,7 @@
                 // checks if quote tweet contains specific media (don't show button)
                 // doesn't affect a video QRT as each media checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article, media);
+                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-download'));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
@@ -158,8 +158,8 @@
             }
         },
 
-        mediaDownloadCallback: async (article, m, ev) => {
-            const media = await Tweet.getMedia(article, m);
+        mediaDownloadCallback: async (article, ev) => {
+            const media = await Tweet.getMedia(article);
             if (media.length === 1) {
                 if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
                 else Tweet.videoButtonCallback(article);
@@ -205,11 +205,13 @@
             return data;
         },
 
-        getMedia: async (article, media) => {
+        getMedia: async (article) => {
             // /photo/ or /video/ mode
+            let elem = article;
             if (Tweet.maximised() && Tweet.isFocused(article)) {
-                const ul = media.closest('ul');
-                if (ul.lastElementChild.childElementCount === 0) {
+                elem = article.closest('section').parentElement.parentElement.firstElementChild;
+                const ul = elem.querySelector('ul');
+                if (ul && ul.lastElementChild.childElementCount === 0) {
                     const nextButton = ul.parentElement.nextElementSibling.lastElementChild;
                     let count = 0;
                     // Wait until end of list is scrolled to, indicated by last element having children,
@@ -225,11 +227,12 @@
                         clickNext();
                     });
                 }
-                return Tweet.getMediaFromElements(article, ul);
             } else {
                 const quote = article.querySelector('div[id] > div[id]');
-                return Tweet.getMediaFromElements(article, (quote) ? quote.parentElement.firstElementChild : article);
+                if (quote) elem = quote.parentElement.firstElementChild;
             }
+            console.log(elem);
+            return Tweet.getMediaFromElements(article, elem);
         }
     };
 
@@ -500,7 +503,7 @@
             }
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
-                handleDownload(null, +e.target.dataset.index);
+                handleDownload(null, +e.target.closest('.usyDownloadChoiceButton')?.dataset.index);
             });
             popup.addEventListener('contextmenu', (e) => {
                 const save_id = e.target.closest('.usyDownloadChoiceButton')?.dataset?.save_id;
