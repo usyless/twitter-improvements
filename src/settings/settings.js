@@ -201,7 +201,7 @@
                     name: 'import_download_history_from_files',
                     description: '',
                     type: 'button',
-                    button: 'Import download history from saved files\n(This only works for files saved in the default save format)',
+                    button: 'Import download history from saved files\n(File names must contain tweet id, then any character, then the tweet number)',
                     onclick: () => {
                         document.getElementById('download_history_files_input').click();
                     },
@@ -212,18 +212,18 @@
                         i.hidden = true;
                         i.multiple = true;
                         i.accept = 'image/*, video/*';
+                        const validNums = new Set([1, 2, 3, 4]);
                         i.addEventListener('change', async (e) => {
                             const saved_images = [];
-                            let accepted = 0;
-                            for (const file of e.target.files) {
-                                const n = file.name.split('-');
-                                if (n[0].includes('twitter')) try {
-                                    saved_images.push(`${n[1].replace(/\D/g, '')}-${n[2].split('.')[0].replace(/\D/g, '')[0]}`);
-                                    ++accepted;
-                                } catch {}
+                            for (const {name} of e.target.files) {
+                                const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
+                                if (id.length > 10) {
+                                    const num = name.slice(name.indexOf(id) + id.length).match(/\d+/);
+                                    if (validNums.has(+num)) saved_images.push(`${id}-${num}`);
+                                }
                             }
                             Background.download_history_add_all(saved_images)
-                                .then(() => alert(`Successfully imported ${accepted} files!`));
+                                .then(() => alert(`Successfully imported ${saved_images.length} files!`));
                         });
                         document.body.appendChild(i);
                     }
