@@ -439,7 +439,7 @@
                         inputWrap.classList.add('inputWrap');
                         inputWrap.append(elem.querySelector('input'), document.createTextNode('.{extension}'));
 
-                        elem.firstElementChild.after(document.createTextNode('Quick Picks:'));
+                        elem.firstElementChild.after(document.createTextNode('If you want to keep saved image importing working, put the IMAGE NUMBER after TWEET ID, separating it by a character\nQuick Picks: '));
                         elem.appendChild(inputWrap);
                     }
                 }

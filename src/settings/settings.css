@@ -89,6 +89,11 @@ body {
                 flex-direction: column;
                 row-gap: 5px;
 
+                * {
+                    word-wrap: break-word;
+                    white-space: pre-line;
+                }
+
                 > div {
                     line-height: 30px;
                     padding-left: 20px;
