@@ -185,14 +185,14 @@
                         i.hidden = true;
                         i.accept = '.twitterimprovements';
                         i.addEventListener('change', (e) => {
-                                const file = e.target.files[0];
-                                if (!file) return;
-                                const reader = new FileReader();
-                                reader.onload = async (r) => {
-                                    Background.download_history_add_all(r.target.result.split(' '))
-                                        .then(() => alert('Successfully imported!'));
-                                };
-                                reader.readAsText(file);
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (r) => {
+                                Background.download_history_add_all(r.target.result.split(' '))
+                                    .then(() => alert('Successfully imported!'));
+                            };
+                            reader.readAsText(file);
                         });
                         document.body.appendChild(i);
                     }
@@ -213,7 +213,7 @@
                         i.multiple = true;
                         i.accept = 'image/*, video/*';
                         const validNums = new Set([1, 2, 3, 4]);
-                        i.addEventListener('change', async (e) => {
+                        i.addEventListener('change', (e) => {
                             const saved_images = [];
                             for (const {name} of e.target.files) {
                                 const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
