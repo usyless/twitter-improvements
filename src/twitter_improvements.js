@@ -192,19 +192,6 @@
                     if (!b.closest('article')) return b.parentElement.parentElement;
         },
 
-        getMediaFromElements: (article, elem) => {
-            const data = [], url = Tweet.url(article);
-            let videoindex = 0, index = 0;
-            for (const media of elem.querySelectorAll(
-                'img[src*="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
-                if (media.nodeName === 'IMG') {
-                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-                    else data.push({type: 'Image', elem: media, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-            }
-            return data;
-        },
-
         getMedia: async (article) => {
             // /photo/ or /video/ mode
             let elem = article;
@@ -231,7 +218,17 @@
                 const quote = article.querySelector('div[id] > div[id]');
                 if (quote) elem = quote.parentElement.firstElementChild;
             }
-            return Tweet.getMediaFromElements(article, elem);
+
+            const data = [], url = Tweet.url(article);
+            let videoindex = 0, index = 0;
+            for (const media of elem.querySelectorAll(
+                'img[src^="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
+                if (media.nodeName === 'IMG') {
+                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
+                    else data.push({type: 'Image', elem: media, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
+                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
+            }
+            return data;
         }
     };
 
@@ -586,7 +583,7 @@
                         f: Tweet.addDownloadButton
                     }, {s: 'img[alt="Embedded video"]:not([usy-download])', f: Tweet.addDownloadButton}],
                     image_button: [{
-                        s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy])',
+                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy])',
                         f: Image.addImageButton
                     }],
                     bookmark_on_photo_page: [{
@@ -594,7 +591,7 @@
                         f: Tweet.copyBookmarkButton
                     }],
                     inline_image_button: [{
-                        s: 'img[src*="https://pbs.twimg.com/media/"]:not([usy-download])',
+                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-download])',
                         f: Tweet.addDownloadButton
                     }]
                 }, getCallback = () => {
