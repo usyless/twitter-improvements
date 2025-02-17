@@ -290,7 +290,7 @@ function download_video(request, sendResponse) {
                 ?.map?.(m => getBestQuality(m?.video_info?.variants));
             const download = () => {
                 downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
-                sendResponse();
+                sendResponse({status: 'success'});
             }
             if (urls?.length > 0) download();
             else {
