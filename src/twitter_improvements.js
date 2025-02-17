@@ -429,11 +429,15 @@
         },
 
         clear: () => {
-            document.querySelectorAll('div.usyNotificationOuter').forEach((e) => e.remove());
+            document.querySelectorAll('div.usyNotificationOuter:not(.usyFullscreen)').forEach((e) => e.remove());
+        },
+
+        clearFullscreen: () => {
+            document.querySelectorAll('div.usyNotificationOuter.usyFullscreen').forEach((e) => e.remove());
         },
 
         createDownloadChoices: (choices, event) => {
-            Notification.clear();
+            Notification.clearFullscreen();
             const notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
@@ -452,7 +456,7 @@
 
             fullscreen.addEventListener('click', () => {
                 for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
-                fullscreen.remove();
+                Notification.clearFullscreen();
             });
 
             const handleDownload = (_, choice) => {
