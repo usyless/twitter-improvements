@@ -12,6 +12,7 @@
         VISIBILITY: '{visibility:hidden!important;pointer-events: none!important;}',
     }
 
+    // Naming dependent on style.tweet_button_positions
     const sharedSelectors = {
         views: ['div:has(> a[href$="/analytics"])'],
         share: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
@@ -24,6 +25,7 @@
         download: ['div[usy-download]']
     }
 
+    // Naming dependent on style
     const StyleMap = {
         hide_notifications: {s: ['a[href="/notifications"]'], st: Styles.DISPLAY},
         hide_messages: {s: ['a[href="/messages"]'], st: Styles.DISPLAY},
