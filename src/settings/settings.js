@@ -73,7 +73,7 @@
                 {
                     name: 'video_download_fallback',
                     category: 'video_preferences',
-                    description: 'Fallback to opening video in new cobalt.tools tab if local download fails',
+                    description: 'Open download url in new cobalt.tools tab if download fails',
                 }
             ],
             'Image Saving': [
@@ -750,8 +750,8 @@
             panes.style.height = `${currPane.lastElementChild.getBoundingClientRect().bottom - currPane.getBoundingClientRect().top + 20}px`;
         }
 
-        const setHeightDelay = ()=>  setTimeout(setHeight, 300);
-        const scrollLastPaneDelay = () => setTimeout(scrollToLastPane, 300);
+        const setHeightDelay = ()=>  setTimeout(setHeight, 200);
+        const scrollLastPaneDelay = () => setTimeout(scrollToLastPane, 200);
         setHeight();
         setHeightDelay(); // Fix initial install height
 
@@ -829,6 +829,7 @@
     }
 
     function update_value(ev) {
+        window.dispatchEvent(resizeEvent);
         const obj = ev.currentTarget.closest('[data-setting]').properties;
         browser.storage.local.get([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};

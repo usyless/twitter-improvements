@@ -349,8 +349,16 @@ button {
     }
 }
 
+/*Mobile settings hiding*/
 body.mobile {
     div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt) {
         display: none !important;
     }
+}
+
+/*Dynamic settings hiding*/
+div:has(> * > #vx_button:not(:checked)) > div:not(:first-of-type),
+div:has(> * > #image_button:not(:checked)) > div:nth-of-type(n+3),
+div:has(> * > #download_history_enabled:not(:checked)) > div:not(:first-of-type) {
+    display: none !important;
 }
