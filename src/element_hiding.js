@@ -16,23 +16,12 @@
         views: ['div:has(> a[href$="/analytics"])'],
         share: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
         replies: ['div:has(> button[data-testid="reply"])'],
-        retweet: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
-        like: ['div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'],
+        retweets: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
+        likes: ['div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'],
         bookmark: ['div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'],
 
         copy: ['div[usy-copy]'],
         download: ['div[usy-download]']
-    }
-
-    const buttonMap = {
-        replies: sharedSelectors.replies,
-        retweets: sharedSelectors.retweet,
-        likes: sharedSelectors.like,
-        views: sharedSelectors.views,
-        bookmark: sharedSelectors.bookmark,
-        share: sharedSelectors.share,
-        download: sharedSelectors.download,
-        copy: sharedSelectors.copy,
     }
 
     const StyleMap = {
@@ -83,8 +72,8 @@
         hide_tweet_view_count: {s: sharedSelectors.views, st: Styles.VISIBILITY},
         hide_tweet_share_button: {s: sharedSelectors.share, st: Styles.VISIBILITY},
         hide_replies_button_tweet: {s: sharedSelectors.replies, st: Styles.VISIBILITY},
-        hide_retweet_button_tweet: {s: sharedSelectors.retweet, st: Styles.VISIBILITY},
-        hide_like_button_tweet: {s: sharedSelectors.like, st: Styles.VISIBILITY},
+        hide_retweet_button_tweet: {s: sharedSelectors.retweets, st: Styles.VISIBILITY},
+        hide_like_button_tweet: {s: sharedSelectors.likes, st: Styles.VISIBILITY},
         hide_bookmark_button_tweet: {s: sharedSelectors.bookmark, st: Styles.VISIBILITY}
     }
 
@@ -103,7 +92,7 @@
         // Apply button ordering if exists
         const result = enabled.tweet_button_positions.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
         for (let i = 0; i < result.length; ++i) {
-            for (const s of buttonMap[result[i]] ?? []) style += `${s}{order:${i}!important}`;
+            for (const s of sharedSelectors[result[i]] ?? []) style += `${s}{order:${i}!important}`;
         }
 
         if (style.length > 0) {
