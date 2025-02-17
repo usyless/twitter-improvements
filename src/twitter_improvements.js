@@ -425,11 +425,20 @@
                 outer.classList.add('usyNotificationOuter');
                 inner.classList.add('usyNotificationInner');
                 inner.textContent = text;
+
+                const fixInterval = setInterval(() => {
+                    if (Notification.getCurrentTwitterNotif()) inner.style.transform = 'translateY(-50px)';
+                    else inner.style.transform = '';
+                }, 200);
+
                 document.body.appendChild(outer);
                 setTimeout(() => {
                     inner.classList.add('usyFadeOut');
                     inner.addEventListener('transitionend', (e) => {
-                        if (e.target === e.currentTarget) outer.remove();
+                        if (e.target === e.currentTarget) {
+                            outer.remove();
+                            clearInterval(fixInterval);
+                        }
                     });
                 }, timeout);
                 return inner;
@@ -536,7 +545,9 @@
             t.textContent = text;
             b.appendChild(t);
             return b;
-        }
+        },
+
+        getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]')
     };
 
     const Helpers = {
