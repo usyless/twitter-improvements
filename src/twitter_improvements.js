@@ -37,6 +37,23 @@
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
     };
 
+    const Downloaders = {
+        download_video: (url, index, trueIndexes) => {
+            Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
+            Background.save_video(url, index, trueIndexes).then((r) => {
+                if (r.status === 'newpage') {
+                    navigator.clipboard.writeText(r.copy);
+                    Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 'error', 10000);
+                } else if (r.status === 'error') Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 'error', 10000);
+            });
+        },
+
+        download_image: (image) => {
+            Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
+            Background.save_image(Image.respectiveURL(image), image.src);
+        }
+    };
+
     const Tweet = { // Tweet functions
         addVXButton: (article) => {
             try {
@@ -145,38 +162,23 @@
             const media = await Tweet.getMedia(article, m);
             if (media.length === 1) {
                 if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
-                else Tweet.videoDownloader(article);
+                else Tweet.videoButtonCallback(article);
             } else Notification.createDownloadChoices(media, ev);
         },
 
-        videoDownloader: (article, index=0, trueIndexes=[1]) => {
+        videoButtonCallback: (article, index=0, trueIndexes=[1]) => {
             const url = Tweet.url(article);
-            if (index !== -1 && Settings.image_preferences.download_history_enabled) {
+            if (index !== -1 && Helpers.shouldPreventDuplicate()) {
                 Background.download_history_has(Helpers.idWithNumber(url, trueIndexes[0])).then((r) => {
                     if (r) {
                         const notif = Notification.create('Video is already saved\nClick here to save again', 'save_video_duplicate');
                         if (notif) {
                             notif.style.cursor = 'pointer';
-                            notif.addEventListener('click', () => {
-                                Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-                            });
+                            notif.addEventListener('click', Downloaders.download_video.bind(null, url, index, trueIndexes));
                         }
-                    } else {
-                        Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
-                        Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-                    }
+                    } else Downloaders.download_video(url, index, trueIndexes);
                 });
-            } else {
-                Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
-                Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-            }
-        },
-
-        videoResponseHandler: (r) => {
-            if (r.status === 'newpage') {
-                navigator.clipboard.writeText(r.copy);
-                Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 'error', 10000);
-            } else if (r.status === 'error') Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 'error', 10000);
+            } else Downloaders.download_video(url, index, trueIndexes);
         },
 
         maximised: () => {
@@ -317,23 +319,17 @@
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
         imageButtonCallback: (image, _, overrideSave) => {
-            if (!overrideSave && Settings.image_preferences.download_history_prevent_download) {
+            if (!overrideSave && Helpers.shouldPreventDuplicate()) {
                 Background.download_history_has(Image.idWithNumber(image)).then((r) => {
                     if (r) {
                         const notif = Notification.create('Image is already saved\nClick here to save again', 'save_image_duplicate');
                         if (notif) {
                             notif.style.cursor = 'pointer';
-                            notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
+                            notif.addEventListener('click', Downloaders.download_image.bind(null, image));
                         }
-                    } else {
-                        Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
-                        Background.save_image(Image.respectiveURL(image), image.src);
-                    }
+                    } else Downloaders.download_image(image);
                 });
-            } else {
-                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
-                Background.save_image(Image.respectiveURL(image), image.src);
-            }
+            } else Downloaders.download_image(image);
         },
 
         removeImageDownloadCallback: (image) => {
@@ -483,11 +479,11 @@
                         if (c.type === 'Image') Image.imageButtonCallback(c.elem, null, true);
                         else video = c;
                     }
-                    if (video != null) Tweet.videoDownloader(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
+                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
                 } else {
                     const c = choices[choice];
                     if (c.type === 'Image') Image.imageButtonCallback(c.elem);
-                    else Tweet.videoDownloader(c.elem, c.index, [c.trueindex]);
+                    else Tweet.videoButtonCallback(c.elem, c.index, [c.trueindex]);
                 }
             }
             for (let id = 0; id < choices.length; ++id) {
@@ -566,6 +562,10 @@
             const a = url.split("/");
             return `${a[5]}-${override ?? a[7]}`;
         },
+
+        shouldPreventDuplicate: () => {
+            return Settings.image_preferences.download_history_enabled && Settings.image_preferences.download_history_prevent_download;
+        }
     };
 
     const Observer = {

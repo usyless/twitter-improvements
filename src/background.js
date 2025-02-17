@@ -289,8 +289,7 @@ function download_video(request, sendResponse) {
             urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
                 ?.map?.(m => getBestQuality(m?.video_info?.variants));
             const download = () => {
-                if (request.index === -1) downloadVideos(urls, parts, save_format, request.trueIndexes);
-                else downloadVideos([urls[request.index]], parts, save_format, request.trueIndexes);
+                downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
                 sendResponse();
             }
             if (urls?.length > 0) download();
