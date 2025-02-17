@@ -532,6 +532,47 @@
                     }
                 }
             ]
+        },
+        'Hidden Notifications': {
+            'This Extension': [
+                {
+                    name: 'save_image',
+                    category: 'hidden_extension_notifications',
+                    description: 'Saving image',
+                },
+                {
+                    name: 'save_image_duplicate',
+                    category: 'hidden_extension_notifications',
+                    description: 'Saving image duplicate',
+                },
+                {
+                    name: 'save_video',
+                    category: 'hidden_extension_notifications',
+                    description: 'Saving video',
+                },
+                {
+                    name: 'save_video_duplicate',
+                    category: 'hidden_extension_notifications',
+                    description: 'Saving video duplicate',
+                },
+                {
+                    name: 'history_remove',
+                    category: 'hidden_extension_notifications',
+                    description: 'Removing from history',
+                },
+                {
+                    name: 'copied_url',
+                    category: 'hidden_extension_notifications',
+                    description: 'URL Copy',
+                }
+            ],
+            'Twitters': [
+                {
+                    name: 'bookmark',
+                    category: 'hidden_twitter_notifications',
+                    description: 'Bookmarked tweet',
+                }
+            ]
         }
     }
 

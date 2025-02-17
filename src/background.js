@@ -118,6 +118,19 @@ const Settings = { // Setting handling
         video_preferences: {
             video_download_fallback: true
         },
+
+        hidden_twitter_notifications: {
+            bookmark: false
+        },
+
+        hidden_extension_notifications: {
+            save_image: false,
+            save_image_duplicate: false,
+            save_video: false,
+            save_video_duplicate: false,
+            history_remove: false,
+            copied_url: false,
+        }
     },
 
     loaded: false,
@@ -282,7 +295,7 @@ function download_video(request, sendResponse) {
             const download = () => {
                 if (request.index === -1) downloadVideos(urls, parts, save_format, request.trueIndexes);
                 else downloadVideos([urls[request.index]], parts, save_format, request.trueIndexes);
-                sendResponse({status: 'success'});
+                sendResponse();
             }
             if (urls?.length > 0) download();
             else {

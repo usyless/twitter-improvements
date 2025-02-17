@@ -134,10 +134,10 @@
         vxButtonCallback: (article) => {
             try {
                 navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(article))).then(() => {
-                    Notification.create('Copied URL to clipboard');
+                    Notification.create('Copied URL to clipboard', 'copied_url');
                 });
             } catch {
-                Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements');
+                Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements', 'error');
             }
         },
 
@@ -154,28 +154,29 @@
             if (index !== -1 && Settings.image_preferences.download_history_enabled) {
                 Background.download_history_has(Helpers.idWithNumber(url, trueIndexes[0])).then((r) => {
                     if (r) {
-                        const notif = Notification.create('Video is already saved\nClick here to save again');
-                        notif.style.cursor = 'pointer';
-                        notif.addEventListener('click', () => {
-                            Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
-                        });
+                        const notif = Notification.create('Video is already saved\nClick here to save again', 'save_video_duplicate');
+                        if (notif) {
+                            notif.style.cursor = 'pointer';
+                            notif.addEventListener('click', () => {
+                                Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
+                            });
+                        }
                     } else {
-                        Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+                        Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
                         Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
                     }
                 });
             } else {
-                Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`);
+                Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
                 Background.save_video(url, index, trueIndexes).then(Tweet.videoResponseHandler);
             }
         },
 
         videoResponseHandler: (r) => {
-            if (r.status === 'success') Notification.create('Successfully Downloaded Video(s)');
-            else if (r.status === 'newpage') {
+            if (r.status === 'newpage') {
                 navigator.clipboard.writeText(r.copy);
-                Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 10000);
-            } else Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 10000);
+                Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 'error', 10000);
+            } else if (r.status === 'error') Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 'error', 10000);
         },
 
         maximised: () => {
@@ -319,22 +320,24 @@
             if (!overrideSave && Settings.image_preferences.download_history_prevent_download) {
                 Background.download_history_has(Image.idWithNumber(image)).then((r) => {
                     if (r) {
-                        const notif = Notification.create('Image is already saved\nClick here to save again');
-                        notif.style.cursor = 'pointer';
-                        notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
+                        const notif = Notification.create('Image is already saved\nClick here to save again', 'save_image_duplicate');
+                        if (notif) {
+                            notif.style.cursor = 'pointer';
+                            notif.addEventListener('click', Background.save_image.bind(null, Image.respectiveURL(image), image.src));
+                        }
                     } else {
-                        Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`);
+                        Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
                         Background.save_image(Image.respectiveURL(image), image.src);
                     }
                 });
             } else {
-                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
                 Background.save_image(Image.respectiveURL(image), image.src);
             }
         },
 
         removeImageDownloadCallback: (image) => {
-            Notification.create('Removing image from saved');
+            Notification.create('Removing image from saved', 'history_remove');
             Background.download_history_remove(Image.idWithNumber(image));
         },
 
@@ -414,21 +417,23 @@
     };
 
     const Notification = {
-        create: (text, timeout = 5000) => {
-            Notification.clear();
-            const outer = document.createElement('div'), inner = document.createElement('div');
-            outer.appendChild(inner);
-            outer.classList.add('usyNotificationOuter');
-            inner.classList.add('usyNotificationInner');
-            inner.textContent = text;
-            document.body.appendChild(outer);
-            setTimeout(() => {
-                inner.classList.add('usyFadeOut');
-                inner.addEventListener('transitionend', (e) => {
-                    if (e.target === e.currentTarget) outer.remove();
-                });
-            }, timeout);
-            return inner;
+        create: (text, type, timeout = 5000) => {
+            if (!Settings.hidden_extension_notifications[type]) {
+                Notification.clear();
+                const outer = document.createElement('div'), inner = document.createElement('div');
+                outer.appendChild(inner);
+                outer.classList.add('usyNotificationOuter');
+                inner.classList.add('usyNotificationInner');
+                inner.textContent = text;
+                document.body.appendChild(outer);
+                setTimeout(() => {
+                    inner.classList.add('usyFadeOut');
+                    inner.addEventListener('transitionend', (e) => {
+                        if (e.target === e.currentTarget) outer.remove();
+                    });
+                }, timeout);
+                return inner;
+            }
         },
 
         clear: () => {
@@ -497,7 +502,7 @@
                 if (save_id) {
                     e.preventDefault();
                     Background.download_history_remove(save_id);
-                    Notification.create('Removing media from history');
+                    Notification.create('Removing media from history', 'history_remove');
                     Button.unmark(e.target);
                 }
             });
@@ -629,7 +634,7 @@
                 break;
             }
             case 'image_saved': {
-                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`);
+                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
                 break;
             }
             case 'download': {
