@@ -274,7 +274,10 @@
 
             if (ibh === dibh && ibhs === dibhs) return;
 
-            if (image.clientHeight > +prefs.small_image_size_threshold) {
+            const height = image.clientHeight;
+
+            if (height <= 0 && image.isConnected) setTimeout(Image.setButtonHeight.bind(null, image, button), 50);
+            else if (height > +prefs.small_image_size_threshold) {
                 if (ibh !== dibh) button.style.height = `${+ibh / +prefs.image_button_scale}%`;
             } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +prefs.image_button_scale}%`;
         },
