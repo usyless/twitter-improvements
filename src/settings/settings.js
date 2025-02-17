@@ -565,13 +565,6 @@
                     category: 'hidden_extension_notifications',
                     description: 'URL Copy',
                 }
-            ],
-            'Twitters': [
-                {
-                    name: 'bookmark',
-                    category: 'hidden_twitter_notifications',
-                    description: 'Bookmarked tweet',
-                }
             ]
         }
     }

@@ -119,10 +119,6 @@ const Settings = { // Setting handling
             video_download_fallback: true
         },
 
-        hidden_twitter_notifications: {
-            bookmark: false
-        },
-
         hidden_extension_notifications: {
             save_image: false,
             save_image_duplicate: false,
