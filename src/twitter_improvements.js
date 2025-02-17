@@ -478,7 +478,7 @@
             }
             for (let id = 0; id < choices.length; ++id) {
                 const c = choices[id];
-                const btn = Notification.getNotificationButton(`${c.type} ${id + 1}`);
+                const btn = Notification.getChoiceButton(`${c.type} ${id + 1}`);
                 btn.dataset.index = id.toString();
                 btn.dataset.save_id = c.save_id;
 
@@ -488,7 +488,7 @@
 
                 popup.appendChild(btn);
             }
-            popup.appendChild(Notification.getNotificationButton('Download All'));
+            popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
                 handleDownload(null, +e.target.dataset.index);
             });
@@ -525,7 +525,7 @@
             }
         },
 
-        getNotificationButton: (text) => {
+        getChoiceButton: (text) => {
             const b = document.createElement('button'), t = document.createElement('b');
             b.classList.add('usyDownloadChoiceButton');
             t.textContent = text;
