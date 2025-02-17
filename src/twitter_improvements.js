@@ -231,7 +231,6 @@
                 const quote = article.querySelector('div[id] > div[id]');
                 if (quote) elem = quote.parentElement.firstElementChild;
             }
-            console.log(elem);
             return Tweet.getMediaFromElements(article, elem);
         }
     };
