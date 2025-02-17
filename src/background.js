@@ -187,7 +187,7 @@ function download(url, filename) {
     });
 }
 
-const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'}
+const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function sendToTab(message) {
     browser.tabs.query(singleTabQuery).then((tabs) => {
         browser.tabs.sendMessage(tabs[0].id, message);
