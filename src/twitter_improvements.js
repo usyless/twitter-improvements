@@ -80,12 +80,12 @@
                 // doesn't affect a video QRT as each media checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
                     const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
-                    a.after(Button.newButton(a, download_button_path, cb, 'usy-download'));
+                    a.after(Button.newButton(a, download_button_path, cb, 'usy-download', cb));
 
                     const altAnchor = Tweet.maximisedShareButtonAnchor(article);
                     if (altAnchor) {
                         for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
-                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-download'));
+                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb));
                     }
                 }
             } catch {
@@ -160,10 +160,17 @@
 
         mediaDownloadCallback: async (article, ev) => {
             const media = await Tweet.getMedia(article);
-            if (media.length === 1) {
-                if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
-                else Tweet.videoButtonCallback(article);
-            } else Notification.createDownloadChoices(media, ev);
+            if (ev.type === 'click') {
+                if (media.length === 1) {
+                    if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
+                    else Tweet.videoButtonCallback(article);
+                } else Notification.createDownloadChoices(media, ev);
+            } else {
+                if (media.length === 1) {
+                    Background.download_history_remove(media[0].save_id);
+                    Notification.create('Removing media from history', 'history_remove');
+                } else Notification.create('Multi-media tweet\nClick download button first to remove', '');
+            }
         },
 
         videoButtonCallback: (article, index=0, trueIndexes=[1]) => {
@@ -237,7 +244,8 @@
             let button;
             try {
                 image.setAttribute('usy', '');
-                button = Button.newButton(Image.createDownloadButton(), download_button_path, Image.imageButtonCallback.bind(null, image), "usy-image", Image.removeImageDownloadCallback.bind(null, image));
+                const cb = Image.imageButtonCallback.bind(null, image, null);
+                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-image", cb);
                 const prefs = Settings.image_preferences;
                 button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
                     ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
@@ -317,23 +325,23 @@
 
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
-        imageButtonCallback: (image, _, overrideSave) => {
-            if (!overrideSave && Helpers.shouldPreventDuplicate()) {
-                Background.download_history_has(Image.idWithNumber(image)).then((r) => {
-                    if (r) {
-                        const notif = Notification.create('Image is already saved\nClick here to save again', 'save_image_duplicate');
-                        if (notif) {
-                            notif.style.cursor = 'pointer';
-                            notif.addEventListener('click', Downloaders.download_image.bind(null, image));
-                        }
-                    } else Downloaders.download_image(image);
-                });
-            } else Downloaders.download_image(image);
-        },
-
-        removeImageDownloadCallback: (image) => {
-            Notification.create('Removing image from saved', 'history_remove');
-            Background.download_history_remove(Image.idWithNumber(image));
+        imageButtonCallback: (image, overrideSave, ev) => {
+            if (ev?.type === 'click' || !ev) {
+                if (!overrideSave && Helpers.shouldPreventDuplicate()) {
+                    Background.download_history_has(Image.idWithNumber(image)).then((r) => {
+                        if (r) {
+                            const notif = Notification.create('Image is already saved\nClick here to save again', 'save_image_duplicate');
+                            if (notif) {
+                                notif.style.cursor = 'pointer';
+                                notif.addEventListener('click', Downloaders.download_image.bind(null, image));
+                            }
+                        } else Downloaders.download_image(image);
+                    });
+                } else Downloaders.download_image(image);
+            } else {
+                Notification.create('Removing image from saved', 'history_remove');
+                Background.download_history_remove(Image.idWithNumber(image));
+            }
         },
 
         resetAll: () => {
@@ -383,7 +391,6 @@
         stopAllEvents: (e) => {
             e.preventDefault();
             e.stopPropagation();
-            e.stopImmediatePropagation();
         },
 
         mark: (button) => button.classList.add('usyMarked'),
@@ -475,7 +482,7 @@
                 if (choice == null) { // download everything
                     let video = null;
                     for (const c of choices) {
-                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, null, true);
+                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
                         else video = c;
                     }
                     if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
