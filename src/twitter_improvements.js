@@ -509,12 +509,12 @@
                 handleDownload(null, +e.target.closest('.usyDownloadChoiceButton')?.dataset.index);
             });
             popup.addEventListener('contextmenu', (e) => {
-                const save_id = e.target.closest('.usyDownloadChoiceButton')?.dataset?.save_id;
+                const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
                 if (save_id) {
                     e.preventDefault();
                     Background.download_history_remove(save_id);
                     Notification.create('Removing media from history', 'history_remove');
-                    Button.unmark(e.target);
+                    Button.unmark(btn);
                 }
             });
 
