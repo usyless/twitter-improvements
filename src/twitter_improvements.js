@@ -140,11 +140,15 @@
         },
 
         nearestTweet: (elem) => {
-            let anchor;
-            while (elem) {
-                anchor = elem.querySelector('article');
-                if (anchor) return anchor;
-                elem = elem.parentElement;
+            if (Tweet.maximised()) {
+                return elem.closest('#layers').querySelector('article');
+            } else {
+                let anchor;
+                while (elem) {
+                    anchor = elem.querySelector('article');
+                    if (anchor) return anchor;
+                    elem = elem.parentElement;
+                }
             }
         },
 
