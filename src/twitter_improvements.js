@@ -482,20 +482,6 @@
                 Notification.clearFullscreen();
             });
 
-            const handleDownload = (_, choice) => {
-                if (choice == null) { // download everything
-                    let video = null;
-                    for (const c of choices) {
-                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
-                        else video = c;
-                    }
-                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
-                } else {
-                    const c = choices[choice];
-                    if (c.type === 'Image') Image.imageButtonCallback(c.elem);
-                    else Tweet.videoButtonCallback(c.elem, c.index, [c.trueindex]);
-                }
-            }
             for (let id = 0; id < choices.length; ++id) {
                 const c = choices[id];
                 const btn = Notification.getChoiceButton(`${c.type} ${id + 1}`);
@@ -510,7 +496,19 @@
             }
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
-                handleDownload(null, +e.target.closest('.usyDownloadChoiceButton')?.dataset.index);
+                const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index;
+                if (isNaN(choice)) { // download everything
+                    let video = null;
+                    for (const c of choices) {
+                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
+                        else video = c;
+                    }
+                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
+                } else {
+                    const c = choices[choice];
+                    if (c.type === 'Image') Image.imageButtonCallback(c.elem);
+                    else Tweet.videoButtonCallback(c.elem, c.index, [c.trueindex]);
+                }
             });
             popup.addEventListener('contextmenu', (e) => {
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
