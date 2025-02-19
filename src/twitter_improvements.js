@@ -497,7 +497,7 @@
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index;
-                if (isNaN(choice)) { // download everything
+                if (Number.isNaN(choice)) { // download everything
                     let video = null;
                     for (const c of choices) {
                         if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
