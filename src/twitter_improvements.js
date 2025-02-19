@@ -58,11 +58,11 @@
         addVXButton: (article) => {
             try {
                 article.setAttribute('usy', '');
-                const a = Tweet.anchor(article);
+                const a = Tweet.defaultAnchor(article);
                 const cb = Tweet.vxButtonCallback.bind(null, article);
                 a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
 
-                const altAnchor = Tweet.maximisedShareButtonAnchor(article);
+                const altAnchor = Tweet.secondaryAnchor(article);
                 if (altAnchor) {
                     for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
                     altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
@@ -79,10 +79,10 @@
                 // checks if quote tweet contains specific media (don't show button)
                 // doesn't affect a video QRT as each media checked separately
                 if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                    const a = Tweet.anchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
+                    const a = Tweet.defaultAnchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
                     a.after(Button.newButton(a, download_button_path, cb, 'usy-download', cb));
 
-                    const altAnchor = Tweet.maximisedShareButtonAnchor(article);
+                    const altAnchor = Tweet.secondaryAnchor(article);
                     if (altAnchor) {
                         for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
                         altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb));
@@ -96,7 +96,7 @@
         copyBookmarkButton: (article) => {
             try {
                 article.setAttribute('usy-bookmarked', '');
-                const a = Tweet.maximisedShareButtonAnchor(article);
+                const a = Tweet.secondaryAnchor(article);
                 if (a) {
                     // Clear all previous bookmark buttons to avoid stacking
                     for (const bk of a.parentElement.querySelectorAll('[usy-bookmark]')) bk.remove();
@@ -119,7 +119,7 @@
             }
         },
 
-        anchor: (article) => {
+        defaultAnchor: (article) => {
            return article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
         },
 
@@ -197,7 +197,7 @@
             return pathname.includes('/photo/') || pathname.includes('/video/');
         },
 
-        maximisedShareButtonAnchor: (article) => {
+        secondaryAnchor: (article) => {
             if (Tweet.maximised() && Tweet.isFocused(article))
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
