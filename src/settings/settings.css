@@ -356,8 +356,13 @@ button {
 
 /*Mobile settings hiding*/
 body.mobile {
-    div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt) {
+    div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt), div:has(> div > #db_sync_check_version) > div:nth-child(n+2) {
         display: none !important;
+    }
+
+    div:has(> div > #db_sync_check_version)::after {
+        content: 'Not available on mobile!';
+        display: block;
     }
 }
 

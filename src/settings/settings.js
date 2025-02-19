@@ -30,7 +30,9 @@
 
         clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
         download_history_add_all: (saved_images) => browser.runtime.sendMessage({type: 'download_history_add_all', saved_images}),
-        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'})
+        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
+
+        db_sync_version: () => browser.runtime.sendMessage({type: 'db_sync_version'}),
     };
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
@@ -565,6 +567,27 @@
                     category: 'hidden_extension_notifications',
                     description: 'URL Copy',
                 }
+            ]
+        },
+        'Experimental': {
+            'Multi-browser download sync': [
+                {
+                    name: 'enabled',
+                    category: 'browser_download_sync',
+                    description: `Enable multi-browser download sync, you must first install the sync server from https://github.com/usyless/ift-db-sync-server.`
+                },
+                {
+                    name: 'db_sync_check_version',
+                    description: '',
+                    type: 'button',
+                    button: 'Get version of sync server + check if it is running',
+                    onclick: () => {
+                        Background.db_sync_version().then((r) => {
+                            if (r?.version) alert(`Server is running. Version: ${r.version}. Most up to date version: ${r.currentVersion}`);
+                            else alert('Server is not running.');
+                        });
+                    }
+                },
             ]
         }
     }

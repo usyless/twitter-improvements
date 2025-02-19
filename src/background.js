@@ -4,7 +4,7 @@ if (typeof this.browser === 'undefined') {
     this.browser = chrome;
 }
 
-const DOWNLOAD_DB_VERSION = 1;
+const DOWNLOAD_DB_VERSION = 2;
 
 const requestMap = {
     image: saveImage,
@@ -17,6 +17,8 @@ const requestMap = {
 
     get_settings: get_settings,
     get_default_settings: get_default_settings,
+
+    db_sync_version: get_sync_version
 }
 
 browser.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -25,9 +27,9 @@ browser.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 browser?.runtime?.onInstalled?.addListener?.((details) => {
-    updateHistoryDb().then(() => {
+    getHistoryDB().then((db) => {
         if (details.reason === 'install') browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
-        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
+        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion, db);
     });
 });
 
@@ -126,6 +128,10 @@ const Settings = { // Setting handling
             save_video_duplicate: false,
             history_remove: false,
             copied_url: false,
+        },
+
+        browser_download_sync: {
+            enabled: false
         }
     },
 
@@ -171,7 +177,11 @@ function get_default_settings(_, sendResponse) {
 
 browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-        Settings.loadSettings().then(() => send_to_all_tabs({type: 'settings_update', changes}));
+        Settings.loadSettings().then(() => {
+            if (changes.hasOwnProperty('browser_download_sync')) sync_downloads(true);
+
+            send_to_all_tabs({type: 'settings_update', changes});
+        });
     }
 });
 
@@ -361,7 +371,7 @@ function versionBelowGiven(previousVersion, maxVersion) {
     return +previousVersion.padEnd(length, '0') < +maxVersion.padEnd(length, '0');
 }
 
-async function migrateSettings(previousVersion) {
+async function migrateSettings(previousVersion, db) {
     // Fix for old link copying setting
     if (versionBelowGiven(previousVersion, '1.0.7.3')) {
         console.log("Migrating vx and fx settings to new format");
@@ -447,19 +457,17 @@ async function migrateSettings(previousVersion) {
     if (versionBelowGiven(previousVersion, '1.1.1.4')) {
         console.log("Migrating history to indexed db");
         await new Promise((resolve) => {
-            getHistoryDB().then((db) => {
-                browser.storage.local.get(['download_history']).then(async (r) => {
-                    const history = r.download_history ?? {};
-                    const transaction = db.transaction(['download_history'], 'readwrite');
-                    if (Object.keys(history).length > 0) {
-                        const objectStore = transaction.objectStore('download_history');
-                        for (const saved_image in history) objectStore.put({saved_image});
-                    }
+            browser.storage.local.get(['download_history']).then(async (r) => {
+                const history = r.download_history ?? {};
+                const transaction = db.transaction(['download_history'], 'readwrite');
+                if (Object.keys(history).length > 0) {
+                    const objectStore = transaction.objectStore('download_history');
+                    for (const saved_image in history) objectStore.put({saved_image});
+                }
 
-                    await browser.storage.local.remove('download_history');
+                await browser.storage.local.remove('download_history');
 
-                    transaction.addEventListener('complete', resolve);
-                });
+                transaction.addEventListener('complete', resolve);
             });
         });
     }
@@ -483,21 +491,6 @@ async function migrateSettings(previousVersion) {
     }
 }
 
-function updateHistoryDb() {
-    return new Promise((resolve) => {
-        const idb = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
-        idb.addEventListener('upgradeneeded', (event) => {
-            const db = event.target.result;
-
-            if (event.oldVersion <= 0) {
-                const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
-                objectStore.createIndex('saved_image', 'saved_image', {unique: true});
-            }
-        });
-        idb.addEventListener('success', resolve);
-    });
-}
-
 let download_history_db;
 let db_opening = false;
 const pending_db_promises = [];
@@ -507,15 +500,30 @@ function getHistoryDB() {
         else if (db_opening) pending_db_promises.push(resolve);
         else {
             db_opening = true;
-            indexedDB.open('download_history', DOWNLOAD_DB_VERSION)
-                .addEventListener('success', (e) => {
-                    download_history_db = e.target.result;
-                    db_opening = false;
-                    resolve(download_history_db);
+            const db = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
+            db.addEventListener('upgradeneeded', (e) => {
+                const db = e.target.result;
+                const transaction = e.target.transaction;
 
-                    for (const promise of pending_db_promises) promise(download_history_db);
-                    pending_db_promises.length = 0;
-                });
+                if (e.oldVersion <= 0) {
+                    const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
+                    objectStore.createIndex('saved_image', 'saved_image', {unique: true});
+                }
+
+                if (e.oldVersion <= 1) {
+                    db.createObjectStore('sync_timestamp', {keyPath: 'id'});
+                    const sync_timestamp = transaction.objectStore('sync_timestamp');
+                    sync_timestamp.put({id: 0, timestamp: 0});
+                }
+            });
+            db.addEventListener('success', (e) => {
+                download_history_db = e.target.result;
+                db_opening = false;
+
+                for (const promise of pending_db_promises) promise(download_history_db);
+                resolve(download_history_db);
+                pending_db_promises.length = 0;
+            });
         }
     });
 }
@@ -531,6 +539,7 @@ function download_history_has(request, sendResponse) {
 }
 
 function download_history_add(saved_image) {
+    sync_update_entry(saved_image, true);
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
             db.transaction(['download_history'], 'readwrite').objectStore('download_history')
@@ -543,6 +552,7 @@ function download_history_add(saved_image) {
 }
 
 function download_history_remove(request, sendResponse) {
+    sync_update_entry(request.id, false);
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
             .delete(request.id).addEventListener('success', () => {
@@ -571,7 +581,7 @@ function download_history_add_all(request, sendResponse) {
 
         transaction.addEventListener('complete', () => {
             send_to_all_tabs({type: 'history_change'});
-            sendResponse(true);
+            sendResponse?.(true);
         });
     });
 }
@@ -584,3 +594,82 @@ function download_history_get_all(_, sendResponse) {
         })
     });
 }
+
+// Cross-browser download sync
+
+const SYNC_SERVER_URL = 'http://localhost:37198';
+const CURRENT_SERVER_VERSION = '0.1';
+
+function update_timestamp(timestamp) {
+    getHistoryDB().then((db) => {
+        db.transaction(['sync_timestamp'], 'readwrite').objectStore('sync_timestamp').put({id: 0, timestamp});
+    });
+}
+
+function get_sync_version(_, sendResponse) {
+    fetch(`${SYNC_SERVER_URL}/version`)
+        .then((r) => {
+            if (r.ok) return r.json();
+        }).then((v) => sendResponse({...v, currentVersion: CURRENT_SERVER_VERSION})).catch(() => sendResponse());
+}
+
+const update_all_downloads = () => {
+    console.log('Syncing downloads with server');
+    fetch(`${SYNC_SERVER_URL}/all`)
+        .then((r) => {
+            if (r.ok) return r.json();
+        })
+        .then(({ids, timestamp}) => {
+            update_timestamp(+timestamp);
+            if (ids.length > 0) {
+                download_history_clear(null, () => {
+                    download_history_add_all({saved_images: ids.split(' ')});
+                });
+            }
+        }).catch(() => void(0));
+}
+
+function sync_downloads(change) {
+    if (change) {
+        if (Settings.browser_download_sync.enabled) {
+            download_history_get_all(null, (r) => {
+                fetch(SYNC_SERVER_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({'data': r.join('_')})}
+                ).then((r) => {
+                    if (r.ok) return r.json();
+                }).then(({timestamp}) => {
+                    update_timestamp(+timestamp);
+                    update_all_downloads();
+                }).catch(() => void(0));
+            });
+        }
+        else update_timestamp(0); // reset timestamp to 0, as disabled
+    } else {
+        if (Settings.browser_download_sync.enabled) {
+            fetch(`${SYNC_SERVER_URL}/timestamp`)
+                .then((r) => {
+                    if (r.ok) return r.json();
+                })
+                .then(({timestamp}) => {
+                    getHistoryDB().then((db) => {
+                        db.transaction(['sync_timestamp'], 'readonly').objectStore('sync_timestamp')
+                            .get(0).addEventListener('success', (e) => {
+                                if (e.target.result !== +timestamp) update_all_downloads();
+                        });
+                    });
+                }).catch(() => void(0));
+        }
+    }
+}
+
+function sync_update_entry(id, add) {
+    if (Settings.browser_download_sync.enabled) {
+        fetch(`${SYNC_SERVER_URL}?${add ? 'add' : 'remove'}=${encodeURIComponent(id)}`).then((r) => {
+            if (r.ok) return r.json();
+        }).then(({timestamp}) => update_timestamp(+timestamp)).catch(() => sendToTab({type: 'sync_error'}));
+    }
+}
+
+Settings.getSettings().then(sync_downloads);

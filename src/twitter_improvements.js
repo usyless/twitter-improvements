@@ -660,6 +660,9 @@
                 Helpers.download(message.url, message.filename);
                 break;
             }
+            case 'sync_error': {
+                Notification.create('Browser download sync error occurred\nPlease check if the sync server is running, or update it', 'sync_error');
+            }
         }
     });
 })();
