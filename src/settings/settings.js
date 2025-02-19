@@ -85,7 +85,7 @@
                 {
                     name: 'inline_image_button',
                     category: 'setting',
-                    description: 'Show image downloads under video download buttons',
+                    description: 'Show image downloads with video download buttons',
                 },
                 {
                     type: 'break'
@@ -260,6 +260,11 @@
                     name: 'bookmark_on_photo_page',
                     category: 'setting',
                     description: 'Show bookmark button on the enlarged photo page',
+                },
+                {
+                    name: 'download_all_near_click',
+                    category: 'download_preferences',
+                    description: 'Show "Download All" the download popup as the choice closest to your click',
                 },
                 {
                     name: 'reset_all_settings',

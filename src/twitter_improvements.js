@@ -532,6 +532,8 @@
                 popup.style.removeProperty('top');
                 popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
                 fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
+            } else if (Settings.download_preferences.download_all_near_click) {
+                popup.firstElementChild.before(popup.lastElementChild);
             }
 
             popup.classList.add('animate');

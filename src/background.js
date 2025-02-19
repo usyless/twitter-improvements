@@ -63,7 +63,7 @@ const Settings = { // Setting handling
         image_preferences: {
             long_image_button: false,
             download_history_enabled: true,
-            download_history_prevent_download: false,
+            download_history_prevent_download: false, // could probably be moved to download_preferences
             image_button_position: '0',
             image_button_scale: '1',
             image_button_height_value: '1',
@@ -76,6 +76,7 @@ const Settings = { // Setting handling
             save_as_prompt: 'browser',
             save_directory: '',
             save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
+            download_all_near_click: false,
         },
 
         style: {
