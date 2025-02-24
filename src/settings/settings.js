@@ -268,6 +268,11 @@
                     description: 'Show "Download All" the download popup as the choice closest to your click',
                 },
                 {
+                    name: 'more_media_icon_visible',
+                    category: 'style',
+                    description: 'Make the "more media" icon on the media pages of user profiles stand out more'
+                },
+                {
                     name: 'reset_all_settings',
                     description: '',
                     type: 'button',

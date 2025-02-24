@@ -76,7 +76,12 @@
         hide_replies_button_tweet: {s: CommonSelectors.replies, st: HideType.VISIBILITY},
         hide_retweet_button_tweet: {s: CommonSelectors.retweets, st: HideType.VISIBILITY},
         hide_like_button_tweet: {s: CommonSelectors.likes, st: HideType.VISIBILITY},
-        hide_bookmark_button_tweet: {s: CommonSelectors.bookmark, st: HideType.VISIBILITY}
+        hide_bookmark_button_tweet: {s: CommonSelectors.bookmark, st: HideType.VISIBILITY},
+
+        more_media_icon_visible: {
+            s: ['a[href$="/photo/1"] > div + svg', 'a[href$="/video/1"] > div + svg'],
+            st: '{box-shadow:0 0 5px rgba(0,0,0,0.6)!important;background-color:rgba(0,0,0,0.3)!important;border-radius:4px!important;}'
+        }
     }
 
     const start = () => loadSettings().then((settings) => {
