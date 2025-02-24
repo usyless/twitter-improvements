@@ -105,7 +105,7 @@
         if (style.length > 0) {
             const s = document.createElement('style');
             s.setAttribute('usyStyle', '');
-            s.appendChild(document.createTextNode(style));
+            s.textContent = style;
             document.head.appendChild(s);
         }
     });
