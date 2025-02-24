@@ -100,7 +100,7 @@ body {
     }
 }
 
-.usyImageButton {
+.usybuttonclickdiv[usy-image] {
     position: absolute;
     display: flex;
 

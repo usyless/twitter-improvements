@@ -311,8 +311,6 @@
             svg.setAttributeNS(null, 'viewBox', '0 0 24 24');
             path.setAttributeNS(null, 'fill', 'currentColor');
 
-            outer.classList.add('usyImageButton');
-
             return () => outer.cloneNode(true);
         })(),
 
