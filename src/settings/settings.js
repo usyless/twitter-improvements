@@ -886,7 +886,6 @@
             buttonContainer.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (btn) {
-                    console.log(btn.dataset.type)
                     resolve(btn.dataset.type === 'yes');
                     outer.remove();
                 }
