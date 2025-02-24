@@ -166,9 +166,9 @@
                     type: 'button',
                     button: 'Clear download history',
                     onclick: () => {
-                        if (confirm('Are you sure you want to clear your media download history?')) {
-                            Background.clear_download_history();
-                        }
+                        customPopup('Are you sure you want to clear your media download history?', true).then((result) => {
+                            if (result) Background.clear_download_history();
+                        });
                     }
                 },
                 {
@@ -191,7 +191,7 @@
                             const reader = new FileReader();
                             reader.onload = (r) => {
                                 Background.download_history_add_all(r.target.result.split(' '))
-                                    .then(() => alert('Successfully imported!'));
+                                    .then(() => customPopup('Successfully imported!'));
                             };
                             reader.readAsText(file);
                         });
@@ -224,7 +224,7 @@
                                 }
                             }
                             Background.download_history_add_all(saved_images)
-                                .then(() => alert(`Successfully imported ${saved_images.length} files!`));
+                                .then(() => customPopup(`Successfully imported ${saved_images.length} files!`));
                         });
                         document.body.appendChild(i);
                     }
@@ -251,7 +251,7 @@
                     button: 'Get saved media count',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            alert(`You have downloaded approximately ${r.length} unique medias`);
+                            customPopup(`You have downloaded approximately ${r.length} unique medias`);
                         });
                     }
                 }
@@ -274,10 +274,12 @@
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',
                     class: ['warning'],
                     onclick: () => {
-                        if (confirm('Are you sure you want to RESET this extensions settings?')) {
-                            clearStorage();
-                            window.location.reload();
-                        }
+                        customPopup('Are you sure you want to RESET this extensions settings?', true).then((result) => {
+                            if (result) {
+                                clearStorage();
+                                window.location.reload();
+                            }
+                        })
                     }
                 }
             ],
@@ -851,7 +853,44 @@
         browser.storage.local.clear();
     }
 
-    function customPopup(text, choice = false) {
+    function customPopup(text, choice) {
+        const outer = document.createElement('div'),
+            notifOuter = document.createElement('div'),
+            notifInner = document.createElement('div'),
+            buttonContainer = document.createElement('div');
+        outer.classList.add('fullscreenOverlay');
+        notifOuter.classList.add('notifOuter');
+        notifInner.textContent = text;
 
+        outer.addEventListener('click', (ev) => {
+            if (!ev.target.closest('.notifOuter')) outer.remove();
+        });
+
+        const btn = document.createElement('button');
+        btn.dataset.type = 'yes';
+        btn.textContent = "Ok";
+        buttonContainer.appendChild(btn);
+
+        if (choice) {
+            const btn2 = document.createElement('button');
+            btn2.dataset.type = 'no';
+            btn2.textContent = "Cancel";
+            buttonContainer.firstElementChild.before(btn2);
+        }
+
+        outer.appendChild(notifOuter);
+        notifOuter.append(notifInner, buttonContainer);
+        document.body.appendChild(outer);
+
+        return new Promise((resolve) => {
+            buttonContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn) {
+                    console.log(btn.dataset.type)
+                    resolve(btn.dataset.type === 'yes');
+                    outer.remove();
+                }
+            });
+        });
     }
 })();
