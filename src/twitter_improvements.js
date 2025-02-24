@@ -501,7 +501,7 @@
                         if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
                         else video = c;
                     }
-                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.map(c => c.type === 'Video').map(c => c.trueindex));
+                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.filter(c => c.type === 'Video').map(c => c.trueindex));
                 } else {
                     const c = choices[choice];
                     if (c.type === 'Image') Image.imageButtonCallback(c.elem);
