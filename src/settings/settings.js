@@ -40,6 +40,7 @@
     const settingsElem = document.getElementById('settings').cloneNode(true);
     const panes = settingsElem.querySelector('#settings-panes');
     const header = settingsElem.querySelector('#settings-header');
+    const pageWrapper = document.querySelector('.wrapper');
 
     // Make sure category is set for updatable objects
     const options = {
@@ -696,7 +697,7 @@
         });
 
         let touchStartX = 0, disableTouch = false;
-        window.addEventListener('touchstart', (e) => {
+        pageWrapper.addEventListener('touchstart', (e) => {
             if (e.target.closest('button') || e.target.closest('input')) {
                 scrollToLastPane(true);
                 disableTouch = true;
@@ -704,10 +705,10 @@
                 touchStartX = e.changedTouches[0].screenX;
             }
         });
-        window.addEventListener('touchmove', (e) => {
+        pageWrapper.addEventListener('touchmove', (e) => {
             if (disableTouch && !e.target.closest('input[type="text"]')) e.preventDefault();
         }, {passive: false});
-        window.addEventListener('touchend', (e) => {
+        pageWrapper.addEventListener('touchend', (e) => {
             if (disableTouch) {
                 scrollToLastPane();
                 disableTouch = false;
@@ -717,7 +718,7 @@
                 else scrollToLastPane();
             }
         });
-        window.addEventListener('wheel', (e) => {
+        pageWrapper.addEventListener('wheel', (e) => {
             if (e.shiftKey) {
                 e.preventDefault();
                 changePane(e.deltaY > 0);
@@ -848,5 +849,9 @@
 
     function clearStorage() {
         browser.storage.local.clear();
+    }
+
+    function customPopup(text, choice = false) {
+
     }
 })();
