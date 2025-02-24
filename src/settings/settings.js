@@ -695,22 +695,21 @@
             if (t) window.location.hash = t.dataset.pane;
         });
 
-        let touchStartX = 0;
-        let disableTouch = false;
+        let touchStartX = 0, disableTouch = false;
         window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('button') || e.target.closest('input[type="text"]')) {
-                e.preventDefault();
+            if (e.target.closest('button') || e.target.closest('input')) {
+                scrollToLastPane(true);
                 disableTouch = true;
             } else {
                 touchStartX = e.changedTouches[0].screenX;
             }
         });
         window.addEventListener('touchmove', (e) => {
-            if (disableTouch) e.preventDefault();
-        });
+            if (disableTouch && !e.target.closest('input[type="text"]')) e.preventDefault();
+        }, {passive: false});
         window.addEventListener('touchend', (e) => {
             if (disableTouch) {
-                e.preventDefault();
+                scrollToLastPane();
                 disableTouch = false;
             } else {
                 const touchEndX = e.changedTouches[0].screenX;
