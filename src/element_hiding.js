@@ -39,8 +39,8 @@
             'div[data-testid="GrokDrawer"]'
         ], st: HideType.DISPLAY},
         hide_jobs: {s: ['a[href="/jobs"]'], st: HideType.DISPLAY},
-        hide_lists: {s: ['a[href*="/lists"]'], st: HideType.DISPLAY},
-        hide_communities: {s: ['a[href*="/communities"]'], st: HideType.DISPLAY},
+        hide_lists: {s: ['a[href$="/lists"]'], st: HideType.DISPLAY},
+        hide_communities: {s: ['a[href$="/communities"]'], st: HideType.DISPLAY},
         hide_premium: {s: [
             'a[href="/i/premium_sign_up"]',
             'aside[aria-label*="Premium"]',
