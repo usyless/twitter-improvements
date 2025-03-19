@@ -590,7 +590,10 @@
                     video_button: [{
                         s: 'div[data-testid="videoComponent"]:not([usy-download])',
                         f: Tweet.addDownloadButton
-                    }, {s: 'img[alt="Embedded video"]:not([usy-download])', f: Tweet.addDownloadButton}],
+                    }, {
+                        s: 'img[alt="Embedded video"]:not([usy-download])',
+                        f: Tweet.addDownloadButton
+                    }],
                     image_button: [{
                         s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy])',
                         f: Image.addImageButton
