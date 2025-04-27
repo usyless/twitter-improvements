@@ -61,7 +61,7 @@
                     } else if (r.status === 'error') Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 'error', 10000);
                 });
             } else {
-                Notification.create('Error occurred downloading video\nTry refreshing the page and downloading again\nThis error is from the temporary video downloading fix', 'error', 10000);
+                Notification.create('Error occurred downloading video\nOpen the tweet to download the video\nDownloading won\'t work on unopened tweets for now', 'error', 10000);
             }
         },
 
