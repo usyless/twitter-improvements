@@ -109,13 +109,6 @@ const Settings = { // Setting handling
             tweet_button_positions: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}'
         },
 
-        video_details: {
-            detailsURL: '',
-            authorization: '',
-            features: '',
-            fieldToggles: ''
-        },
-
         video_preferences: {
             video_download_fallback: true
         },
@@ -243,30 +236,6 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
-browser.webRequest.onSendHeaders.addListener((details) => {
-    const url = new URL(decodeURIComponent(details.url));
-    const authorization = details.requestHeaders?.find?.(a => a.name === 'authorization');
-    const features = url.searchParams.get("features"), fieldToggles = url.searchParams.get("fieldToggles");
-    if (authorization?.value?.length > 0 && features?.length > 2 && fieldToggles?.length > 2) {
-        const data = {
-            detailsURL: `${url.origin}${url.pathname}`,
-            authorization: authorization.value,
-            features, fieldToggles
-        }
-        Settings.getSettings().then(() => {
-            const details = Settings.video_details;
-            for (const n in data) if (details[n] !== data[n]) {
-                browser.storage.local.set({video_details: data})
-                break;
-            }
-        });
-    }
-}, { urls: ["https://x.com/i/api/graphql/*/TweetDetail*"] }, ["requestHeaders"]);
-
-
-const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
-const defaultHeaders = {'x-twitter-client-language': 'en', 'x-twitter-active-user': 'yes', 'accept-language': 'en', 'content-type': 'application/json', 'X-Twitter-Auth-Type': 'OAuth2Session'};
-const variables = {"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
 function download_video(request, sendResponse) {
     Settings.getSettings().then(async () => {
         const parts = getNamePartsGeneric(request.url);
@@ -277,36 +246,13 @@ function download_video(request, sendResponse) {
             tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
             tweetDetailsURL.searchParams.set('features', details.features);
             tweetDetailsURL.searchParams.set('fieldToggles', details.fieldToggles);
-            const headers = {
-                'user-agent': navigator.userAgent,
-                'x-csrf-token': request.cookie,
-                'authorization': details.authorization, ...defaultHeaders
-            }; // Cookie sent by browser so no need to set myself
-            const json = await(await fetch(tweetDetailsURL, {headers})).json();
-            let urls = json?.data?.threaded_conversation_with_injections_v2?.instructions
-                ?.find?.(a => a?.type === "TimelineAddEntries")?.entries?.find?.(a => a?.entryId?.includes?.(id))?.content
-                ?.itemContent?.tweet_results?.result;
-            urls = urls?.tweet ?? urls;
-            urls = urls?.legacy?.entities?.media?.filter?.(m => ["video", "animated_gif"].includes?.(m?.type))
-                ?.map?.(m => getBestQuality(m?.video_info?.variants));
+
+
             const download = () => {
                 downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
                 sendResponse({status: 'success'});
             }
-            if (urls?.length > 0) download();
-            else {
-                console.log("Attempting to brute force video download");
-                urls = []
-                for (const tweet of findAllPotentialTweetsById(json, id)) {
-                    const videos = findVideos(tweet);
-                    for (const key in videos) urls.push(videos[key].url);
-                    if (urls.length > 0) {
-                        download();
-                        break;
-                    }
-                }
-                if (urls.length <= 0) throw new Error("failed to download");
-            }
+
         } catch (error) {
             console.error(error);
             if (Settings.video_preferences.video_download_fallback) {
@@ -326,32 +272,6 @@ function downloadVideos(urls, parts, save_format, trueIndexes) {
             void download_history_add(formatPartsForStorage(parts));
         download(url, formatFilename(parts, save_format));
     });
-}
-
-function findAllPotentialTweetsById(data, id, results=[]) {
-    if (Array.isArray(data)) for (const item of data) findAllPotentialTweetsById(item, id, results);
-    else if (typeof data === 'object' && data != null) {
-        for (const val of Object.values(data)) {
-            if (val.includes?.(id)) {
-                results.push(data);
-                break;
-            }
-        }
-        for (const key in data) findAllPotentialTweetsById(data[key], id, results);
-    }
-    return results;
-}
-
-function findVideos(data, results = {}) {
-    if (Array.isArray(data)) for (const item of data) findVideos(item, results);
-    else if (typeof data === 'object' && data != null) {
-        if (Array.isArray(data.variants)) for (const variant of data.variants) if (variant.bitrate && variant.url && variant.content_type === "video/mp4") {
-            const id = variant.url.match(/ext_tw_video\/(\d+)\//)?.[1];
-            if (id) results[id] = +results[id]?.bitrate > variant?.bitrate ? results[id] : variant;
-        }
-        for (const key in data) findVideos(data[key], results);
-    }
-    return results;
 }
 
 // migrating to new settings format
