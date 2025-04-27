@@ -45,7 +45,8 @@
             'a[href="/i/premium_sign_up"]',
             'aside[aria-label*="Premium"]',
             'div:has(> * > aside[aria-label*="Premium"])',
-            'div:has(> * > aside[aria-label="Ending today!"])'
+            'div:has(> * > aside[aria-label="Ending today!"])',
+            'div:has(> div > div[data-testid="super-upsell-UpsellCardRenderProperties"])'
         ], st: HideType.DISPLAY},
         hide_verified_orgs: {s: ['a[href="/i/verified-orgs-signup"]'], st: HideType.DISPLAY},
         hide_monetization: {s: [
