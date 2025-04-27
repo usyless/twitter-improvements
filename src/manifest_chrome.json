@@ -23,6 +23,9 @@
     "default_title": "Settings",
     "default_popup": "/popup/popup.html"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "permissions": [
     "contextMenus",
     "downloads",
@@ -72,5 +75,11 @@
   ],
   "options_ui": {
     "page": "/settings/settings.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "matches": ["https://x.com/*"],
+      "resources": ["/fetch-intercept.js"]
+    }
+  ]
 }

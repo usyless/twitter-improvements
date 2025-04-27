@@ -5,4 +5,6 @@ icons\
 background.js
 twitter_improvements.css
 twitter_improvements.js
+fetch-intercept.js
+fetch-intercept-loader.js
 element_hiding.js
