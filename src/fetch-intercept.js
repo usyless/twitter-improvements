@@ -30,7 +30,12 @@
 
                     if (urls?.length > 0) {
                         // we have the videos in the tweet
-                        console.log(urls);
+                        window.postMessage({
+                            source: "ift",
+                            type: "media-urls",
+                            id,
+                            urls
+                        }, "https://x.com");
                     }
                 }
             }

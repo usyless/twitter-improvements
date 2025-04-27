@@ -238,21 +238,12 @@ function formatFilename(parts, save_format) {
 
 function download_video(request, sendResponse) {
     Settings.getSettings().then(async () => {
-        const parts = getNamePartsGeneric(request.url);
-        const save_format = Settings.download_preferences.save_format;
-        const id = parts.tweetId, details = Settings.video_details;
+        const parts = getNamePartsGeneric(request.url),
+            save_format = Settings.download_preferences.save_format,
+            urls = request.urls;
         try {
-            const tweetDetailsURL = new URL(details.detailsURL);
-            tweetDetailsURL.searchParams.set('variables', JSON.stringify({...variables, "focalTweetId": id}));
-            tweetDetailsURL.searchParams.set('features', details.features);
-            tweetDetailsURL.searchParams.set('fieldToggles', details.fieldToggles);
-
-
-            const download = () => {
-                downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
-                sendResponse({status: 'success'});
-            }
-
+            downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
+            sendResponse({status: 'success'});
         } catch (error) {
             console.error(error);
             if (Settings.video_preferences.video_download_fallback) {
