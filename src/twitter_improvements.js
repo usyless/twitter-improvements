@@ -218,21 +218,6 @@
             }
         },
 
-        videoButtonCallback: (article, index=0, trueIndexes=[1]) => {
-            const url = Tweet.url(article);
-            if (index !== -1 && Helpers.shouldPreventDuplicate()) {
-                Background.download_history_has(Helpers.idWithNumber(url, trueIndexes[0])).then((r) => {
-                    if (r) {
-                        const notif = Notification.create('Video is already saved\nClick here to save again', 'save_video_duplicate');
-                        if (notif) {
-                            notif.style.cursor = 'pointer';
-                            notif.addEventListener('click', Downloaders.download_video.bind(null, url, index, trueIndexes));
-                        }
-                    } else Downloaders.download_video(url, index, trueIndexes);
-                });
-            } else Downloaders.download_video(url, index, trueIndexes);
-        },
-
         maximised: () => {
             const pathname = window.location.pathname;
             return pathname.includes('/photo/') || pathname.includes('/video/');
@@ -330,15 +315,16 @@
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
         imageButtonCallback: (image, ev) => {
-            const save_id = Image.idWithNumber(image), split = save_id.split('-');
+            const url = Image.respectiveURL(image), save_id = Helpers.idWithNumber(url),
+                split = save_id.split('-');
             if (ev?.type === 'click' || !ev) {
-                Downloaders.download_all(Image.respectiveURL(image),{
+                Downloaders.download_all(url,{
                     index: +split[1], save_id, type: 'Image',
                     url: image.src.replace(/name=[^&]*/, "name=orig"),
                 });
             } else {
                 Notification.create('Removing image from saved', 'history_remove');
-                Background.download_history_remove(Image.idWithNumber(image));
+                Background.download_history_remove(save_id);
             }
         },
 
