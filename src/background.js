@@ -227,6 +227,11 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
+/**
+ * @param {string} url
+ * @param {MediaItem[]} media
+ * @param {function(any)} sendResponse
+ */
 function download_media({url, media}, sendResponse) {
     Settings.getSettings().then(() => {
         const save_format = Settings.download_preferences.save_format,

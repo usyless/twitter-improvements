@@ -7,7 +7,7 @@
 
     // this will memory leak for now, its fine
     // i will fix this later
-    const /** @type {Map<string, MediaItem>}*/ URL_CACHE = new Map();
+    const /** @type {Map<string, MediaItem[]>}*/ URL_CACHE = new Map();
 
     window.addEventListener("message", (e) => {
         if (e.source !== window || e.origin !== "https://x.com") return;
@@ -37,9 +37,15 @@
     };
 
     const Background = {
+        /** @param {string} id */
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
+        /** @param {string} id */
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
 
+        /**
+         * @param {string} url
+         * @param {MediaItem[]} media
+         */
         save_media: (url, media) => browser.runtime.sendMessage({ type: 'save_media', url, media }),
 
         get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
