@@ -2,7 +2,7 @@
 
 (() => {
     if (typeof this.browser === 'undefined') {
-        this.browser = chrome;
+        this.browser = /** @suppress */ chrome;
     }
 
     // this will memory leak for now, its fine
