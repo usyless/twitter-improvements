@@ -75,7 +75,7 @@
                 if (softOverride) {
                     media = (await Promise.all(media.map(async (m) => [m, await Background.download_history_has(m.save_id)])))
                         .filter(([_, saved]) => !saved).map(([m]) => m);
-                } else if ((await Promise.all(media.map(({save_id}) => Background.download_history_remove(save_id)))).some(Boolean)) {
+                } else if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).some(Boolean)) {
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'saving');
                     if (notif) {
                         notif.style.cursor = 'pointer';
