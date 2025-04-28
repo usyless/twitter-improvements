@@ -165,6 +165,7 @@ browser.storage.onChanged.addListener((changes, namespace) => {
 });
 
 function download(url, filename) {
+    // technically dont need to recall Settings.getSettings
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
         const dir = Settings.download_preferences.save_directory;
         const downloadData = {
@@ -228,12 +229,13 @@ function formatFilename(parts, save_format) {
 
 function download_media({url, media}, sendResponse) {
     Settings.getSettings().then(() => {
-        const save_format = Settings.download_preferences.save_format;
+        const save_format = Settings.download_preferences.save_format,
+            download_history = Settings.image_preferences.download_history_enabled;
         for (const {type, url: sourceURL, index} of media) {
             const parts = ((type === 'video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             download(url, formatFilename(parts, save_format));
-            if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts));
+            if (download_history) download_history_add(formatPartsForStorage(parts));
         }
         sendResponse({status: 'success'});
     });
