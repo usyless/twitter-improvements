@@ -7,8 +7,7 @@ if (typeof this.browser === 'undefined') {
 const DOWNLOAD_DB_VERSION = 1;
 
 const requestMap = {
-    image: saveImage,
-    video: download_video,
+    save_media: download_media,
     download_history_has: download_history_has,
     download_history_remove: download_history_remove,
     download_history_clear: download_history_clear,
@@ -109,10 +108,6 @@ const Settings = { // Setting handling
             tweet_button_positions: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}'
         },
 
-        video_preferences: {
-            video_download_fallback: true
-        },
-
         hidden_extension_notifications: {
             save_image: false,
             save_image_duplicate: false,
@@ -195,18 +190,6 @@ function send_to_all_tabs(message) {
     });
 }
 
-function saveImage(request, sendResponse) {
-    Settings.getSettings().then(() => {
-        const parts = getNamePartsImage(request.url, request.sourceURL);
-        download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
-
-        if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
-            sendToTab({type: 'image_saved'});
-        });
-    })
-    sendResponse?.('success');
-}
-
 function getNamePartsGeneric(url) {
     url = url.split("/");
     return {
@@ -223,6 +206,13 @@ function getNamePartsImage(url, sourceURL) {
     }
 }
 
+function getNamePartsVideo(url, sourceURL) {
+    return {
+        ...getNamePartsGeneric(url),
+        extension: sourceURL.includes(".mp4") ? "mp4" : "gif"
+    }
+}
+
 function formatPartsForStorage(parts) {
     return `${parts.tweetId}-${parts.tweetNum}`
 }
@@ -236,33 +226,29 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
-function download_video(request, sendResponse) {
-    Settings.getSettings().then(async () => {
-        const parts = getNamePartsGeneric(request.url),
-            save_format = Settings.download_preferences.save_format,
-            urls = request.urls;
-        try {
-            downloadVideos(((request.index === -1) ? urls : [urls[request.index]]), parts, save_format, request.trueIndexes);
-            sendResponse({status: 'success'});
-        } catch (error) {
-            console.error(error);
-            if (Settings.video_preferences.video_download_fallback) {
-                sendResponse({status: 'newpage', copy: formatFilename(parts, save_format)});
-                browser.tabs.create({url: `https://cobalt.tools/#${request.url}`});
-            } else sendResponse({status: 'error'});
+function download_media({url, media}, sendResponse) {
+    Settings.getSettings().then(() => {
+        const save_format = Settings.download_preferences.save_format;
+        for (const {type, url: sourceURL, index} of media) {
+            const parts = ((type === 'video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
+            parts.tweetNum = index;
+            download(url, formatFilename(parts, save_format));
+            if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts));
         }
+        sendResponse({status: 'success'});
     });
 }
 
-function downloadVideos(urls, parts, save_format, trueIndexes) {
-    urls.forEach((url, i) => {
-        parts.tweetNum = trueIndexes[i];
-        parts.extension = url.includes(".mp4") ? "mp4" : "gif";
-        // No need to alert tabs of video saved
-        if (Settings.image_preferences.download_history_enabled)
-            void download_history_add(formatPartsForStorage(parts));
-        download(url, formatFilename(parts, save_format));
-    });
+// only used for right click menu
+function saveImage(request) {
+    Settings.getSettings().then(() => {
+        const parts = getNamePartsImage(request.url, request.sourceURL);
+        download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
+
+        if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
+            sendToTab({type: 'image_saved'});
+        });
+    })
 }
 
 // migrating to new settings format

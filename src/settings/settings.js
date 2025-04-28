@@ -70,11 +70,6 @@
                     name: 'video_button',
                     category: 'setting',
                     description: 'Show Video/GIF Download Buttons',
-                },
-                {
-                    name: 'video_download_fallback',
-                    category: 'video_preferences',
-                    description: 'Open download url in new cobalt.tools tab if download fails',
                 }
             ],
             'Image Saving': [

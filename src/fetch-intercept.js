@@ -45,22 +45,24 @@
             if (id && tweet) {
                 // has media
                 const mediaInfo = [];
-                for (let i = 1; i <= tweet.length; ++i) {
-                    const media = tweet[i], info = {id: `${id}-${i}`};
+                for (let index = 1; index <= tweet.length; ++index) {
+                    const media = tweet[index], info = {index};
                     switch (media.type) {
                         case 'photo': {
                             const lastDot = media.media_url_https?.lastIndexOf('.');
                             info.url = `${media.media_url_https?.substring(0, lastDot)}?format=${media.media_url_https?.substring(lastDot + 1)}&name=orig`;
+                            info.type = 'photo';
                             break;
                         }
                         case 'video': case 'animated_gif': {
                             info.url = getBestQuality(media.video_info?.variants);
+                            info.type = 'video';
                             break;
                         }
                     }
                     mediaInfo.push(info);
                 }
-                return mediaInfo;
+                return { id, media: mediaInfo };
             }
         }
     }
