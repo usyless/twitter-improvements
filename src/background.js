@@ -239,7 +239,7 @@ function download_media({url, media}, sendResponse) {
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
-            download(url, formatFilename(parts, save_format));
+            download(sourceURL, formatFilename(parts, save_format));
             if (download_history) download_history_add(save_id);
         }
         sendResponse({status: 'success'});
