@@ -18,14 +18,11 @@
                 if (xhr.status === 200) {
                     if (responseURL.includes('TweetDetail')) {
                         // maximised tweet
-                        let media = mediaFromInstructions(JSON.parse(xhr.responseText)?.data
+                        mediaFromInstructions(JSON.parse(xhr.responseText)?.data
                             ?.threaded_conversation_with_injections_v2?.instructions);
-                        if (media.length > 0) postMedia(media);
                     } else if (responseURL.includes('HomeTimeline')) {
                         // tweets at home
-                        let media = mediaFromInstructions(JSON.parse(xhr.responseText)?.data?.home?.home_timeline_urt
-                            ?.instructions);
-                        if (media.length > 0) postMedia(media);
+                        mediaFromInstructions(JSON.parse(xhr.responseText)?.data?.home?.home_timeline_urt?.instructions);
                     }
                 }
             }
@@ -34,8 +31,9 @@
     };
 
     function mediaFromInstructions(instructions) {
-        return instructions?.find?.(a => a?.type === "TimelineAddEntries")?.entries
+        const media = instructions?.find?.(a => a?.type === "TimelineAddEntries")?.entries
             ?.filter(a => a?.entryId?.startsWith('tweet-'))?.map(getMediaInfo)?.filter(a => a != null);
+        if (media.length > 0) postMedia(media);
     }
 
     function getMediaInfo(tweet) {
