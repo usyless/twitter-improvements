@@ -199,6 +199,10 @@
             }
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @param {Event} ev
+         */
         mediaDownloadCallback: (article, ev) => {
             const url = Tweet.url(article), id = Helpers.id(url);
             if (URL_CACHE.has(id)) {
@@ -211,7 +215,7 @@
                     if (media.length === 1) {
                         Background.download_history_remove(media[0].save_id);
                         Notification.create('Removing media from history', 'history_remove');
-                    } else Notification.create('Multi-media tweet\nClick download button first to remove', '');
+                    } else Notification.create('Multi-media tweet\nClick download button first to remove', 'error');
                 }
             } else if (article.isConnected) { // look into this
                 setTimeout(Tweet.mediaDownloadCallback, 100, article, ev);
