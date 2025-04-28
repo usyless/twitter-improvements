@@ -40,14 +40,13 @@
             tweet = tweet.legacy?.entities?.media;
             if (id && tweet) {
                 // has media
-                const mediaInfo = [];
+                const /** @type {MediaItem[]} */ mediaInfo = [];
                 for (let index = 1; index <= tweet.length; ++index) {
-                    const media = tweet[index - 1], info = {index, save_id: `${id}-${index}`};
+                    const media = tweet[index - 1], /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
                     switch (media.type) {
                         case 'photo': {
                             const lastDot = media.media_url_https?.lastIndexOf('.');
                             info.url = `${media.media_url_https?.substring(0, lastDot)}?format=${media.media_url_https?.substring(lastDot + 1)}&name=orig`;
-                            info.type = 'Image';
                             break;
                         }
                         case 'video': case 'animated_gif': {

@@ -7,7 +7,7 @@
 
     // this will memory leak for now, its fine
     // i will fix this later
-    const URL_CACHE = new Map();
+    const /** @type {Map<string, MediaItem>}*/ URL_CACHE = new Map();
 
     window.addEventListener("message", (e) => {
         if (e.source !== window || e.origin !== "https://x.com") return;
@@ -47,6 +47,14 @@
     };
 
     const Downloaders = {
+        /**
+         * @param {string} url
+         * @param {MediaItem[] | MediaItem} media
+         * @param {Object} [options]
+         * @param {boolean} [options.override=false]
+         * @param {boolean} [options.softOverride=false]
+         * @returns {void}
+         */
         download_all: async (url, media, {override=false, softOverride=false}={}) => {
             if (!media) {
                 const id = Helpers.id(url);
@@ -319,7 +327,7 @@
             const save_id = Image.idWithNumber(image), split = save_id.split('-');
             if (ev?.type === 'click' || !ev) {
                 Downloaders.download_all(Image.respectiveURL(image),{
-                    index: split[1], save_id, type: 'Image',
+                    index: +split[1], save_id, type: 'Image',
                     url: image.src.replace(/name=[^&]*/, "name=orig"),
                 });
             } else {
