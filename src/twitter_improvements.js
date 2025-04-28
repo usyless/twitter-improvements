@@ -13,7 +13,7 @@
         if (e.source !== window || e.origin !== "https://x.com") return;
 
         const data = e?.data;
-        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of data.media)
+        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media)
             URL_CACHE.set(id, media);
     });
 

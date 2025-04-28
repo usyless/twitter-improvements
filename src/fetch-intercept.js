@@ -1,5 +1,6 @@
 (() =>  {
     const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
+    /** @param {MediaTransfer[]} media */
     const postMedia = (media) => {
         window.postMessage({ source: "ift", type: "media-urls", media }, "https://x.com");
     }
@@ -32,6 +33,10 @@
         if (media.length > 0) postMedia(media);
     }
 
+    /**
+     * @param tweet
+     * @returns {MediaTransfer}
+     */
     function getMediaInfo(tweet) {
         tweet = tweet?.content?.itemContent?.tweet_results?.result;
         tweet = tweet?.tweet ?? tweet;
