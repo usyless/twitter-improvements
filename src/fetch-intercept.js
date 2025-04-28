@@ -1,11 +1,7 @@
 (() =>  {
     const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
     const postMedia = (media) => {
-        window.postMessage({
-            source: "ift",
-            type: "media-urls",
-            media
-        }, "https://x.com");
+        window.postMessage({ source: "ift", type: "media-urls", media }, "https://x.com");
     }
 
     const originalSend = XMLHttpRequest.prototype.send;
@@ -46,17 +42,17 @@
                 // has media
                 const mediaInfo = [];
                 for (let index = 1; index <= tweet.length; ++index) {
-                    const media = tweet[index], info = {index};
+                    const media = tweet[index - 1], info = {index, save_id: `${id}-${index}`};
                     switch (media.type) {
                         case 'photo': {
                             const lastDot = media.media_url_https?.lastIndexOf('.');
                             info.url = `${media.media_url_https?.substring(0, lastDot)}?format=${media.media_url_https?.substring(lastDot + 1)}&name=orig`;
-                            info.type = 'photo';
+                            info.type = 'Image';
                             break;
                         }
                         case 'video': case 'animated_gif': {
                             info.url = getBestQuality(media.video_info?.variants);
-                            info.type = 'video';
+                            info.type = 'Video';
                             break;
                         }
                     }

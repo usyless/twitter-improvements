@@ -231,11 +231,11 @@ function download_media({url, media}, sendResponse) {
     Settings.getSettings().then(() => {
         const save_format = Settings.download_preferences.save_format,
             download_history = Settings.image_preferences.download_history_enabled;
-        for (const {type, url: sourceURL, index} of media) {
-            const parts = ((type === 'video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
+        for (const {type, url: sourceURL, index, save_id} of media) {
+            const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             download(url, formatFilename(parts, save_format));
-            if (download_history) download_history_add(formatPartsForStorage(parts));
+            if (download_history) download_history_add(save_id);
         }
         sendResponse({status: 'success'});
     });

@@ -13,8 +13,8 @@
         if (e.source !== window || e.origin !== "https://x.com") return;
 
         const data = e?.data;
-        if (data?.source === "ift" && data?.type === 'media-urls')
-            URL_CACHE.set(data.id, data.media);
+        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of data.media)
+            URL_CACHE.set(id, media);
     });
 
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
@@ -47,24 +47,33 @@
     };
 
     const Downloaders = {
-        download_video: (url, index, trueIndexes) => {
-            const id = Helpers.idWithNumber(url, '').replaceAll('-', '');
-            if (URL_CACHE.has(id)) {
-                Notification.create(`Saving Tweet Video${About.android ? '\n(This may take a second on android)' : ''}`, 'save_video');
-                Background.save_video(url, URL_CACHE.get(id), index, trueIndexes).then((r) => {
-                    if (r.status === 'newpage') {
-                        navigator.clipboard.writeText(r.copy);
-                        Notification.create('Error occurred downloading video\nCopied file name to clipboard\nTry clicking on a tweet and re-downloading', 'error', 10000);
-                    } else if (r.status === 'error') Notification.create('Error occurred downloading video, try clicking on a new tweet to fix', 'error', 10000);
-                });
-            } else {
-                Notification.create('Error occurred downloading video\nOpen the tweet to download the video\nDownloading won\'t work on unopened tweets for now', 'error', 10000);
+        download_all: async (url, media, {override=false, softOverride=false}={}) => {
+            if (!media) {
+                const id = Helpers.id(url);
+                if (URL_CACHE.has(id)) media = URL_CACHE.get(id);
+                else {
+                    Notification.create('Error downloading, please try again in a second', 'error');
+                    return;
+                }
             }
-        },
-
-        download_image: (image) => {
-            Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
-            Background.save_image(Image.respectiveURL(image), image.src);
+            if (!Array.isArray(media)) media = [media];
+            Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'saving');
+            if (!override && Helpers.shouldPreventDuplicate()) {
+                if (softOverride) {
+                    media = (await Promise.all(media.map(async (m) => [m, await Background.download_history_has(m.save_id)])))
+                        .filter(([_, saved]) => !saved).map(([m]) => m);
+                } else if ((await Promise.all(media.map(({save_id}) => Background.download_history_remove(save_id)))).some(Boolean)) {
+                    const notif = Notification.create('Already downloaded\nClick here to save anyway', 'saving');
+                    if (notif) {
+                        notif.style.cursor = 'pointer';
+                        notif.addEventListener('click', Downloaders.download_all.bind(null, url, media, {override: true}));
+                    }
+                    return;
+                }
+            }
+            if (media.length > 0) {
+                Background.save_media(url, media);
+            }
         }
     };
 
@@ -176,18 +185,22 @@
             }
         },
 
-        mediaDownloadCallback: async (article, ev) => {
-            const media = await Tweet.getMedia(article);
-            if (ev.type === 'click') {
-                if (media.length === 1) {
-                    if (media[0].type === 'Image') Image.imageButtonCallback(media[0].elem);
-                    else Tweet.videoButtonCallback(article);
-                } else Notification.createDownloadChoices(media, ev);
-            } else {
-                if (media.length === 1) {
-                    Background.download_history_remove(media[0].save_id);
-                    Notification.create('Removing media from history', 'history_remove');
-                } else Notification.create('Multi-media tweet\nClick download button first to remove', '');
+        mediaDownloadCallback: (article, ev) => {
+            const url = Tweet.url(article), id = Helpers.id(url);
+            if (URL_CACHE.has(id)) {
+                const media = URL_CACHE.get(id);
+                if (ev.type === 'click') {
+                    if (media.length === 1) {
+                        Downloaders.download_all(url, media);
+                    } else Notification.createDownloadChoices(url, media, ev);
+                } else {
+                    if (media.length === 1) {
+                        Background.download_history_remove(media[0].save_id);
+                        Notification.create('Removing media from history', 'history_remove');
+                    } else Notification.create('Multi-media tweet\nClick download button first to remove', '');
+                }
+            } else if (article.isConnected) { // look into this
+                setTimeout(Tweet.mediaDownloadCallback, 100, article, ev);
             }
         },
 
@@ -216,45 +229,6 @@
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
                     if (!b.closest('article')) return b.parentElement.parentElement;
         },
-
-        getMedia: async (article) => {
-            // /photo/ or /video/ mode
-            let elem = article;
-            if (Tweet.maximised() && Tweet.isFocused(article)) {
-                elem = article.closest('section').parentElement.parentElement.firstElementChild;
-                const ul = elem.querySelector('ul');
-                if (ul && ul.lastElementChild.childElementCount === 0) {
-                    const nextButton = ul.parentElement.nextElementSibling.lastElementChild;
-                    let count = 0;
-                    // Wait until end of list is scrolled to, indicated by last element having children,
-                    // or the button disappearing, then wait an extra 100ms to allow all media to load before continuing
-                    await new Promise((resolve) => {
-                        const clickNext = () => {
-                            setTimeout(() => {
-                                nextButton.click();
-                                if (count++ < 10 && nextButton.isConnected && (ul.lastElementChild.childElementCount === 0)) clickNext();
-                                else setTimeout(resolve, 100);
-                            }, 10);
-                        }
-                        clickNext();
-                    });
-                }
-            } else {
-                const quote = article.querySelector('div[id] > div[id]');
-                if (quote) elem = quote.parentElement.firstElementChild;
-            }
-
-            const data = [], url = Tweet.url(article);
-            let videoindex = 0, index = 0;
-            for (const media of elem.querySelectorAll(
-                'img[src^="https://pbs.twimg.com/media/"], div[data-testid="videoComponent"], img[alt="Embedded video"]')) {
-                if (media.nodeName === 'IMG') {
-                    if (media.getAttribute('alt') === 'Embedded video') data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-                    else data.push({type: 'Image', elem: media, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-                } else data.push({type: 'Video', elem: article, index: videoindex++, trueindex: ++index, save_id: Helpers.idWithNumber(url, index)});
-            }
-            return data;
-        }
     };
 
     const Image = { // Image element functions
@@ -262,7 +236,7 @@
             let button;
             try {
                 image.setAttribute('usy', '');
-                const cb = Image.imageButtonCallback.bind(null, image, null);
+                const cb = Image.imageButtonCallback.bind(null, image);
                 button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-image", cb);
                 const prefs = Settings.image_preferences;
                 button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
@@ -341,19 +315,13 @@
 
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
-        imageButtonCallback: (image, overrideSave, ev) => {
+        imageButtonCallback: (image, ev) => {
+            const save_id = Image.idWithNumber(image), split = save_id.split('-');
             if (ev?.type === 'click' || !ev) {
-                if (!overrideSave && Helpers.shouldPreventDuplicate()) {
-                    Background.download_history_has(Image.idWithNumber(image)).then((r) => {
-                        if (r) {
-                            const notif = Notification.create('Image is already saved\nClick here to save again', 'save_image_duplicate');
-                            if (notif) {
-                                notif.style.cursor = 'pointer';
-                                notif.addEventListener('click', Downloaders.download_image.bind(null, image));
-                            }
-                        } else Downloaders.download_image(image);
-                    });
-                } else Downloaders.download_image(image);
+                Downloaders.download_all(Image.respectiveURL(image),{
+                    index: split[1], save_id, type: 'Image',
+                    url: image.src.replace(/name=[^&]*/, "name=orig"),
+                });
             } else {
                 Notification.create('Removing image from saved', 'history_remove');
                 Background.download_history_remove(Image.idWithNumber(image));
@@ -471,7 +439,7 @@
             document.querySelectorAll('div.usyNotificationOuter.usyFullscreen').forEach((e) => e.remove());
         },
 
-        createDownloadChoices: (choices, event) => {
+        createDownloadChoices: (url, choices, event) => {
             Notification.clearFullscreen();
             const notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
@@ -494,33 +462,22 @@
                 Notification.clearFullscreen();
             });
 
-            for (let id = 0; id < choices.length; ++id) {
-                const c = choices[id];
-                const btn = Notification.getChoiceButton(`${c.type} ${id + 1}`);
-                btn.dataset.index = id.toString();
-                btn.dataset.save_id = c.save_id;
+            for (const {index, type, save_id} of choices) {
+                const btn = Notification.getChoiceButton(`${type} ${index}`);
+                btn.dataset.index = index.toString();
+                btn.dataset.save_id = save_id;
 
                 if (Settings.image_preferences.download_history_enabled) {
-                    Background.download_history_has(c.save_id).then((r) => r && Button.mark(btn));
+                    Background.download_history_has(save_id).then((r) => r && Button.mark(btn));
                 }
 
                 popup.appendChild(btn);
             }
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
-                const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index;
-                if (Number.isNaN(choice)) { // download everything
-                    let video = null;
-                    for (const c of choices) {
-                        if (c.type === 'Image') Image.imageButtonCallback(c.elem, true);
-                        else video = c;
-                    }
-                    if (video != null) Tweet.videoButtonCallback(video.elem, -1, choices.filter(c => c.type === 'Video').map(c => c.trueindex));
-                } else {
-                    const c = choices[choice];
-                    if (c.type === 'Image') Image.imageButtonCallback(c.elem);
-                    else Tweet.videoButtonCallback(c.elem, c.index, [c.trueindex]);
-                }
+                const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
+                if (Number.isNaN(choice)) Downloaders.download_all(url, choices);
+                else Downloaders.download_all(url, choices[choice]);
             });
             popup.addEventListener('contextmenu', (e) => {
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
@@ -584,6 +541,8 @@
             const a = url.split("/");
             return `${a[5]}-${override ?? a[7]}`;
         },
+
+        id: (url) => url.split("/")[5],
 
         shouldPreventDuplicate: () => {
             return Settings.image_preferences.download_history_enabled && Settings.image_preferences.download_history_prevent_download;
