@@ -34,10 +34,8 @@
     };
 
     function mediaFromInstructions(instructions) {
-        return instructions
-            ?.find?.(a => a?.type === "TimelineAddEntries")?.entries
-            ?.filter(a => a?.entryId?.startsWith('tweet-'))?.map(getMediaInfo)
-            ?.filter(a => a != null);
+        return instructions?.find?.(a => a?.type === "TimelineAddEntries")?.entries
+            ?.filter(a => a?.entryId?.startsWith('tweet-'))?.map(getMediaInfo)?.filter(a => a != null);
     }
 
     function getMediaInfo(tweet) {
@@ -67,31 +65,5 @@
                 return mediaInfo;
             }
         }
-    }
-
-    function findAllPotentialTweetsById(data, id, results=[]) {
-        if (Array.isArray(data)) for (const item of data) findAllPotentialTweetsById(item, id, results);
-        else if (typeof data === 'object' && data != null) {
-            for (const val of Object.values(data)) {
-                if (val.includes?.(id)) {
-                    results.push(data);
-                    break;
-                }
-            }
-            for (const key in data) findAllPotentialTweetsById(data[key], id, results);
-        }
-        return results;
-    }
-
-    function findVideos(data, results = {}) {
-        if (Array.isArray(data)) for (const item of data) findVideos(item, results);
-        else if (typeof data === 'object' && data != null) {
-            if (Array.isArray(data.variants)) for (const variant of data.variants) if (variant.bitrate && variant.url && variant.content_type === "video/mp4") {
-                const id = variant.url.match(/ext_tw_video\/(\d+)\//)?.[1];
-                if (id) results[id] = +results[id]?.bitrate > variant?.bitrate ? results[id] : variant;
-            }
-            for (const key in data) findVideos(data[key], results);
-        }
-        return results;
     }
 })();
