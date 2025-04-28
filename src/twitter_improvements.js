@@ -56,9 +56,8 @@
         /**
          * @param {string} url
          * @param {MediaItem[] | MediaItem} media
-         * @param {Object} [options]
-         * @param {boolean} [options.override=false]
-         * @param {boolean} [options.softOverride=false]
+         * @param {boolean} [override]
+         * @param {boolean} [softOverride]
          * @returns {void}
          */
         download_all: async (url, media, {override=false, softOverride=false}={}) => {
@@ -87,6 +86,8 @@
             }
             if (media.length > 0) {
                 Background.save_media(url, media);
+            } else {
+                Notification.create('No media to save', 'error');
             }
         }
     };
@@ -415,7 +416,7 @@
         /**
          * @param {string} text
          * @param {NotificationTypes} type
-         * @param {number} timeout
+         * @param {number} [timeout]
          * @returns {HTMLDivElement}
          */
         create: (text, type, timeout = 5000) => {
