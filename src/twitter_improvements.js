@@ -391,15 +391,20 @@
             e.stopPropagation();
         },
 
+        /** @param {HTMLElement} button */
         mark: (button) => button.classList.add('usyMarked'),
+        /** @param {HTMLElement} button */
         unmark: (button) => button.classList.remove('usyMarked'),
-
+        /** @param {HTMLElement} bc */
         onhover: (bc) => {
             bc.classList.add('r-1cvl2hr');
             bc.style.color = '';
             bc.firstElementChild.firstElementChild.classList.replace('r-1niwhzg', 'r-1peqgm7');
         },
-
+        /**
+         * @param {HTMLElement} bc
+         * @param {string} origColour
+         * */
         stophover: (bc, origColour) => {
             bc.classList.remove('r-1cvl2hr');
             bc.style.color = origColour;
@@ -417,6 +422,12 @@
     };
 
     const Notification = {
+        /**
+         * @param {string} text
+         * @param {NotificationTypes} type
+         * @param {number} timeout
+         * @returns {HTMLDivElement}
+         */
         create: (text, type, timeout = 5000) => {
             if (!Settings.hidden_extension_notifications[type]) {
                 Notification.clear();
@@ -453,6 +464,11 @@
             document.querySelectorAll('div.usyNotificationOuter.usyFullscreen').forEach((e) => e.remove());
         },
 
+        /**
+         * @param {string} url
+         * @param {MediaItem[]} choices
+         * @param {Event} event
+         */
         createDownloadChoices: (url, choices, event) => {
             Notification.clearFullscreen();
             const notificationEventListeners = [];
@@ -528,6 +544,10 @@
             }
         },
 
+        /**
+         * @param {string} text
+         * @returns {HTMLButtonElement}
+         */
         getChoiceButton: (text) => {
             const b = document.createElement('button'), t = document.createElement('b');
             b.classList.add('usyDownloadChoiceButton');
