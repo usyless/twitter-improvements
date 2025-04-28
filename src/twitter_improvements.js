@@ -492,7 +492,7 @@
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
-                if (Number.isNaN(choice)) Downloaders.download_all(url, choices);
+                if (Number.isNaN(choice)) Downloaders.download_all(url, choices, {override: true});
                 else Downloaders.download_all(url, choices[choice]);
             });
             popup.addEventListener('contextmenu', (e) => {
