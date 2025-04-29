@@ -240,23 +240,32 @@
     };
 
     const Image = { // Image element functions
+        /**
+         * @param {HTMLElement} media
+         * @param {function} cb
+         * @returns {HTMLElement}
+         */
+        genericButton: (media, cb) => {
+            const button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
+            const prefs = Settings.image_preferences;
+            button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
+                ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
+            button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
+            button.style.transform = `scale(${prefs.image_button_scale})`;
+
+            if (media.complete || !('complete' in media)) Image.setButtonHeight(media, button);
+            else media.addEventListener('load', Image.setButtonHeight.bind(null, media, button), {once: true});
+            media.after(button);
+            return button;
+        },
+
         addImageButton: (image) => {
             let button;
             try {
                 image.setAttribute('usy-media', '');
-                const cb = Image.imageButtonCallback.bind(null, image);
-                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
-                const prefs = Settings.image_preferences;
-                button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
-                    ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-                button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
-                button.style.transform = `scale(${prefs.image_button_scale})`;
+                button = Image.genericButton(image, Image.imageButtonCallback.bind(null, image));
 
-                if (image.complete) Image.setButtonHeight(image, button);
-                else image.addEventListener('load', Image.setButtonHeight.bind(null, image, button), {once: true});
-
-                image.after(button);
-                if (prefs.download_history_enabled) { // mark image
+                if (Settings.image_preferences.download_history_enabled) { // mark image
                     const id = Image.idWithNumber(image);
                     button.setAttribute('ti-id', id);
                     Background.download_history_has(id).then((response) => {
@@ -276,19 +285,9 @@
                 const article = Tweet.nearestTweet(video);
                 // no way to get id from inside quote tweet i think
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
-                    const cb = Image.videoButtonCallback.bind(null, video);
-                    button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
-                    const prefs = Settings.image_preferences;
-                    button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
-                        ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-                    button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
-                    button.style.transform = `scale(${prefs.image_button_scale})`;
+                    button = Image.genericButton(video, Image.videoButtonCallback.bind(null, video));
 
-                    if (video.complete) Image.setButtonHeight(video, button);
-                    else video.addEventListener('load', Image.setButtonHeight.bind(null, video, button), {once: true});
-
-                    video.after(button);
-                    if (prefs.download_history_enabled) { // mark image
+                    if (Settings.image_preferences.download_history_enabled) { // mark image
                         const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
                         button.setAttribute('ti-id', id);
                         Background.download_history_has(id).then((response) => {
@@ -437,6 +436,16 @@
     };
 
     const Button = { // Button functions
+        /**
+         * @param {HTMLElement} shareButton
+         * @param {string} [path]
+         * @param {function} clickCallback
+         * @param {string} attribute
+         * @param {function} [rightClickCallback]
+         * @param {any[]} [customListeners]
+         * @param {any[]} [extras]
+         * @returns {HTMLElement}
+         */
         newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = [], extras = []) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
