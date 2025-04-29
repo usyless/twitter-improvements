@@ -33,9 +33,16 @@
     function getMediaFromTweetResult(tweet) {
         tweet = tweet.tweet ?? tweet;
         if (tweet) {
-            const id = tweet.legacy?.retweeted_status_result?.result?.rest_id ?? tweet.rest_id;
-            tweet = tweet.legacy?.entities?.media;
-            if (id && tweet) {
+            let id = tweet.rest_id;
+            tweet = tweet.legacy;
+            let retweet = tweet?.retweeted_status_result?.result;
+            if (retweet) {
+                retweet = retweet.tweet ?? retweet;
+                id = retweet?.rest_id;
+            }
+            tweet = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
+
+            if (id && tweet) { // tweet here is media
                 // has media
                 const /** @type {MediaItem[]} */ mediaInfo = [];
                 for (let index = 1; index <= tweet.length; ++index) {
@@ -63,8 +70,8 @@
 
     function findTweets(obj, result = []) {
         if (obj && typeof obj === 'object') {
-            if ((obj.__typename === 'Tweet' && obj.legacy?.entities?.media)
-                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.entities?.media)) {
+            if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
+                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)) {
                 result.push(obj);
             }
 
