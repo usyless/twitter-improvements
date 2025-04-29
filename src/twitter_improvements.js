@@ -273,25 +273,28 @@
             let button;
             try {
                 video.setAttribute('usy-media', '');
-                const cb = Image.videoButtonCallback.bind(null, video);
-                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
-                const prefs = Settings.image_preferences;
-                button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
-                    ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-                button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
-                button.style.transform = `scale(${prefs.image_button_scale})`;
+                const article = Tweet.nearestTweet(video);
+                // no way to get id from inside quote tweet i think
+                if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
+                    const cb = Image.videoButtonCallback.bind(null, video);
+                    button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
+                    const prefs = Settings.image_preferences;
+                    button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
+                        ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
+                    button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
+                    button.style.transform = `scale(${prefs.image_button_scale})`;
 
-                if (video.complete) Image.setButtonHeight(video, button);
-                else video.addEventListener('load', Image.setButtonHeight.bind(null, video, button), {once: true});
+                    if (video.complete) Image.setButtonHeight(video, button);
+                    else video.addEventListener('load', Image.setButtonHeight.bind(null, video, button), {once: true});
 
-                video.after(button);
-                if (prefs.download_history_enabled) { // mark image
-                    const nearest = Tweet.nearestTweet(video),
-                        id = Helpers.idWithNumber(Tweet.url(nearest), Image.videoRespectiveIndex(video, nearest));
-                    button.setAttribute('ti-id', id);
-                    Background.download_history_has(id).then((response) => {
-                        if (response === true) Button.mark(button);
-                    });
+                    video.after(button);
+                    if (prefs.download_history_enabled) { // mark image
+                        const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
+                        button.setAttribute('ti-id', id);
+                        Background.download_history_has(id).then((response) => {
+                            if (response === true) Button.mark(button);
+                        });
+                    }
                 }
             } catch {
                 video.removeAttribute('usy-media');
