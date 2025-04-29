@@ -405,10 +405,7 @@ const migrations = {
 }
 
 // migrating to new settings format
-/**
- * @param {string} previousVersion
- * @returns {Promise<void>}
- */
+/** @param {string} previousVersion */
 async function migrateSettings(previousVersion) {
     previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
     /**

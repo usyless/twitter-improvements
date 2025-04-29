@@ -17,17 +17,9 @@
  * | 'save_video_duplicate' | 'save_image'} NotificationTypes
  */
 
-/**
- * @typedef {string} tweetId
- */
-
-/**
- * @typedef {string} saveId
- */
-
-/**
- * @typedef {1 | 2 | 3 | 4 | '1' | '2' | '3' | '4'} tweetNum
- */
+/** @typedef {string} tweetId */
+/** @typedef {1 | 2 | 3 | 4 | '1' | '2' | '3' | '4'} tweetNum */
+/** @typedef {string} saveId */
 
 /**
  * @typedef {Object} NameParts
@@ -35,4 +27,10 @@
  * @property {tweetId} tweetId
  * @property {tweetNum} tweetNum
  * @property {string} [extension]
+ */
+
+/**
+ * @typedef {Object} EventListeners
+ * @property {string} type
+ * @property {function} listener
  */

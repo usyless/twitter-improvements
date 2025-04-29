@@ -241,7 +241,7 @@
 
     const Image = { // Image element functions
         /**
-         * @param {HTMLElement} media
+         * @param {HTMLElement | HTMLImageElement} media
          * @param {function} cb
          * @returns {HTMLElement}
          */
@@ -438,12 +438,12 @@
     const Button = { // Button functions
         /**
          * @param {HTMLElement} shareButton
-         * @param {string} [path]
+         * @param {string | null} [path]
          * @param {function} clickCallback
          * @param {string} attribute
          * @param {function} [rightClickCallback]
-         * @param {any[]} [customListeners]
-         * @param {any[]} [extras]
+         * @param {EventListeners[]} [customListeners]
+         * @param {(function(HTMLElement): any)[]} [extras]
          * @returns {HTMLElement}
          */
         newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = [], extras = []) => {
@@ -488,7 +488,7 @@
         /**
          * @param {HTMLElement} bc
          * @param {string} origColour
-         * */
+         */
         stophover: (bc, origColour) => {
             bc.classList.remove('r-1cvl2hr');
             bc.style.color = origColour;
@@ -502,6 +502,10 @@
             }
         },
 
+        /**
+         * @param {HTMLElement} elem
+         * @returns {HTMLElement | void}
+         */
         closest: (elem) => elem.closest('.usybuttonclickdiv'),
     };
 
@@ -555,7 +559,7 @@
          */
         createDownloadChoices: (url, choices, event) => {
             Notification.clearFullscreen();
-            const notificationEventListeners = [];
+            const /** @type EventListeners[] */ notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
 
@@ -572,7 +576,7 @@
             popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
 
             fullscreen.addEventListener('click', () => {
-                for (const e of notificationEventListeners) window.removeEventListener(e.type, e.listener);
+                for (const {type, listener} of notificationEventListeners) window.removeEventListener(type, listener);
                 Notification.clearFullscreen();
             });
 
@@ -625,9 +629,9 @@
             popup.classList.add('animate');
             notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
 
-            for (const listener of notificationEventListeners) {
-                listener.listener();
-                window.addEventListener(listener.type, listener.listener);
+            for (const {type, listener} of notificationEventListeners) {
+                listener();
+                window.addEventListener(type, listener);
             }
         },
 
@@ -660,7 +664,7 @@
 
         /**
          * @param {string} url
-         * @param {1 | 2 | 3 | 4 | '1' | '2' | '3' | '4'} [override]
+         * @param {tweetNum} [override]
          * @returns {string}
          */
         idWithNumber: (url, override) => {
