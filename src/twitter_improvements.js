@@ -183,7 +183,7 @@
 
         nearestTweet: (elem) => {
             if (Tweet.maximised()) {
-                return elem.closest('#layers').querySelector('article');
+                return elem.closest('article') ?? elem.closest('#layers').querySelector('article');
             } else {
                 let anchor;
                 while (elem) {
@@ -681,7 +681,7 @@
                         s: 'article:not([usy-bookmarked])',
                         f: Tweet.copyBookmarkButton
                     }],
-                    inline_download_button: [{
+                    inline_download_button: [{ // tweetPhoto data id doesnt work for maximised view
                         s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-download])',
                         f: Tweet.addDownloadButton
                     }, {
