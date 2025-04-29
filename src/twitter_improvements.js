@@ -61,6 +61,8 @@
          * @returns {void}
          */
         download_all: async (url, media, {override=false, softOverride=false}={}) => {
+            console.log(media);
+            return;
             if (!media) {
                 const id = Helpers.id(url);
                 if (URL_CACHE.has(id)) media = URL_CACHE.get(id);
@@ -77,7 +79,7 @@
                     newMedia = (await Promise.all(media.map(async (m) => [m, await Background.download_history_has(m.save_id)])))
                         .filter(([_, saved]) => !saved).map(([m]) => m);
                 }
-                if ((softOverride && newMedia.length === 0) ||
+                if ((newMedia && newMedia.length === 0) ||
                     (await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).some(Boolean)) {
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'saving');
                     if (notif) {
@@ -86,7 +88,7 @@
                     }
                     return;
                 }
-                media = newMedia;
+                if (newMedia) media = newMedia;
             }
             if (media.length > 0) {
                 Background.save_media(url, media);
@@ -243,9 +245,9 @@
         addImageButton: (image) => {
             let button;
             try {
-                image.setAttribute('usy', '');
+                image.setAttribute('usy-media', '');
                 const cb = Image.imageButtonCallback.bind(null, image);
-                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-image", cb);
+                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
                 const prefs = Settings.image_preferences;
                 button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
                     ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
@@ -264,7 +266,37 @@
                     });
                 }
             } catch {
-                image.removeAttribute('usy');
+                image.removeAttribute('usy-media');
+                button?.remove();
+            }
+        },
+
+        addVideoButton: (video) => {
+            let button;
+            try {
+                video.setAttribute('usy-media', '');
+                const cb = Image.videoButtonCallback.bind(null, video);
+                button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
+                const prefs = Settings.image_preferences;
+                button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
+                    ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
+                button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
+                button.style.transform = `scale(${prefs.image_button_scale})`;
+
+                if (video.complete) Image.setButtonHeight(video, button);
+                else video.addEventListener('load', Image.setButtonHeight.bind(null, video, button), {once: true});
+
+                video.after(button);
+                if (prefs.download_history_enabled) { // mark image
+                    const nearest = Tweet.nearestTweet(video),
+                        id = Helpers.idWithNumber(Tweet.url(nearest), Image.videoRespectiveIndex(video, nearest));
+                    button.setAttribute('ti-id', id);
+                    Background.download_history_has(id).then((response) => {
+                        if (response === true) Button.mark(button);
+                    });
+                }
+            } catch {
+                video.removeAttribute('usy-media');
                 button?.remove();
             }
         },
@@ -314,10 +346,26 @@
             let url = image.closest('[href]')?.href;
             if (url) return url;
 
-            url = window.location.href;
             if (Tweet.maximised()) {
+                url = window.location.href;
                 const li = image.closest('li');
                 return (li) ? `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}` : url;
+            }
+        },
+
+        /**
+         * @param {HTMLElement} video
+         * @param {HTMLElement} [tweet]
+         * @returns {number}
+         */
+        videoRespectiveIndex: (video, tweet) => {
+            if (Tweet.maximised()) {
+                const li = video.closest('li');
+                return Array.from(li.parentElement.children).indexOf(li) + 1;
+            } else {
+                if (!tweet) tweet = Tweet.nearestTweet(video);
+                // THIS DOESNT WORK
+                return Array.from(tweet.querySelectorAll('[data-testid="tweetPhoto"]')).indexOf(video) + 1;
             }
         },
 
@@ -341,12 +389,31 @@
             }
         },
 
-        resetAll: () => {
-            for (const button of document.querySelectorAll('div[usy-image].usybuttonclickdiv')) button.remove();
-            for (const image of document.querySelectorAll('img[usy]')) image.removeAttribute('usy');
+        /**
+         * @param {HTMLElement} video
+         * @param {MouseEvent | TouchEvent | PointerEvent} ev
+         */
+        videoButtonCallback: (video, ev) => {
+            const save_id = ev.currentTarget.getAttribute('ti-id'),
+                url = Tweet.url(Tweet.nearestTweet(video));
+            if (ev?.type === 'click' || !ev) {
+                if (URL_CACHE.has(save_id.split('-')[0])) {
+                    Downloaders.download_all(url, URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id));
+                } else {
+                    Notification.create('Error saving, try again', 'error');
+                }
+            } else {
+                Notification.create('Removing video from saved', 'history_remove');
+                Background.download_history_remove(save_id);
+            }
         },
 
-        getButtons: (id) => document.querySelectorAll(`div[usy-image][ti-id="${id}"].usybuttonclickdiv`)
+        resetAll: () => {
+            for (const button of document.querySelectorAll('[usy-media].usybuttonclickdiv')) button.remove();
+            for (const image of document.querySelectorAll('[usy-media]')) image.removeAttribute('usy-media');
+        },
+
+        getButtons: (id) => document.querySelectorAll(`[usy-media][ti-id="${id}"]`)
     };
 
     const URLS = { // URL modification functions
@@ -573,6 +640,11 @@
             });
         },
 
+        /**
+         * @param {string} url
+         * @param {1 | 2 | 3 | 4 | '1' | '2' | '3' | '4'} [override]
+         * @returns {string}
+         */
         idWithNumber: (url, override) => {
             const a = url.split("/");
             return `${a[5]}-${override ?? a[7]}`;
@@ -595,25 +667,33 @@
             Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
                 callbackMappings = {
-                    vx_button: [{s: 'article:not([usy])', f: Tweet.addVXButton}],
-                    video_button: [{
+                    vx_button: [{
+                        s: 'article:not([usy])',
+                        f: Tweet.addVXButton
+                    }],
+                    bookmark_on_photo_page: [{
+                        s: 'article:not([usy-bookmarked])',
+                        f: Tweet.copyBookmarkButton
+                    }],
+                    inline_download_button: [{
+                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-download])',
+                        f: Tweet.addDownloadButton
+                    }, {
                         s: 'div[data-testid="videoComponent"]:not([usy-download])',
                         f: Tweet.addDownloadButton
                     }, {
                         s: 'img[alt="Embedded video"]:not([usy-download])',
                         f: Tweet.addDownloadButton
                     }],
-                    image_button: [{
-                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy])',
+                    media_download_button: [{
+                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-media])',
                         f: Image.addImageButton
-                    }],
-                    bookmark_on_photo_page: [{
-                        s: 'article:not([usy-bookmarked])',
-                        f: Tweet.copyBookmarkButton
-                    }],
-                    inline_image_button: [{
-                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-download])',
-                        f: Tweet.addDownloadButton
+                    }, {
+                        s: 'div[data-testid="videoComponent"]:not([usy-media])',
+                        f: Image.addVideoButton
+                    }, {
+                        s: 'img[alt="Embedded video"]:not([usy-media])',
+                        f: Image.addVideoButton
                     }]
                 }, getCallback = () => {
                     const callbacks = [];

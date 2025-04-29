@@ -48,9 +48,8 @@ const Settings = { // Setting handling
     defaults: {
         setting: {
             vx_button: true,
-            video_button: true,
-            image_button: true,
-            inline_image_button: false,
+            media_download_button: true,
+            inline_download_button: false,
             bookmark_on_photo_page: false,
         },
 
@@ -385,6 +384,25 @@ async function migrateSettings(previousVersion) {
                 resolve();
             });
         })
+    }
+
+    // move to just inline or on media buttons
+    if (versionBelowGiven(previousVersion, '1.4')) {
+        console.log("Replacing inline and media button settings");
+        await new Promise((resolve) => {
+            browser.storage.local.get().then(async (s) => {
+                if (s?.setting?.image_button != null) {
+                    s.setting.media_download_button = s.setting.image_button;
+                }
+                if (s?.setting?.inline_image_button != null || s?.setting?.video_button != null) {
+                    s.setting.inline_download_button = s?.setting?.inline_image_button || s?.setting?.video_button;
+                }
+
+                await browser.storage.local.set(s);
+
+                resolve();
+            });
+        });
     }
 }
 

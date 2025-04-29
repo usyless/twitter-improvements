@@ -1,4 +1,6 @@
 (() =>  {
+    const URLs = ['TweetDetail', 'HomeTimeline', 'UserTweets'];
+
     const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
     /** @param {MediaTransfer[]} media */
     const postMedia = (media) => {
@@ -13,13 +15,11 @@
             if (xhr.readyState === 4) {
                 const responseURL = xhr.responseURL;
                 if (xhr.status === 200) {
-                    if (responseURL.includes('TweetDetail')) {
-                        // maximised tweet
-                        mediaFromInstructions(JSON.parse(xhr.responseText)?.data
-                            ?.threaded_conversation_with_injections_v2?.instructions);
-                    } else if (responseURL.includes('HomeTimeline')) {
-                        // tweets at home
-                        mediaFromInstructions(JSON.parse(xhr.responseText)?.data?.home?.home_timeline_urt?.instructions);
+                    for (const url of URLs) {
+                        if (responseURL.includes(url)) {
+                            parseTweetMedia(xhr.responseText);
+                            return;
+                        }
                     }
                 }
             }
@@ -27,34 +27,38 @@
         return originalSend.call(this, body);
     };
 
-    function mediaFromInstructions(instructions) {
-        const media = instructions?.find?.(a => a?.type === "TimelineAddEntries")?.entries
-            ?.filter(a => a?.entryId?.startsWith('tweet-'))?.map(getMediaInfo)?.filter(a => a != null);
+    function parseTweetMedia(responseText) {
+        const /** @type {MediaTransfer[]} */ media = [];
+        for (const m of findTweets(JSON.parse(responseText))) {
+            const r = getMediaFromTweetResult(m);
+            r && media.push(/** @type {MediaTransfer} */ r);
+        }
         if (media.length > 0) postMedia(media);
     }
 
     /**
      * @param tweet
-     * @returns {MediaTransfer}
+     * @returns {MediaTransfer | void}
      */
-    function getMediaInfo(tweet) {
-        tweet = tweet?.content?.itemContent?.tweet_results?.result;
-        tweet = tweet?.tweet ?? tweet;
+    function getMediaFromTweetResult(tweet) {
+        tweet = tweet.tweet ?? tweet;
         if (tweet) {
-            const id = tweet.rest_id;
+            const id = tweet.legacy?.retweeted_status_result?.result?.rest_id ?? tweet.rest_id;
             tweet = tweet.legacy?.entities?.media;
             if (id && tweet) {
                 // has media
                 const /** @type {MediaItem[]} */ mediaInfo = [];
                 for (let index = 1; index <= tweet.length; ++index) {
-                    const media = tweet[index - 1], /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
+                    const media = tweet[index - 1],
+                        /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
                     switch (media.type) {
                         case 'photo': {
                             const lastDot = media.media_url_https?.lastIndexOf('.');
                             info.url = `${media.media_url_https?.substring(0, lastDot)}?format=${media.media_url_https?.substring(lastDot + 1)}&name=orig`;
                             break;
                         }
-                        case 'video': case 'animated_gif': {
+                        case 'video':
+                        case 'animated_gif': {
                             info.url = getBestQuality(media.video_info?.variants);
                             info.type = 'Video';
                             break;
@@ -62,8 +66,21 @@
                     }
                     mediaInfo.push(info);
                 }
-                return { id, media: mediaInfo };
+                return {id, media: mediaInfo};
             }
         }
+    }
+
+    function findTweets(obj, result = []) {
+        if (obj && typeof obj === 'object') {
+            if (obj.__typename === 'Tweet' && obj.legacy) {
+                result.push(obj);
+            }
+
+            for (const key in obj) {
+                findTweets(obj[key], result);
+            }
+        }
+        return result;
     }
 })();

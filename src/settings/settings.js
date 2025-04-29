@@ -65,23 +65,16 @@
                     type: 'text',
                 },
             ],
-            'Video/GIF Saving': [
+            'Media Saving': [
                 {
-                    name: 'video_button',
+                    name: 'media_download_button',
                     category: 'setting',
-                    description: 'Show Video/GIF Download Buttons',
-                }
-            ],
-            'Image Saving': [
-                {
-                    name: 'image_button',
-                    category: 'setting',
-                    description: 'Show Image Download Buttons on images',
+                    description: 'Show download buttons on media',
                 },
                 {
-                    name: 'inline_image_button',
+                    name: 'inline_download_button',
                     category: 'setting',
-                    description: 'Show image downloads with video download buttons',
+                    description: 'Show download buttons within tweet bottom panel',
                 },
                 {
                     type: 'break'
@@ -89,14 +82,14 @@
                 {
                     name: 'image_button_position',
                     category: 'image_preferences',
-                    description: 'Image download button position',
+                    description: 'Media download button position',
                     type: 'choice',
                     choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
                 },
                 {
                     name: 'image_button_scale',
                     category: 'image_preferences',
-                    description: 'Image download button scale',
+                    description: 'Media download button scale',
                     type: 'number',
                     validate: (value) => value > 0,
                     attributes: {step: '0.1'}
@@ -107,34 +100,34 @@
                 {
                     name: 'image_button_width_value',
                     category: 'image_preferences',
-                    description: 'Image download button width (1 for default)',
+                    description: 'Media download button width (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image width)')),
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Media width)')),
                     attributes: {step: '5'}
                 },
                 {
                     name: 'image_button_height_value',
                     category: 'image_preferences',
-                    description: 'Image download button height (1 for default)',
+                    description: 'Media download button height (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image height)')),
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'}
                 },
                 {
                     name: 'image_button_height_value_small',
                     category: 'image_preferences',
-                    description: 'Image download button height -> small images (1 for default)',
+                    description: 'Media download button height -> small images (1 for default)',
                     type: 'number',
                     validate: (value) => value > 0 && value <= 100,
-                    post: (elem) => elem.appendChild(document.createTextNode('% (of Image height)')),
+                    post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'}
                 },
                 {
                     name: 'small_image_size_threshold',
                     category: 'image_preferences',
-                    description: 'Height threshold in pixels for an image to be considered small',
+                    description: 'Height threshold in pixels for media to be considered small',
                     type: 'number',
                     validate: (value) => value > 0,
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
