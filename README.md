@@ -14,7 +14,7 @@ Image Save Button
 
 Video Download Button
 - Displays next to the Copy as VX button on each tweet with a video or a gif, and clicking it allows you to save all media in that tweet with the same good naming scheme!
-- Downloads videos locally with a fallback to opening them in a cobalt.tools tab if it fails.
+- Downloads videos locally.
 
 Image/Video Download History
 - Can keep track of downloaded files, and even prevent you from re-saving them if enabled!
