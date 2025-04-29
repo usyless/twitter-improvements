@@ -97,6 +97,7 @@
     };
 
     const Tweet = { // Tweet functions
+        /** @param {HTMLElement} article */
         addVXButton: (article) => {
             try {
                 article.setAttribute('usy', '');
@@ -114,6 +115,7 @@
             }
         },
 
+        /** @param {HTMLElement} media */
         addDownloadButton: (media)=> {
             try {
                 media.setAttribute('usy-download', '');
@@ -135,6 +137,7 @@
             }
         },
 
+        /** @param {HTMLElement} article */
         copyBookmarkButton: (article) => {
             try {
                 article.setAttribute('usy-bookmarked', '');
@@ -161,26 +164,46 @@
             }
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @returns {HTMLElement}
+         */
         defaultAnchor: (article) => {
            return article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @returns {boolean}
+         */
         isFocused: (article) => {
             // checks for reply section, or "Who can reply?" on limited reply tweets
-            return article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]') ||
-                article.querySelector('div[aria-live="polite"][role="status"]');
+            return !!(article.parentElement.querySelector('[data-testid="inline_reply_offscreen"]') ||
+                article.querySelector('div[aria-live="polite"][role="status"]'));
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @returns {HTMLElement}
+         */
         respectiveBookmarkButton: (article) => {
             return (article.querySelector('button[data-testid="bookmark"]')
                 ?? article.querySelector('button[data-testid="removeBookmark"]')).parentElement;
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @returns {string}
+         */
         url: (article) => {
             for (const a of article.querySelectorAll('a')) if (a.querySelector('time')) return a.href.replace(/\/history$/, "");
             throw new TypeError("No URL Found");
         },
 
+        /**
+         * @param {HTMLElement} elem
+         * @returns {HTMLElement | null}
+         */
         nearestTweet: (elem) => {
             if (Tweet.maximised()) {
                 return elem.closest('article') ?? elem.closest('#layers').querySelector('article');
@@ -194,6 +217,7 @@
             }
         },
 
+        /** @param {HTMLElement} article */
         vxButtonCallback: (article) => {
             try {
                 navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(article))).then(() => {
@@ -227,11 +251,16 @@
             }
         },
 
+        /** @returns {boolean} */
         maximised: () => {
             const pathname = window.location.pathname;
             return pathname.includes('/photo/') || pathname.includes('/video/');
         },
 
+        /**
+         * @param {HTMLElement} article
+         * @returns {HTMLElement | null}
+         */
         secondaryAnchor: (article) => {
             if (Tweet.maximised() && Tweet.isFocused(article))
                 for (const b of document.querySelectorAll('button[aria-label="Share post"]:not([usy])'))
@@ -259,6 +288,7 @@
             return button;
         },
 
+        /** @param {HTMLImageElement} image */
         addImageButton: (image) => {
             let button;
             try {
@@ -278,6 +308,7 @@
             }
         },
 
+        /** @param {HTMLElement} video */
         addVideoButton: (video) => {
             let button;
             try {
@@ -324,6 +355,7 @@
             } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +prefs.image_button_scale}%`;
         },
 
+        /** @returns {HTMLElement} */
         createDownloadButton: (() => {
             const outer = document.createElement('div'),
                 button = document.createElement('button'),
@@ -360,7 +392,7 @@
         /**
          * @param {HTMLElement} video
          * @param {HTMLElement} [tweet]
-         * @returns {number}
+         * @returns {tweetNum}
          */
         videoRespectiveIndex: (video, tweet) => {
             if (Tweet.maximised()) {
@@ -375,7 +407,7 @@
 
         /**
          * @param {HTMLImageElement} image
-         * @returns {string}
+         * @returns {saveId}
          */
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
@@ -651,6 +683,10 @@
     };
 
     const Helpers = {
+        /**
+         * @param {string} url
+         * @param {string} filename
+         */
         download: (url, filename) => {
             fetch(url).then(r => r.blob()).then((blob) => {
                 const link = document.createElement('a'),
@@ -665,15 +701,20 @@
         /**
          * @param {string} url
          * @param {tweetNum} [override]
-         * @returns {string}
+         * @returns {saveId}
          */
         idWithNumber: (url, override) => {
             const a = url.split("/");
             return `${a[5]}-${override ?? a[7]}`;
         },
 
+        /**
+         * @param {string} url
+         * @returns {tweetId}
+         */
         id: (url) => url.split("/")[5],
 
+        /** @returns {boolean} */
         shouldPreventDuplicate: () => {
             return Settings.image_preferences.download_history_enabled && Settings.image_preferences.download_history_prevent_download;
         }
