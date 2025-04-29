@@ -61,8 +61,6 @@
          * @returns {void}
          */
         download_all: async (url, media, {override=false, softOverride=false}={}) => {
-            console.log(media);
-            return;
             if (!media) {
                 const id = Helpers.id(url);
                 if (URL_CACHE.has(id)) media = URL_CACHE.get(id);
@@ -364,8 +362,8 @@
                 return Array.from(li.parentElement.children).indexOf(li) + 1;
             } else {
                 if (!tweet) tweet = Tweet.nearestTweet(video);
-                // THIS DOESNT WORK
-                return Array.from(tweet.querySelectorAll('[data-testid="tweetPhoto"]')).indexOf(video) + 1;
+                return Array.from(tweet.querySelectorAll('[data-testid="tweetPhoto"]'))
+                    .indexOf(video.closest('[data-testid="tweetPhoto"]')) + 1;
             }
         },
 
