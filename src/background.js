@@ -164,7 +164,7 @@ browser.storage.onChanged.addListener((changes, namespace) => {
     }
 });
 
-function download(url, filename, shift=false) {
+function download(url, filename) {
     // technically dont need to recall Settings.getSettings
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
         const {save_as_prompt, save_directory} = Settings.download_preferences;
