@@ -1,5 +1,5 @@
 (() =>  {
-    const URLs = ['TweetDetail', 'HomeTimeline', 'UserTweets'];
+    const URLs = ['TweetDetail', 'HomeTimeline', 'UserTweets', 'Bookmarks'];
 
     const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
     /** @param {MediaTransfer[]} media */
@@ -49,17 +49,17 @@
                 // has media
                 const /** @type {MediaItem[]} */ mediaInfo = [];
                 for (let index = 1; index <= tweet.length; ++index) {
-                    const media = tweet[index - 1],
+                    const {media_url_https, video_info, type} = tweet[index - 1],
                         /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
-                    switch (media.type) {
+                    switch (type) {
                         case 'photo': {
-                            const lastDot = media.media_url_https?.lastIndexOf('.');
-                            info.url = `${media.media_url_https?.substring(0, lastDot)}?format=${media.media_url_https?.substring(lastDot + 1)}&name=orig`;
+                            const lastDot = media_url_https?.lastIndexOf('.');
+                            info.url = `${media_url_https?.substring(0, lastDot)}?format=${media_url_https?.substring(lastDot + 1)}&name=orig`;
                             break;
                         }
                         case 'video':
                         case 'animated_gif': {
-                            info.url = getBestQuality(media.video_info?.variants);
+                            info.url = getBestQuality(video_info?.variants);
                             info.type = 'Video';
                             break;
                         }
@@ -73,7 +73,8 @@
 
     function findTweets(obj, result = []) {
         if (obj && typeof obj === 'object') {
-            if (obj.__typename === 'Tweet' && obj.legacy) {
+            if ((obj.__typename === 'Tweet' && obj.legacy)
+                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy)) {
                 result.push(obj);
             }
 
