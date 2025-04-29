@@ -41,7 +41,7 @@ browser?.contextMenus?.create?.(
 );
 
 browser?.contextMenus?.onClicked?.addListener?.((info) => {
-    if (info.menuItemId === "save-image") saveImage({url: info.linkUrl ?? info.pageUrl, sourceURL: info.srcUrl});
+    if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
 });
 
 const Settings = { // Setting handling
@@ -190,15 +190,24 @@ function send_to_all_tabs(message) {
     });
 }
 
+/**
+ * @param {string} url
+ * @returns {NameParts}
+ */
 function getNamePartsGeneric(url) {
-    url = url.split("/");
+    const parts = url.split("/");
     return {
-        username: url[3],
-        tweetId: url[5],
-        tweetNum: url[7],
+        username: parts[3],
+        tweetId: parts[5],
+        tweetNum: parts[7],
     }
 }
 
+/**
+ * @param {string} url
+ * @param {string} sourceURL
+ * @returns {NameParts}
+ */
 function getNamePartsImage(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
@@ -206,6 +215,11 @@ function getNamePartsImage(url, sourceURL) {
     }
 }
 
+/**
+ * @param {string} url
+ * @param {string} sourceURL
+ * @returns {NameParts}
+ */
 function getNamePartsVideo(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
@@ -213,10 +227,19 @@ function getNamePartsVideo(url, sourceURL) {
     }
 }
 
+/**
+ * @param {NameParts} parts
+ * @returns {saveId}
+ */
 function formatPartsForStorage(parts) {
     return `${parts.tweetId}-${parts.tweetNum}`
 }
 
+/**
+ * @param {NameParts} parts
+ * @param {string} save_format
+ * @returns {string}
+ */
 function formatFilename(parts, save_format) {
     return save_format
         .replaceAll('{username}', parts.username)
@@ -246,10 +269,14 @@ function download_media({url, media}, sendResponse) {
 }
 
 // only used for right click menu
-function saveImage(request) {
+/**
+ * @param {string} url
+ * @param {string} sourceURL
+ */
+function saveImage(url, sourceURL) {
     Settings.getSettings().then(() => {
-        const parts = getNamePartsImage(request.url, request.sourceURL);
-        download(request.sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
+        const parts = getNamePartsImage(url, sourceURL);
+        download(sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
 
         if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
             sendToTab({type: 'image_saved'});
@@ -258,16 +285,20 @@ function saveImage(request) {
 }
 
 // migrating to new settings format
-function versionBelowGiven(previousVersion, maxVersion) {
-    previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
-    maxVersion = (maxVersion?.match?.(/\d+/g) ?? []).join('');
-    const length = Math.max(previousVersion.length, maxVersion.length);
-    return +previousVersion.padEnd(length, '0') < +maxVersion.padEnd(length, '0');
-}
-
 async function migrateSettings(previousVersion) {
+    /**
+     * @param {string} maxVersion
+     * @returns {boolean}
+     */
+    const versionBelowGiven = (maxVersion) => {
+        previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
+        maxVersion = (maxVersion?.match?.(/\d+/g) ?? []).join('');
+        const length = Math.max(previousVersion.length, maxVersion.length);
+        return +previousVersion.padEnd(length, '0') < +maxVersion.padEnd(length, '0');
+    }
+
     // Fix for old link copying setting
-    if (versionBelowGiven(previousVersion, '1.0.7.3')) {
+    if (versionBelowGiven('1.0.7.3')) {
         console.log("Migrating vx and fx settings to new format");
         browser.storage.local.get(['url_prefix']).then(async (s) => {
             if (s.url_prefix === 'vx') await browser.storage.local.set({url_prefix: 'fixvx.com'});
@@ -276,7 +307,7 @@ async function migrateSettings(previousVersion) {
     }
 
     // 1.1.1.1 is settings migrate update
-    if (versionBelowGiven(previousVersion, '1.1.1.1')) {
+    if (versionBelowGiven('1.1.1.1')) {
         console.log("Migrating settings to new format");
         await new Promise((resolve) => {
             browser.storage.local.get().then(async (s) => {
@@ -348,7 +379,7 @@ async function migrateSettings(previousVersion) {
     }
 
     // migrate history to indexed db
-    if (versionBelowGiven(previousVersion, '1.1.1.4')) {
+    if (versionBelowGiven('1.1.1.4')) {
         console.log("Migrating history to indexed db");
         await new Promise((resolve) => {
             getHistoryDB().then((db) => {
@@ -369,7 +400,7 @@ async function migrateSettings(previousVersion) {
     }
 
     // remove long image button and replace with width setting
-    if (versionBelowGiven(previousVersion, '1.2.1.5')) {
+    if (versionBelowGiven('1.2.1.5')) {
         console.log("Removing and replacing long image button");
         await new Promise((resolve) => {
             browser.storage.local.get().then(async (s) => {
@@ -387,7 +418,7 @@ async function migrateSettings(previousVersion) {
     }
 
     // move to just inline or on media buttons
-    if (versionBelowGiven(previousVersion, '1.4')) {
+    if (versionBelowGiven('1.4')) {
         console.log("Replacing inline and media button settings");
         await new Promise((resolve) => {
             browser.storage.local.get().then(async (s) => {
