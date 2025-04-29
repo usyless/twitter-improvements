@@ -164,15 +164,15 @@ browser.storage.onChanged.addListener((changes, namespace) => {
     }
 });
 
-function download(url, filename) {
+function download(url, filename, shift=false) {
     // technically dont need to recall Settings.getSettings
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
-        const dir = Settings.download_preferences.save_directory;
+        const {save_as_prompt, save_directory} = Settings.download_preferences;
         const downloadData = {
-            url, filename: (dir?.length > 0 ? `${dir}${dir.endsWith('/') ? '' : '/'}` : '') + filename
+            url, filename: (save_directory?.length > 0 ? `${save_directory}${save_directory.endsWith('/') ? '' : '/'}` : '') + filename
         };
-        if (Settings.download_preferences.save_as_prompt === 'off') downloadData.saveAs = false;
-        else if (Settings.download_preferences.save_as_prompt === 'on') downloadData.saveAs = true;
+        if (save_as_prompt === 'off') downloadData.saveAs = false;
+        else if (save_as_prompt === 'on') downloadData.saveAs = true;
         browser.downloads.download(downloadData);
     });
 }

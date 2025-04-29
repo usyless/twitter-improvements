@@ -55,7 +55,7 @@
     const Downloaders = {
         /**
          * @param {string} url
-         * @param {MediaItem[] | MediaItem} media
+         * @param {MediaItem[] | MediaItem} [media]
          * @param {boolean} [override]
          * @param {boolean} [softOverride]
          * @returns {void}
@@ -202,7 +202,7 @@
 
         /**
          * @param {HTMLElement} article
-         * @param {Event} ev
+         * @param {MouseEvent | TouchEvent | PointerEvent} ev
          */
         mediaDownloadCallback: (article, ev) => {
             const url = Tweet.url(article), id = Helpers.id(url);
@@ -319,6 +319,10 @@
 
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
+        /**
+         * @param {HTMLImageElement} image
+         * @param {MouseEvent | TouchEvent | PointerEvent} ev
+         */
         imageButtonCallback: (image, ev) => {
             const url = Image.respectiveURL(image), save_id = Helpers.idWithNumber(url),
                 split = save_id.split('-');
