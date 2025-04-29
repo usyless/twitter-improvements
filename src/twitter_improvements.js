@@ -497,7 +497,7 @@
 
         resetAll: () => {
             for (const e of document.querySelectorAll('.usybuttonclickdiv')) e.remove();
-            for (const attr of ['usy', 'usy-bookmarked', 'usy-download']) {
+            for (const attr of ['usy', 'usy-bookmarked', 'usy-download', 'usy-media']) {
                 for (const e of document.querySelectorAll(`[${attr}]`)) e.removeAttribute(attr);
             }
         },
