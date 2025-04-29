@@ -340,6 +340,10 @@
             return () => outer.cloneNode(true);
         })(),
 
+        /**
+         * @param {HTMLImageElement} image
+         * @returns {string}
+         */
         respectiveURL: (image) => {
             let url = image.closest('[href]')?.href;
             if (url) return url;
@@ -367,6 +371,10 @@
             }
         },
 
+        /**
+         * @param {HTMLImageElement} image
+         * @returns {string}
+         */
         idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
 
         /**
