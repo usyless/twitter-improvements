@@ -10,23 +10,21 @@
         const xhr = this;
 
         this.addEventListener("readystatechange",  () => {
-            if (xhr.readyState === 4 && xhr.status === 200
+            if (
+                xhr.readyState === 4 && xhr.status === 200
                 && xhr.getResponseHeader("Content-Type").includes('application/json')
-                && (xhr.responseType === 'text' || xhr.responseType === '')) {
-                parseTweetMedia(xhr.responseText);
+                && (xhr.responseType === 'text' || xhr.responseType === '')
+            ) {
+                const /** @type {MediaTransfer[]} */ media = [];
+                for (const m of findTweets(JSON.parse(xhr.responseText))) {
+                    const r = getMediaFromTweetResult(m);
+                    r && media.push(/** @type {MediaTransfer} */ r);
+                }
+                if (media.length > 0) postMedia(media);
             }
         });
         return originalSend.call(this, body);
     };
-
-    function parseTweetMedia(responseText) {
-        const /** @type {MediaTransfer[]} */ media = [];
-        for (const m of findTweets(JSON.parse(responseText))) {
-            const r = getMediaFromTweetResult(m);
-            r && media.push(/** @type {MediaTransfer} */ r);
-        }
-        if (media.length > 0) postMedia(media);
-    }
 
     /**
      * @param tweet
