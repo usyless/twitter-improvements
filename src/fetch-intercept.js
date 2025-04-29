@@ -1,6 +1,4 @@
 (() =>  {
-    const URLs = ['TweetDetail', 'HomeTimeline', 'UserTweets', 'Bookmarks'];
-
     const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
     /** @param {MediaTransfer[]} media */
     const postMedia = (media) => {
@@ -12,16 +10,10 @@
         const xhr = this;
 
         this.addEventListener("readystatechange",  () => {
-            if (xhr.readyState === 4) {
-                const responseURL = xhr.responseURL;
-                if (xhr.status === 200) {
-                    for (const url of URLs) {
-                        if (responseURL.includes(url)) {
-                            parseTweetMedia(xhr.responseText);
-                            return;
-                        }
-                    }
-                }
+            if (xhr.readyState === 4 && xhr.status === 200
+                && xhr.getResponseHeader("Content-Type").includes('application/json')
+                && (xhr.responseType === 'text' || xhr.responseType === '')) {
+                parseTweetMedia(xhr.responseText);
             }
         });
         return originalSend.call(this, body);
@@ -73,8 +65,8 @@
 
     function findTweets(obj, result = []) {
         if (obj && typeof obj === 'object') {
-            if ((obj.__typename === 'Tweet' && obj.legacy)
-                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy)) {
+            if ((obj.__typename === 'Tweet' && obj.legacy?.entities?.media)
+                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.entities?.media)) {
                 result.push(obj);
             }
 
