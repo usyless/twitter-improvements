@@ -76,16 +76,16 @@
         }
     }
 
-    function findTweets(obj, result = []) {
+    function findTweets(obj, parent = null, result = []) {
         if (obj && typeof obj === 'object') {
             if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
                 || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)
-                || (obj.extended_entities?.media)) {
+                || (parent !== 'legacy' && obj.extended_entities?.media)) {
                 result.push(obj);
             }
 
             for (const key in obj) {
-                findTweets(obj[key], result);
+                findTweets(obj[key], key, result);
             }
         }
         return result;
