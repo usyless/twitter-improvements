@@ -224,11 +224,9 @@
                     button: 'Export downloaded history\nExports as {tweet id}-{media number}',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
-                            link.download = 'export.twitterimprovements';
-                            link.click();
-                            URL.revokeObjectURL(link.href);
+                            const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
+                            download(url, 'export.twitterimprovements');
+                            URL.revokeObjectURL(url);
                         });
                     }
                 },
@@ -268,14 +266,67 @@
                     class: ['warning'],
                     onclick: () => {
                         customPopup('Are you sure you want to RESET this extensions settings?', true).then((result) => {
-                            if (result) {
-                                clearStorage();
+                            if (result) clearStorage().then(() => {
                                 window.location.reload();
-                            }
+                            });
                         })
                     }
                 }
             ],
+            'Advanced': [
+                {
+                    name: 'export_settings_json',
+                    description: '',
+                    type: 'button',
+                    button: 'Export Settings',
+                    onclick: () => {
+                        getStorage().then((r) => {
+                            const url = URL.createObjectURL(new Blob([JSON.stringify(r, null, 2)], { type: 'text/plain' }));
+                            download(url, 'twitterimprovements.json');
+                            URL.revokeObjectURL(url);
+                        })
+                    }
+                },
+                {
+                    name: 'import_settings_json',
+                    description: '',
+                    type: 'button',
+                    button: 'Import Settings (Make sure it is from the same version, modifying these past the regular values may cause errors - if so, reset the extensions settings to the defaults)',
+                    onclick: () => {
+                        document.getElementById('import_settings_json_input').click();
+                    },
+                    init: () => {
+                        const i = document.createElement('input');
+                        i.type = 'file';
+                        i.id = 'import_settings_json_input';
+                        i.hidden = true;
+                        i.multiple = false;
+                        i.accept = 'application/json';
+                        i.addEventListener('change', (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (r) => {
+                                let j;
+                                try {
+                                    j = JSON.parse(r.target.result);
+                                } catch (e) {
+                                    customPopup('Failed to parse JSON:', e.toString());
+                                }
+                                if (j) {
+                                    setStorage(j).then(() => {
+                                        customPopup('Imported Settings').then(() => {
+                                            window.location.reload();
+                                        });
+                                    })
+                                }
+                            };
+                            reader.readAsText(file);
+                        });
+                        document.body.appendChild(i);
+                    }
+                }
+            ]
         },
         'Hidden Elements': {
             'Global': [
@@ -821,7 +872,7 @@
     function update_value(ev) {
         window.dispatchEvent(resizeEvent);
         const obj = ev.currentTarget.closest('[data-setting]').properties;
-        browser.storage.local.get([obj.category]).then((r) => {
+        getStorage([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = obj.valueElement[obj.valueProperty];
             setStorage(r);
@@ -829,11 +880,22 @@
     }
 
     function setStorage(data) {
-        browser.storage.local.set(data); // potentially add little saved message with .then
+        return browser.storage.local.set(data); // potentially add little saved message with .then
     }
 
     function clearStorage() {
-        browser.storage.local.clear();
+        return browser.storage.local.clear();
+    }
+
+    function getStorage(data) {
+        return browser.storage.local.get(data);
+    }
+
+    function download(url, filename) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
     }
 
     function customPopup(text, choice) {
@@ -844,10 +906,6 @@
         outer.classList.add('fullscreenOverlay');
         notifOuter.classList.add('notifOuter');
         notifInner.textContent = text;
-
-        outer.addEventListener('click', (ev) => {
-            if (!ev.target.closest('.notifOuter')) outer.remove();
-        });
 
         const btn = document.createElement('button');
         btn.dataset.type = 'yes';
@@ -870,6 +928,12 @@
                 const btn = e.target.closest('button');
                 if (btn) {
                     resolve(btn.dataset.type === 'yes');
+                    outer.remove();
+                }
+            });
+            outer.addEventListener('click', (ev) => {
+                if (!ev.target.closest('.notifOuter')) {
+                    resolve(false);
                     outer.remove();
                 }
             });
