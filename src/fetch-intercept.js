@@ -31,47 +31,56 @@
      * @returns {MediaTransfer | void}
      */
     function getMediaFromTweetResult(tweet) {
-        tweet = tweet.tweet ?? tweet;
-        if (tweet) {
-            let id = tweet.rest_id;
-            tweet = tweet.legacy;
-            let retweet = tweet?.retweeted_status_result?.result;
-            if (retweet) {
-                retweet = retweet.tweet ?? retweet;
-                id = retweet?.rest_id;
-            }
-            tweet = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
-
-            if (id && tweet) { // tweet here is media
-                // has media
-                const /** @type {MediaItem[]} */ mediaInfo = [];
-                for (let index = 1; index <= tweet.length; ++index) {
-                    const {media_url_https, video_info, type} = tweet[index - 1],
-                        /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
-                    switch (type) {
-                        case 'photo': {
-                            const lastDot = media_url_https?.lastIndexOf('.');
-                            info.url = `${media_url_https?.substring(0, lastDot)}?format=${media_url_https?.substring(lastDot + 1)}&name=orig`;
-                            break;
-                        }
-                        case 'video':
-                        case 'animated_gif': {
-                            info.url = getBestQuality(video_info?.variants);
-                            info.type = 'Video';
-                            break;
-                        }
-                    }
-                    mediaInfo.push(info);
+        if (tweet.extended_entities) { // this would be the notification timeline ones, idk where else
+            return mediaFromTweet(tweet.id_str, tweet.extended_entities.media);
+        } else { // most other tweets
+            tweet = tweet.tweet ?? tweet;
+            if (tweet) {
+                let id = tweet.rest_id;
+                tweet = tweet.legacy;
+                let retweet = tweet?.retweeted_status_result?.result;
+                if (retweet) {
+                    retweet = retweet.tweet ?? retweet;
+                    id = retweet?.rest_id;
                 }
-                return {id, media: mediaInfo};
+                tweet = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
+
+                return mediaFromTweet(id, tweet);
             }
+        }
+    }
+
+    function mediaFromTweet(id, media) {
+        if (id && media) {
+            // has media
+            const /** @type {MediaItem[]} */ mediaInfo = [];
+            for (let index = 1; index <= media.length; ++index) {
+                const {media_url_https, video_info, type} = media[index - 1],
+                    /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image'};
+                switch (type) {
+                    case 'photo': {
+                        const lastDot = media_url_https?.lastIndexOf('.');
+                        info.url = `${media_url_https?.substring(0, lastDot)}?format=${media_url_https?.substring(lastDot + 1)}&name=orig`;
+                        break;
+                    }
+                    case 'video':
+                    case 'animated_gif': {
+                        info.url = getBestQuality(video_info?.variants);
+                        info.type = 'Video';
+                        break;
+                    }
+                }
+                mediaInfo.push(info);
+            }
+            return {id, media: mediaInfo};
         }
     }
 
     function findTweets(obj, result = []) {
         if (obj && typeof obj === 'object') {
             if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
-                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)) {
+                || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)
+                || (obj.extended_entities?.media)) {
                 result.push(obj);
             }
 
