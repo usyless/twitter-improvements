@@ -362,6 +362,12 @@
             }
         },
 
+        /** @param {HTMLElement} video */
+        addVideoButtonTimeout: (video) => {
+            video.setAttribute('usy-media', '');
+            setTimeout(Image.addVideoButton, 100, video);
+        },
+
         buttonModes: {
             0: ['usy-top', 'usy-left'],
             1: ['usy-top', 'usy-right'],
@@ -783,7 +789,7 @@
                         f: Image.addImageButton
                     }, {
                         s: 'div[data-testid="videoComponent"]:not([usy-media])',
-                        f: (...args) => setTimeout(Image.addVideoButton, 100, ...args)
+                        f: Image.addVideoButtonTimeout
                     }, {
                         s: 'img[alt="Embedded video"]:not([usy-media])',
                         f: Image.addVideoButton
