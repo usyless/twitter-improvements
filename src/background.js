@@ -282,8 +282,8 @@ function saveImage(url, sourceURL) {
     })
 }
 
-const migrations = {
-    '1.4': () => new Promise((resolve) => {
+const migrations = [
+    ['1.4', () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
             let setting = s?.setting;
             if (setting != null) {
@@ -334,8 +334,8 @@ const migrations = {
 
             resolve();
         });
-    }),
-    '1.2.1.5': () => new Promise((resolve) => {
+    })],
+    ['1.2.1.5', () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
             if (s?.image_preferences?.long_image_button != null) {
                 if (s.image_preferences.long_image_button === true) {
@@ -347,8 +347,8 @@ const migrations = {
 
             resolve();
         });
-    }),
-    '1.1.1.4': () => new Promise((resolve) => {
+    })],
+    ['1.1.1.4', () => new Promise((resolve) => {
         getHistoryDB().then((db) => {
             browser.storage.local.get(['download_history']).then(async (r) => {
                 const history = r.download_history ?? {};
@@ -363,8 +363,8 @@ const migrations = {
                 transaction.addEventListener('complete', resolve);
             });
         });
-    }),
-    '1.1.1.1': () => new Promise((resolve) => {
+    })],
+    ['1.1.1.1', () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
             const {
                 // styles
@@ -420,15 +420,15 @@ const migrations = {
 
             resolve();
         });
-    }),
-    '1.0.7.3': () => new Promise((resolve) => {
+    })],
+    ['1.0.7.3', () => new Promise((resolve) => {
         browser.storage.local.get(['url_prefix']).then(async (s) => {
             if (s.url_prefix === 'vx') await browser.storage.local.set({url_prefix: 'fixvx.com'});
             if (s.url_prefix === 'fx') await browser.storage.local.set({url_prefix: 'fixupx.com'});
             resolve();
         });
-    })
-}
+    })]
+]
 
 // migrating to new settings format
 /** @param {string} previousVersion */
@@ -445,8 +445,8 @@ async function migrateSettings(previousVersion) {
     }
 
     const m = [];
-    for (const version in migrations) {
-        if (previousIsBelow(version)) m.push(migrations[version]);
+    for (const [version, migration] in migrations) {
+        if (previousIsBelow(version)) m.push(migration);
         else break;
     }
     for (let i = m.length - 1; i >= 0; --i) await m[i]();
