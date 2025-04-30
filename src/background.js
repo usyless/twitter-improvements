@@ -289,9 +289,12 @@ const migrations = {
         browser.storage.local.get().then(async (s) => {
             if (s?.setting?.image_button != null) {
                 s.setting.media_download_button = s.setting.image_button;
+                delete s.setting.image_button;
             }
             if (s?.setting?.inline_image_button != null || s?.setting?.video_button != null) {
-                s.setting.inline_download_button = s?.setting?.inline_image_button || s?.setting?.video_button;
+                s.setting.inline_download_button = s.setting.inline_image_button || s.setting.video_button;
+                if (s.setting.inline_image_button != null) delete s.setting.inline_image_button;
+                if (s.setting.video_button != null) delete s.setting.video_button;
             }
             if (s?.video_preferences != null) {
                 delete s.video_preferences;
@@ -345,15 +348,12 @@ const migrations = {
                 // settings
                 vx_button, video_button, image_button, show_hidden,
                 // preferences
-                url_prefix, video_download_fallback, long_image_button, custom_url, download_history_enabled,
+                url_prefix, long_image_button, custom_url, download_history_enabled,
                 download_history_prevent_download, download_history,
-                // videoDownloading
-                detailsURL, authorization, features, fieldToggles
             } = s;
 
             await browser.storage.local.clear();
-            const newSettings = {style: {}, setting: {}, vx_preferences: {}, video_details: {},
-                image_preferences: {}, video_preferences: {}};
+            const newSettings = {style: {}, setting: {}, vx_preferences: {}, image_preferences: {}};
 
             if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
             if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
@@ -386,13 +386,6 @@ const migrations = {
             if (download_history_prevent_download != null) newSettings.image_preferences.download_history_prevent_download = download_history_prevent_download;
             if (long_image_button != null) newSettings.image_preferences.long_image_button = long_image_button;
             if (download_history_enabled != null) newSettings.image_preferences.download_history_enabled = download_history_enabled;
-
-            if (video_download_fallback != null) newSettings.video_preferences.video_download_fallback = video_download_fallback;
-
-            if (detailsURL != null) newSettings.video_details.detailsURL = detailsURL;
-            if (authorization != null) newSettings.video_details.authorization = authorization;
-            if (features != null) newSettings.video_details.features = features;
-            if (fieldToggles != null) newSettings.video_details.fieldToggles = fieldToggles;
 
             if (download_history != null) newSettings.download_history = download_history;
 
