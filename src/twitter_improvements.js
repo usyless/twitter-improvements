@@ -206,7 +206,13 @@
          */
         nearestTweet: (elem) => {
             if (Tweet.maximised()) {
-                return elem.closest('article') ?? elem.closest('#layers').querySelector('article');
+                let c = elem.closest('article');
+                if (c) return c;
+                else {
+                    for (const article of elem.closest('#layers').querySelectorAll('article')) {
+                        if (Tweet.isFocused(article)) return article;
+                    }
+                }
             } else {
                 let anchor;
                 while (elem) {
@@ -421,7 +427,7 @@
         videoRespectiveIndex: (video, tweet) => {
             if (Tweet.maximised()) {
                 const li = video.closest('li');
-                return Array.from(li.parentElement.children).indexOf(li) + 1;
+                return li ? (Array.from(li.parentElement.children).indexOf(li) + 1) : 1;
             } else {
                 if (!tweet) tweet = Tweet.nearestTweet(video);
                 return Array.from(tweet.querySelectorAll('[data-testid="tweetPhoto"]'))
