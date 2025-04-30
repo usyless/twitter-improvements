@@ -400,7 +400,11 @@ const migrations = [
             if (image_button != null) newSettings.setting.image_button = image_button;
             if (show_hidden != null) newSettings.setting.show_hidden = show_hidden;
 
-            if (url_prefix != null) newSettings.vx_preferences.url_prefix = url_prefix;
+            if (url_prefix != null) {
+                if (url_prefix === 'vx') newSettings.vx_preferences.url_prefix = 'fixvx.com';
+                else if (url_prefix === 'fx') newSettings.vx_preferences.url_prefix = 'fixupx.com';
+                else newSettings.vx_preferences.url_prefix = url_prefix;
+            }
             if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
 
             if (download_history_prevent_download != null) newSettings.image_preferences.download_history_prevent_download = download_history_prevent_download;
@@ -411,13 +415,6 @@ const migrations = [
 
             await browser.storage.local.set(newSettings);
 
-            resolve();
-        });
-    })],
-    ['1.0.7.3', () => new Promise((resolve) => {
-        browser.storage.local.get(['url_prefix']).then(async (s) => {
-            if (s.url_prefix === 'vx') await browser.storage.local.set({url_prefix: 'fixvx.com'});
-            if (s.url_prefix === 'fx') await browser.storage.local.set({url_prefix: 'fixupx.com'});
             resolve();
         });
     })]
