@@ -293,6 +293,12 @@ const migrations = {
             if (s?.setting?.inline_image_button != null || s?.setting?.video_button != null) {
                 s.setting.inline_download_button = s?.setting?.inline_image_button || s?.setting?.video_button;
             }
+            if (s?.video_preferences != null) {
+                delete s.video_preferences;
+            }
+            if (s?.video_details != null) {
+                delete s.video_details;
+            }
 
             await browser.storage.local.set(s);
 
