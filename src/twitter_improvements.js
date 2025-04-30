@@ -316,13 +316,37 @@
                 const article = Tweet.nearestTweet(video);
                 // no way to get id from inside quote tweet i think
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
-                    button = Image.genericButton(video, Image.videoButtonCallback.bind(null, video));
+                    const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
+                    const mark_button = () => {
+                        if (Settings.image_preferences.download_history_enabled) { // mark image
+                            button.setAttribute('ti-id', id);
+                            Background.download_history_has(id).then((response) => {
+                                if (response === true) Button.mark(button);
+                            });
+                        }
+                    }
 
-                    if (Settings.image_preferences.download_history_enabled) { // mark image
-                        const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
-                        button.setAttribute('ti-id', id);
-                        Background.download_history_has(id).then((response) => {
-                            if (response === true) Button.mark(button);
+                    const cb =  Image.videoButtonCallback.bind(null, video);
+                    if (video.textContent.includes('GIF')) { // gif
+                        button = Image.genericButton(video, cb);
+                        mark_button();
+                    } else { // video player
+                        let timer;
+                        video.addEventListener('pointerenter', () => {
+                            if (!timer) timer = setTimeout(() => {
+                                const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
+                                if (share && !video.querySelector('[usy-media]')) {
+                                    button = Button.newButton(share.cloneNode(true), download_button_path, cb,
+                                        "usy-media", cb, [],
+                                        [(btn) => {
+                                            btn.firstElementChild.firstElementChild.style.color = '#ffffff';
+                                            btn.classList.add('usy-inline');
+                                        }]);
+                                    share.before(button);
+                                    mark_button();
+                                }
+                                timer = null;
+                            }, 100);
                         });
                     }
                 }
@@ -753,7 +777,7 @@
                         f: Image.addImageButton
                     }, {
                         s: 'div[data-testid="videoComponent"]:not([usy-media])',
-                        f: Image.addVideoButton
+                        f: (...args) => setTimeout(Image.addVideoButton, 100, ...args)
                     }, {
                         s: 'img[alt="Embedded video"]:not([usy-media])',
                         f: Image.addVideoButton

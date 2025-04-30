@@ -101,7 +101,9 @@ body {
 }
 
 .usybuttonclickdiv[usy-media] {
-    position: absolute;
+    &:not(.usy-inline) {
+        position: absolute;
+    }
     display: flex;
 
     button {
@@ -117,6 +119,10 @@ body {
         width: 24px;
         height: 24px;
         vertical-align: middle;
+
+        g {
+            transform: translateY(-1px);
+        }
 
         path {
             transition: 0.2s;
