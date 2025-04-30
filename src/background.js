@@ -59,7 +59,6 @@ const Settings = { // Setting handling
         },
 
         image_preferences: {
-            long_image_button: false,
             download_history_enabled: true,
             download_history_prevent_download: false, // could probably be moved to download_preferences
             image_button_position: '0',
@@ -330,20 +329,14 @@ const migrations = [
                 }
             }
 
-            await browser.storage.local.set(s);
-
-            resolve();
-        });
-    })],
-    ['1.2.1.5', () => new Promise((resolve) => {
-        browser.storage.local.get().then(async (s) => {
             if (s?.image_preferences?.long_image_button != null) {
                 if (s.image_preferences.long_image_button === true) {
                     s.image_preferences.image_button_width_value = '100';
                 }
                 delete s.image_preferences.long_image_button;
-                await browser.storage.local.set(s);
             }
+
+            await browser.storage.local.set(s);
 
             resolve();
         });
