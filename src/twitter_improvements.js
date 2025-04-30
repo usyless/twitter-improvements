@@ -338,7 +338,7 @@
                         mark_button();
                     } else { // video player
                         let timer;
-                        video.addEventListener('pointerenter', () => {
+                        video.addEventListener('pointermove', () => {
                             if (!timer) timer = setTimeout(() => {
                                 const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
                                 if (share && !video.querySelector('[usy-media]')) {
