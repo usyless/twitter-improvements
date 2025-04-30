@@ -77,7 +77,7 @@
                     newMedia = (await Promise.all(media.map(async (m) => [m, await Background.download_history_has(m.save_id)])))
                         .filter(([_, saved]) => !saved).map(([m]) => m);
                 }
-                if ((newMedia && newMedia.length === 0) ||
+                if (((newMedia && newMedia.length === 0) || (!softOverride)) &&
                     (await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).some(Boolean)) {
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
