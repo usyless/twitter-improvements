@@ -285,14 +285,22 @@ function saveImage(url, sourceURL) {
 const migrations = {
     '1.4': () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
-            if (s?.setting?.image_button != null) {
-                s.setting.media_download_button = s.setting.image_button;
-                delete s.setting.image_button;
-            }
-            if (s?.setting?.inline_image_button != null || s?.setting?.video_button != null) {
-                s.setting.inline_download_button = s.setting.inline_image_button || s.setting.video_button;
-                if (s.setting.inline_image_button != null) delete s.setting.inline_image_button;
-                if (s.setting.video_button != null) delete s.setting.video_button;
+            let setting = s?.setting;
+            if (setting != null) {
+                if (setting.image_button != null) {
+                    setting.media_download_button = setting.image_button;
+                    delete setting.image_button;
+                }
+
+                if (setting.inline_image_button != null) {
+                    setting.inline_download_button = setting.inline_image_button;
+                    delete setting.inline_image_button;
+                }
+
+                if (setting.video_button != null) {
+                    setting.inline_download_button ||= setting.video_button;
+                    delete setting.video_button;
+                }
             }
             if (s?.video_preferences != null) {
                 delete s.video_preferences;
