@@ -778,12 +778,17 @@
                 setHeight();
             }
         }
+        panes.firstElementChild.classList.add('focused');
         hashchangeHandler(null, true);
         window.addEventListener('hashchange', hashchangeHandler);
 
         function scrollToLastPane(instant) {
-            const p = panes.querySelector(`div[data-pane="${lastPane}"]`)
-            if (p) panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
+            const p = panes.querySelector(`div[data-pane="${lastPane}"]`);
+            if (p) {
+                for (const f of panes.querySelectorAll('.focused')) f.classList.remove('focused');
+                p.classList.add('focused');
+                panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
+            }
         }
 
         function setHeight() {
