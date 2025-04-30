@@ -537,24 +537,14 @@
         'Hidden Notifications': {
             'This Extension': [
                 {
-                    name: 'save_image',
+                    name: 'save_media',
                     category: 'hidden_extension_notifications',
                     description: 'Saving image',
                 },
                 {
-                    name: 'save_image_duplicate',
+                    name: 'save_media_duplicate',
                     category: 'hidden_extension_notifications',
                     description: 'Saving image duplicate',
-                },
-                {
-                    name: 'save_video',
-                    category: 'hidden_extension_notifications',
-                    description: 'Saving video',
-                },
-                {
-                    name: 'save_video_duplicate',
-                    category: 'hidden_extension_notifications',
-                    description: 'Saving video duplicate',
                 },
                 {
                     name: 'history_remove',

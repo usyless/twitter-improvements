@@ -108,10 +108,8 @@ const Settings = { // Setting handling
         },
 
         hidden_extension_notifications: {
-            save_image: false,
-            save_image_duplicate: false,
-            save_video: false,
-            save_video_duplicate: false,
+            save_media: false,
+            save_media_duplicate: false,
             history_remove: false,
             copied_url: false,
         }
@@ -301,6 +299,27 @@ const migrations = {
             }
             if (s?.video_details != null) {
                 delete s.video_details;
+            }
+
+            let notifs = s?.hidden_extension_notifications;
+            if (notifs != null) {
+                if (notifs.save_image != null) {
+                    notifs.save_media = notifs.save_image;
+                    delete notifs.save_image;
+                }
+                if (notifs.save_video != null) {
+                    notifs.save_media ||= notifs.save_video;
+                    delete notifs.save_video;
+                }
+
+                if (notifs.save_image_duplicate != null) {
+                    notifs.save_media_duplicate = notifs.save_image_duplicate;
+                    delete notifs.save_image_duplicate;
+                }
+                if (notifs.save_video_duplicate != null) {
+                    notifs.save_media_duplicate ||= notifs.save_video_duplicate;
+                    delete notifs.save_video_duplicate;
+                }
             }
 
             await browser.storage.local.set(s);

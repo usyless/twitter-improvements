@@ -70,7 +70,7 @@
                 }
             }
             if (!Array.isArray(media)) media = [media];
-            Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'saving');
+            Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
             if (!override && Helpers.shouldPreventDuplicate()) {
                 let newMedia;
                 if (softOverride) {
@@ -79,7 +79,7 @@
                 }
                 if ((newMedia && newMedia.length === 0) ||
                     (await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).some(Boolean)) {
-                    const notif = Notification.create('Already downloaded\nClick here to save anyway', 'saving');
+                    const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
                         notif.style.cursor = 'pointer';
                         notif.addEventListener('click', Downloaders.download_all.bind(null, url, media, {override: true}));
@@ -808,7 +808,7 @@
                 break;
             }
             case 'image_saved': {
-                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_image');
+                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
                 break;
             }
             case 'download': {

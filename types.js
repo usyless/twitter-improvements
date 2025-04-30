@@ -3,7 +3,7 @@
  * @property {number} index
  * @property {string} save_id
  * @property {string} url
- * @property {'Image' | 'Video'} type
+ * @property {('Image' | 'Video')} type
  */
 
 /**
@@ -13,12 +13,12 @@
  */
 
 /**
- * @typedef {'error' | 'saving' | 'copied_url' | 'history_remove'
- * | 'save_video_duplicate' | 'save_image'} NotificationTypes
+ * @typedef {('error' | 'copied_url' | 'history_remove'
+ * | 'save_media_duplicate' | 'save_media')} NotificationTypes
  */
 
 /** @typedef {string} tweetId */
-/** @typedef {1 | 2 | 3 | 4 | '1' | '2' | '3' | '4'} tweetNum */
+/** @typedef {(1 | 2 | 3 | 4 | '1' | '2' | '3' | '4')} tweetNum */
 /** @typedef {string} saveId */
 
 /**
