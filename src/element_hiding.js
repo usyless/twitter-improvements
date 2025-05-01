@@ -9,7 +9,7 @@
 
     const HideType = {
         DISPLAY: '{display:none!important;}',
-        VISIBILITY: '{visibility:hidden!important;pointer-events: none!important;}',
+        VISIBILITY: '{visibility:hidden!important;pointer-events:none!important;}',
     }
 
     // Naming dependent on style.tweet_button_positions
