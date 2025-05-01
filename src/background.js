@@ -71,7 +71,11 @@ const Settings = { // Setting handling
 
         download_preferences: {
             save_as_prompt: 'browser',
+            save_as_prompt_shift: 'default',
+            save_as_prompt_ctrl: 'default',
             save_directory: '',
+            save_directory_shift: '',
+            save_directory_ctrl: '',
             save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
             download_all_near_click: false,
             download_all_override_saved: true,
@@ -161,15 +165,27 @@ browser.storage.onChanged.addListener((changes, namespace) => {
     }
 });
 
-function download(url, filename) {
-    // technically dont need to recall Settings.getSettings
+/**
+ * @param {string} url
+ * @param {string} filename
+ * @param {boolean} [shift]
+ * @param {boolean} [ctrl]
+ */
+function download(url, filename, {shift=false, ctrl=false}={}) {
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
-        const {save_as_prompt, save_directory} = Settings.download_preferences;
-        const downloadData = {
-            url, filename: (save_directory?.length > 0 ? `${save_directory}${save_directory.endsWith('/') ? '' : '/'}` : '') + filename
-        };
-        if (save_as_prompt === 'off') downloadData.saveAs = false;
-        else if (save_as_prompt === 'on') downloadData.saveAs = true;
+        const {save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
+            save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences,
+            {save_as_prompt_shift: save_shift_default,
+                save_as_prompt_ctrl: save_ctrl_default} = Settings.defaults.download_preferences,
+            getFilename = (f) => (f?.length > 0 ? `${f}${f.endsWith('/') ? '' : '/'}` : '') + filename,
+            downloadData = { url,
+                filename: getFilename((shift) ? save_directory_shift : (ctrl) ? save_directory_ctrl : save_directory)
+        }, setSaveAs = (v) => downloadData.saveAs = (v === 'on') ? true : (v === 'off') ? false : undefined;
+
+        if ((!shift && !ctrl) || (shift && save_as_prompt_shift === save_shift_default)
+            || (ctrl && save_as_prompt_ctrl === save_ctrl_default)) setSaveAs(save_as_prompt);
+        else if (shift) setSaveAs(save_as_prompt_shift);
+        else if (ctrl) setSaveAs(save_as_prompt_ctrl);
         browser.downloads.download(downloadData);
     });
 }

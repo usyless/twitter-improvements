@@ -393,7 +393,7 @@ button {
 
 /*Mobile settings hiding*/
 body.mobile {
-    div:has(> #save_directory), div:has(> #bookmark_on_photo_page), div:has(> #save_as_prompt) {
+    div:has(> div > [id^="save_directory"]), div:has(> #bookmark_on_photo_page) {
         display: none !important;
     }
 }

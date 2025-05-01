@@ -475,6 +475,38 @@
                     type: 'choice',
                     choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
                 },
+                {
+                    type: 'break',
+                },
+                {
+                    name: 'save_directory_shift',
+                    category: 'download_preferences',
+                    description: 'Holding shift: Relative file save directory',
+                    type: 'text',
+                },
+                {
+                    name: 'save_as_prompt_shift',
+                    category: 'download_preferences',
+                    description: 'Holding shift: Prompt to "Save As" when saving files with this extension',
+                    type: 'choice',
+                    choices: [{name: 'Same as default', type: 'default'}, {name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                },
+                {
+                    type: 'break',
+                },
+                {
+                    name: 'save_directory_ctrl',
+                    category: 'download_preferences',
+                    description: 'Holding ctrl: Relative file save directory',
+                    type: 'text',
+                },
+                {
+                    name: 'save_as_prompt_ctrl',
+                    category: 'download_preferences',
+                    description: 'Holding ctrl: Prompt to "Save As" when saving files with this extension',
+                    type: 'choice',
+                    choices: [{name: 'Same as default', type: 'default'}, {name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                },
             ],
             'Save file name': [
                 {
