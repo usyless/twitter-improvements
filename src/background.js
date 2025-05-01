@@ -59,8 +59,6 @@ const Settings = { // Setting handling
         },
 
         image_preferences: {
-            download_history_enabled: true,
-            download_history_prevent_download: false, // could probably be moved to download_preferences
             image_button_position: '0',
             image_button_scale: '1',
             image_button_height_value: '1',
@@ -79,6 +77,8 @@ const Settings = { // Setting handling
             save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
             download_all_near_click: false,
             download_all_override_saved: true,
+            download_history_enabled: true,
+            download_history_prevent_download: false,
         },
 
         style: {
@@ -267,8 +267,7 @@ function formatFilename(parts, save_format) {
  */
 function download_media({url, media, modifiers}, sendResponse) {
     Settings.getSettings().then(() => {
-        const save_format = Settings.download_preferences.save_format,
-            download_history = Settings.image_preferences.download_history_enabled;
+        const {save_format, download_history} = Settings.download_preferences;
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
@@ -289,7 +288,7 @@ function saveImage(url, sourceURL) {
         const parts = getNamePartsImage(url, sourceURL);
         download(sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
 
-        if (Settings.image_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
+        if (Settings.download_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
             sendToTab({type: 'image_saved'});
         });
     })
@@ -298,7 +297,7 @@ function saveImage(url, sourceURL) {
 const migrations = [
     ['1.4', () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
-            let setting = s?.setting;
+            const setting = s?.setting;
             if (setting != null) {
                 if (setting.image_button != null) {
                     setting.media_download_button = setting.image_button;
@@ -322,7 +321,7 @@ const migrations = [
                 delete s.video_details;
             }
 
-            let notifs = s?.hidden_extension_notifications;
+            const notifs = s?.hidden_extension_notifications;
             if (notifs != null) {
                 if (notifs.save_image != null) {
                     notifs.save_media = notifs.save_image;
@@ -343,11 +342,24 @@ const migrations = [
                 }
             }
 
-            if (s?.image_preferences?.long_image_button != null) {
-                if (s.image_preferences.long_image_button === true) {
-                    s.image_preferences.image_button_width_value = '100';
+            const image = s?.image_preferences;
+            if (image != null) {
+                if (image.long_image_button != null) {
+                    if (image.long_image_button === true) {
+                        image.image_button_width_value = '100';
+                    }
+                    delete image.long_image_button;
                 }
-                delete s.image_preferences.long_image_button;
+                if (image.download_history_enabled != null) {
+                    s.download_preferences ||= {};
+                    s.download_preferences.download_history_enabled = image.download_history_enabled;
+                    delete image.download_history_enabled;
+                }
+                if (image.download_history_prevent_download != null) {
+                    s.download_preferences ||= {};
+                    s.download_preferences.download_history_prevent_download = image.download_history_prevent_download;
+                    delete image.download_history_prevent_download;
+                }
             }
 
             await browser.storage.local.set(s);

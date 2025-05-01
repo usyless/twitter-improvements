@@ -303,7 +303,7 @@
                 image.setAttribute('usy-media', '');
                 button = Image.genericButton(image, Image.imageButtonCallback.bind(null, image));
 
-                if (Settings.image_preferences.download_history_enabled) { // mark image
+                if (Settings.download_preferences.download_history_enabled) { // mark image
                     const id = Image.idWithNumber(image);
                     button.setAttribute('ti-id', id);
                     Background.download_history_has(id).then((response) => {
@@ -326,7 +326,7 @@
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
                     const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
                     const mark_button = () => {
-                        if (Settings.image_preferences.download_history_enabled) { // mark image
+                        if (Settings.download_preferences.download_history_enabled) { // mark image
                             button.setAttribute('ti-id', id);
                             Background.download_history_has(id).then((response) => {
                                 if (response === true) Button.mark(button);
@@ -657,7 +657,7 @@
                 btn.dataset.index = index.toString();
                 btn.dataset.save_id = save_id;
 
-                if (Settings.image_preferences.download_history_enabled) {
+                if (Settings.download_preferences.download_history_enabled) {
                     Background.download_history_has(save_id).then((r) => r && Button.mark(btn));
                 }
 
@@ -755,7 +755,7 @@
 
         /** @returns {boolean} */
         shouldPreventDuplicate: () => {
-            return Settings.image_preferences.download_history_enabled && Settings.image_preferences.download_history_prevent_download;
+            return Settings.download_preferences.download_history_enabled && Settings.download_preferences.download_history_prevent_download;
         },
 
         /**
@@ -844,7 +844,8 @@
                     const changes = message.changes;
                     // only need to reload for vx setting change
                     if (changes.hasOwnProperty('setting')) Observer.start();
-                    else if (changes.hasOwnProperty('image_preferences')) Observer.forceUpdate?.(null, null, Image.resetAll);
+                    // update on image pref or download pref change
+                    else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_preferences')) Observer.forceUpdate?.(null, null, Image.resetAll);
                 });
                 break;
             }

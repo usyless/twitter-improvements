@@ -137,12 +137,12 @@
             'Download History': [
                 {
                     name: 'download_history_enabled',
-                    category: 'image_preferences',
+                    category: 'download_preferences',
                     description: 'Enable download history (To remove: right click on a download or popup button)',
                 },
                 {
                     name: 'download_history_prevent_download',
-                    category: 'image_preferences',
+                    category: 'download_preferences',
                     description: 'Prevent downloading of previously downloaded items',
                 },
                 {
