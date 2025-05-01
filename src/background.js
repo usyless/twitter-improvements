@@ -173,14 +173,16 @@ browser.storage.onChanged.addListener((changes, namespace) => {
 function download(url, filename, {shift, ctrl}={}) {
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
         const {save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
-            save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences,
-            getFilename = (f) => (f?.length > 0 ? `${f}${f.endsWith('/') ? '' : '/'}` : '') + filename,
-            downloadData = { url,
-                filename: getFilename((shift) ? save_directory_shift : (ctrl) ? save_directory_ctrl : save_directory)
-        }, setSaveAs = (v) => downloadData.saveAs = (v === 'on') ? true : (v === 'off') ? false : undefined;
+            save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences;
 
-        setSaveAs((!shift && !ctrl) ? save_as_prompt : (shift) ? save_as_prompt_shift : save_as_prompt_ctrl);
-        void browser.downloads.download(downloadData);
+        let [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
+            : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl] : [save_directory, save_as_prompt];
+
+        void browser.downloads.download({
+            url,
+            filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename,
+            saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined
+        });
     });
 }
 
