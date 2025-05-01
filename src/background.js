@@ -74,6 +74,7 @@ const Settings = { // Setting handling
             save_directory: '',
             save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
             download_all_near_click: false,
+            download_all_override_saved: true,
         },
 
         style: {

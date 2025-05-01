@@ -663,10 +663,9 @@
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
                 if (Number.isNaN(choice)) {
-                    const d = e?.shiftKey ? {softOverride: true} : {override: true};
-                    Downloaders.download_all(url, choices, d);
-                }
-                else Downloaders.download_all(url, choices[choice]);
+                    Downloaders.download_all(url, choices,
+                        Settings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
+                } else Downloaders.download_all(url, choices[choice]);
             });
             popup.addEventListener('contextmenu', (e) => {
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
