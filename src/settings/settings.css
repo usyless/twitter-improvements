@@ -108,8 +108,8 @@ body {
                     column-gap: 6px;
 
                     &.highlighted {
-                        border: 3px solid var(--accent);
-                        border-radius: 5px;
+                        background-color: var(--background-dark);
+                        border-radius: 7px;
                     }
                 }
             }
