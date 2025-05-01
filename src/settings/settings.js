@@ -489,7 +489,7 @@
                     category: 'download_preferences',
                     description: 'Holding shift: Prompt to "Save As" when saving files with this extension',
                     type: 'choice',
-                    choices: [{name: 'Same as default', type: 'default'}, {name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                    choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
                 },
                 {
                     type: 'break',
@@ -505,7 +505,7 @@
                     category: 'download_preferences',
                     description: 'Holding ctrl: Prompt to "Save As" when saving files with this extension',
                     type: 'choice',
-                    choices: [{name: 'Same as default', type: 'default'}, {name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                    choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
                 },
             ],
             'Save file name': [
