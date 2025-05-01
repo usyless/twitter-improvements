@@ -45,8 +45,9 @@
         /**
          * @param {string} url
          * @param {MediaItem[]} media
+         * @param {EventModifiers} modifiers
          */
-        save_media: (url, media) => browser.runtime.sendMessage({ type: 'save_media', url, media }),
+        save_media: (url, media, modifiers) => browser.runtime.sendMessage({ type: 'save_media', url, media, modifiers }),
 
         get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
@@ -56,11 +57,12 @@
         /**
          * @param {string} url
          * @param {MediaItem[] | MediaItem} [media]
+         * @param {EventModifiers} modifiers
          * @param {boolean} [override]
          * @param {boolean} [softOverride]
          * @returns {void}
          */
-        download_all: async (url, media, {override=false, softOverride=false}={}) => {
+        download_all: async (url, media, modifiers, {override=false, softOverride=false}={}) => {
             if (!media) {
                 const id = Helpers.id(url);
                 if (URL_CACHE.has(id)) media = URL_CACHE.get(id);
@@ -82,14 +84,14 @@
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
                         notif.style.cursor = 'pointer';
-                        notif.addEventListener('click', Downloaders.download_all.bind(null, url, media, {override: true}));
+                        notif.addEventListener('click', Downloaders.download_all.bind(null, url, media, modifiers, {override: true}));
                     }
                     return;
                 }
                 if (newMedia) media = newMedia;
             }
             if (media.length > 0) {
-                Background.save_media(url, media);
+                Background.save_media(url, media, modifiers);
             } else {
                 Notification.create('No media to save', 'error');
             }
@@ -236,7 +238,7 @@
 
         /**
          * @param {HTMLElement} article
-         * @param {MouseEvent | TouchEvent | PointerEvent} ev
+         * @param {MouseEvent} ev
          */
         mediaDownloadCallback: (article, ev) => {
             const url = Tweet.url(article), id = Helpers.id(url);
@@ -244,7 +246,7 @@
                 const media = URL_CACHE.get(id);
                 if (ev.type === 'click') {
                     if (media.length === 1) {
-                        Downloaders.download_all(url, media);
+                        Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
                     } else Notification.createDownloadChoices(url, media, ev);
                 } else {
                     if (media.length === 1) {
@@ -449,7 +451,7 @@
 
         /**
          * @param {HTMLImageElement} image
-         * @param {MouseEvent | TouchEvent | PointerEvent} ev
+         * @param {MouseEvent} ev
          */
         imageButtonCallback: (image, ev) => {
             const url = Image.respectiveURL(image), save_id = Helpers.idWithNumber(url),
@@ -458,7 +460,7 @@
                 Downloaders.download_all(url,{
                     index: +split[1], save_id, type: 'Image',
                     url: image.src.replace(/name=[^&]*/, "name=orig"),
-                });
+                }, Helpers.eventModifiers(ev));
             } else {
                 Notification.create('Removing image from saved', 'history_remove');
                 Background.download_history_remove(save_id);
@@ -467,14 +469,16 @@
 
         /**
          * @param {HTMLElement} video
-         * @param {MouseEvent | TouchEvent | PointerEvent} ev
+         * @param {MouseEvent} ev
          */
         videoButtonCallback: (video, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id'),
                 url = Tweet.url(Tweet.nearestTweet(video));
             if (ev?.type === 'click' || !ev) {
                 if (URL_CACHE.has(save_id.split('-')[0])) {
-                    Downloaders.download_all(url, URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id));
+                    Downloaders.download_all(url,
+                        URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id),
+                        Helpers.eventModifiers(ev));
                 } else {
                     Notification.create('Error saving, try again', 'error');
                 }
@@ -663,9 +667,9 @@
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
                 if (Number.isNaN(choice)) {
-                    Downloaders.download_all(url, choices,
+                    Downloaders.download_all(url, choices, Helpers.eventModifiers(e),
                         Settings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
-                } else Downloaders.download_all(url, choices[choice]);
+                } else Downloaders.download_all(url, choices[choice], Helpers.eventModifiers(e));
             });
             popup.addEventListener('contextmenu', (e) => {
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
@@ -752,7 +756,13 @@
         /** @returns {boolean} */
         shouldPreventDuplicate: () => {
             return Settings.image_preferences.download_history_enabled && Settings.image_preferences.download_history_prevent_download;
-        }
+        },
+
+        /**
+         * @param {MouseEvent} e
+         * @returns {EventModifiers}
+         */
+        eventModifiers: (e) => ({shift: e.shiftKey, ctrl: e.ctrlKey})
     };
 
     const Observer = {

@@ -168,10 +168,9 @@ browser.storage.onChanged.addListener((changes, namespace) => {
 /**
  * @param {string} url
  * @param {string} filename
- * @param {boolean} [shift]
- * @param {boolean} [ctrl]
+ * @param {EventModifiers} [modifiers]
  */
-function download(url, filename, {shift=false, ctrl=false}={}) {
+function download(url, filename, {shift, ctrl}={}) {
     /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
         const {save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
             save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences,
@@ -266,16 +265,17 @@ function formatFilename(parts, save_format) {
 /**
  * @param {string} url
  * @param {MediaItem[]} media
+ * @param {EventModifiers} modifiers
  * @param {function(any)} sendResponse
  */
-function download_media({url, media}, sendResponse) {
+function download_media({url, media, modifiers}, sendResponse) {
     Settings.getSettings().then(() => {
         const save_format = Settings.download_preferences.save_format,
             download_history = Settings.image_preferences.download_history_enabled;
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
-            download(sourceURL, formatFilename(parts, save_format));
+            download(sourceURL, formatFilename(parts, save_format), modifiers);
             if (download_history) download_history_add(save_id);
         }
         sendResponse({status: 'success'});

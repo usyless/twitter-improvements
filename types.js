@@ -34,3 +34,9 @@
  * @property {string} type
  * @property {function} listener
  */
+
+/**
+ * @typedef {Object} EventModifiers
+ * @property {boolean} shift
+ * @property {boolean} ctrl
+ */
