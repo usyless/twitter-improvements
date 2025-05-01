@@ -175,7 +175,7 @@ function download(url, filename, {shift, ctrl}={}) {
         const {save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
             save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences;
 
-        let [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
+        const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
             : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl] : [save_directory, save_as_prompt];
 
         void browser.downloads.download({
