@@ -284,11 +284,11 @@
          */
         genericButton: (media, cb) => {
             const button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
-            const prefs = Settings.image_preferences;
-            button.style.width = (prefs.image_button_width_value === Defaults.image_preferences.image_button_width_value)
-                ? 'fit-content' : `${+prefs.image_button_width_value / +prefs.image_button_scale}%`;
-            button.classList.add(...(Image.buttonModes[prefs.image_button_position] ?? []));
-            button.style.transform = `scale(${prefs.image_button_scale})`;
+            const {image_button_width_value, image_button_scale, image_button_position} = Settings.image_preferences;
+            button.style.width = (image_button_width_value === Defaults.image_preferences.image_button_width_value)
+                ? 'fit-content' : `${+image_button_width_value / +image_button_scale}%`;
+            button.classList.add(...(Image.buttonModes[image_button_position] ?? []));
+            button.style.transform = `scale(${image_button_scale})`;
 
             if (media.complete || !('complete' in media)) Image.setButtonHeight(media, button);
             else media.addEventListener('load', Image.setButtonHeight.bind(null, media, button), {once: true});
@@ -378,19 +378,18 @@
         },
 
         setButtonHeight: (image, button) => {
-            const prefs = Settings.image_preferences, ibh = prefs.image_button_height_value,
-                ibhs = prefs.image_button_height_value_small,
-                dibh = Defaults.image_preferences.image_button_height_value,
-                dibhs = Defaults.image_preferences.image_button_height_value_small;
+            const {image_button_height_value: ibh,image_button_height_value_small: ibhs,
+                    small_image_size_threshold, image_button_scale} = Settings.image_preferences,
+                {image_button_height_value: dibh, image_button_height_value_small: dibhs} = Defaults.image_preferences;
 
             if (ibh === dibh && ibhs === dibhs) return;
 
             const height = image.clientHeight;
 
             if (height <= 0 && image.isConnected) setTimeout(Image.setButtonHeight.bind(null, image, button), 50);
-            else if (height > +prefs.small_image_size_threshold) {
-                if (ibh !== dibh) button.style.height = `${+ibh / +prefs.image_button_scale}%`;
-            } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +prefs.image_button_scale}%`;
+            else if (height > +small_image_size_threshold) {
+                if (ibh !== dibh) button.style.height = `${+ibh / +image_button_scale}%`;
+            } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +image_button_scale}%`;
         },
 
         /** @returns {HTMLElement} */
