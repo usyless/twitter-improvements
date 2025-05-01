@@ -267,12 +267,12 @@ function formatFilename(parts, save_format) {
  */
 function download_media({url, media, modifiers}, sendResponse) {
     Settings.getSettings().then(() => {
-        const {save_format, download_history} = Settings.download_preferences;
+        const {save_format, download_history_enabled} = Settings.download_preferences;
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             download(sourceURL, formatFilename(parts, save_format), modifiers);
-            if (download_history) void download_history_add(save_id);
+            if (download_history_enabled) void download_history_add(save_id);
         }
         sendResponse({status: 'success'});
     });
@@ -285,10 +285,11 @@ function download_media({url, media, modifiers}, sendResponse) {
  */
 function saveImage(url, sourceURL) {
     Settings.getSettings().then(() => {
+        const {save_format, download_history_enabled} = Settings.download_preferences;
         const parts = getNamePartsImage(url, sourceURL);
-        download(sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, Settings.download_preferences.save_format));
+        download(sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, save_format));
 
-        if (Settings.download_preferences.download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
+        if (download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
             sendToTab({type: 'image_saved'});
         });
     })
