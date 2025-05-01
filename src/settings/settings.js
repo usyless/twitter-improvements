@@ -150,7 +150,6 @@
                 },
                 {
                     name: 'clear_download_history',
-                    description: '',
                     type: 'button',
                     button: 'Clear download history',
                     onclick: () => {
@@ -161,7 +160,6 @@
                 },
                 {
                     name: 'import_download_history',
-                    description: '',
                     type: 'button',
                     button: 'Import download history from export',
                     onclick: () => {
@@ -188,7 +186,6 @@
                 },
                 {
                     name: 'import_download_history_from_files',
-                    description: '',
                     type: 'button',
                     button: 'Import download history from saved files\n(File names must contain tweet id, then any character, then the tweet number)',
                     onclick: () => {
@@ -219,7 +216,6 @@
                 },
                 {
                     name: 'export_download_history',
-                    description: '',
                     type: 'button',
                     button: 'Export downloaded history\nExports as {tweet id}-{media number}',
                     onclick: () => {
@@ -232,7 +228,6 @@
                 },
                 {
                     name: 'saved_image_count',
-                    description: '',
                     type: 'button',
                     button: 'Get saved media count',
                     onclick: () => {
@@ -265,7 +260,6 @@
                 },
                 {
                     name: 'reset_all_settings',
-                    description: '',
                     type: 'button',
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',
                     class: ['warning'],
@@ -281,7 +275,6 @@
             'Advanced': [
                 {
                     name: 'export_settings_json',
-                    description: '',
                     type: 'button',
                     button: 'Export Settings',
                     onclick: () => {
@@ -294,7 +287,6 @@
                 },
                 {
                     name: 'import_settings_json',
-                    description: '',
                     type: 'button',
                     button: 'Import Settings (Make sure it is from the same version, modifying these past the regular values may cause errors - if so, reset the extensions settings to the defaults)',
                     onclick: () => {
@@ -862,7 +854,7 @@
         outer.dataset.setting = '';
         e.element = outer;
         e.valueElement = elem;
-        label.textContent = e.description;
+        label.textContent = e.description || '';
         label.htmlFor = e.name;
         elem.id = e.name;
         if (e.class) elem.classList.add(...e.class);
