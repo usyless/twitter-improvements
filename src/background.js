@@ -25,7 +25,7 @@ browser.runtime.onMessage.addListener((request, _, sendResponse) => {
 
 browser?.runtime?.onInstalled?.addListener?.((details) => {
     updateHistoryDb().then(() => {
-        if (details.reason === 'install') browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
+        if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
         else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
     });
 });
@@ -185,21 +185,21 @@ function download(url, filename, {shift, ctrl}={}) {
             || (ctrl && save_as_prompt_ctrl === save_ctrl_default)) setSaveAs(save_as_prompt);
         else if (shift) setSaveAs(save_as_prompt_shift);
         else if (ctrl) setSaveAs(save_as_prompt_ctrl);
-        browser.downloads.download(downloadData);
+        void browser.downloads.download(downloadData);
     });
 }
 
 const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function sendToTab(message) {
     browser.tabs.query(singleTabQuery).then((tabs) => {
-        browser.tabs.sendMessage(tabs[0].id, message);
+        void browser.tabs.sendMessage(tabs[0].id, message);
     });
 }
 
 const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function send_to_all_tabs(message) {
     browser.tabs.query(tabQuery).then((tabs) => {
-        for (const tab of tabs) browser.tabs.sendMessage(tab.id, message);
+        for (const tab of tabs) void browser.tabs.sendMessage(tab.id, message);
     });
 }
 
@@ -276,7 +276,7 @@ function download_media({url, media, modifiers}, sendResponse) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             download(sourceURL, formatFilename(parts, save_format), modifiers);
-            if (download_history) download_history_add(save_id);
+            if (download_history) void download_history_add(save_id);
         }
         sendResponse({status: 'success'});
     });
