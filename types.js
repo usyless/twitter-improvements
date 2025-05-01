@@ -1,14 +1,14 @@
 /**
  * @typedef {Object} MediaItem
- * @property {number} index
- * @property {string} save_id
+ * @property {tweetNum} index
+ * @property {saveId} save_id
  * @property {string} url
  * @property {('Image' | 'Video')} type
  */
 
 /**
  * @typedef {Object} MediaTransfer
- * @property {string} id
+ * @property {tweetId} id
  * @property {MediaItem[]} media
  */
 

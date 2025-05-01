@@ -284,15 +284,13 @@ function download_media({url, media, modifiers}, sendResponse) {
  * @param {string} sourceURL
  */
 function saveImage(url, sourceURL) {
-    Settings.getSettings().then(() => {
-        const {save_format, download_history_enabled} = Settings.download_preferences;
-        const parts = getNamePartsImage(url, sourceURL);
-        download(sourceURL.replace(/name=[^&]*/, "name=orig"), formatFilename(parts, save_format));
-
-        if (download_history_enabled) download_history_add(formatPartsForStorage(parts)).then(() => {
-            sendToTab({type: 'image_saved'});
-        });
-    })
+    const parts = getNamePartsImage(url, sourceURL);
+    download_media( {url, media: [{
+            index: parts.tweetNum,
+            save_id: formatPartsForStorage(parts),
+            url: sourceURL.replace(/name=[^&]*/, "name=orig"),
+            type: 'Image'
+        }], modifiers: {shift: false, ctrl: false}}, () => sendToTab({type: 'image_saved'}))
 }
 
 const migrations = [
