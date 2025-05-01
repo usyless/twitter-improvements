@@ -37,9 +37,9 @@
     };
 
     const Background = {
-        /** @param {string} id */
+        /** @param {saveId} id */
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
-        /** @param {string} id */
+        /** @param {saveId} id */
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
 
         /**
