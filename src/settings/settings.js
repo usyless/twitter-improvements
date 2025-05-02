@@ -43,7 +43,7 @@
     const pageWrapper = document.querySelector('.wrapper');
 
     // Make sure category is set for updatable objects
-    const options = {
+    const /** @type {Record<string, Record<string, option[]>>} */ options = {
         'Settings': {
             'Link Copying': [
                 {
@@ -232,7 +232,7 @@
                     button: 'Get saved media count',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            customPopup(`You have downloaded approximately ${r.length} unique medias`);
+                            void customPopup(`You have downloaded approximately ${r.length} unique medias`);
                         });
                     }
                 }
@@ -308,7 +308,7 @@
                                 try {
                                     j = JSON.parse(r.target.result);
                                 } catch (e) {
-                                    customPopup('Failed to parse JSON:', e.toString());
+                                    void customPopup('Failed to parse JSON:', e.toString());
                                 }
                                 if (j) {
                                     setStorage(j).then(() => {
@@ -461,7 +461,7 @@
             ],
         },
         'Downloading': {
-            '': [
+            'Download Options': [
                 {
                     name: 'save_directory',
                     category: 'download_preferences',
