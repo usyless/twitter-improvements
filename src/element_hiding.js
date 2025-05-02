@@ -5,6 +5,7 @@
         this.browser = chrome;
     }
 
+    /** @returns {Promise<Settings>} */
     const loadSettings = () => browser.runtime.sendMessage({type: 'get_settings'});
 
     const HideType = {
