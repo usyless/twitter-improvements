@@ -239,8 +239,9 @@
         /**
          * @param {HTMLElement} article
          * @param {MouseEvent} ev
+         * @param {number} attempts
          */
-        mediaDownloadCallback: (article, ev) => {
+        mediaDownloadCallback: (article, ev, attempts=0) => {
             const url = Tweet.url(article), id = Helpers.id(url);
             if (URL_CACHE.has(id)) {
                 const media = URL_CACHE.get(id);
@@ -255,7 +256,8 @@
                     } else Notification.create('Multi-media tweet\nClick download button first to remove', 'error');
                 }
             } else if (article.isConnected) { // look into this
-                setTimeout(Tweet.mediaDownloadCallback, 100, article, ev);
+                if (attempts < 20) setTimeout(Tweet.mediaDownloadCallback, 100, article, ev, attempts + 1);
+                else Notification.create('Failed to create download menu\nTry again or report this tweet and current url to the developer', 'error');
             }
         },
 
