@@ -296,9 +296,7 @@ function saveImage(url, sourceURL) {
 const migrations = [
     ['1.4', () => new Promise((resolve) => {
         browser.storage.local.get().then(async (s) => {
-            console.log(s);
             const setting = s?.setting;
-            console.log(setting);
             if (setting != null) {
                 if (setting.image_button != null) {
                     setting.media_download_button = setting.image_button;
