@@ -399,6 +399,15 @@ body.mobile {
     }
 }
 
+/*chrome stuff*/
+body.chrome {
+    #settings-panes {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        transition: transform 0.25s cubic-bezier(0.0, 0.0, 0.58, 1.0), height 0.2s ease-in-out;
+    }
+}
+
 /*Dynamic settings hiding*/
 div:has(> * > #vx_button:not(:checked)) > *:nth-child(n+3),
 div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+4),

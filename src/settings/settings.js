@@ -5,10 +5,17 @@
         this.browser = chrome;
     }
 
+    let chromeMode = false;
+
     document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
 
     if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {
         document.body.classList.add('mobile');
+    }
+
+    if (!navigator.userAgent.includes("Firefox")) {
+        chromeMode = true;
+        document.body.classList.add('chrome');
     }
 
     const Defaults = {
@@ -816,7 +823,11 @@
             if (p) {
                 for (const f of panes.querySelectorAll('.focused')) f.classList.remove('focused');
                 p.classList.add('focused');
-                panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
+                if (chromeMode) {
+                    panes.style.transform = `translateX(-${p.offsetLeft}px)`;
+                } else {
+                    panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
+                }
             }
         }
 
