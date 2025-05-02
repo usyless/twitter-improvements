@@ -400,8 +400,8 @@ body.mobile {
 }
 
 /*Dynamic settings hiding*/
-div:has(> * > #vx_button:not(:checked)) > div:not(:first-of-type),
-div:has(> * > #media_download_button:not(:checked)) > div:nth-of-type(n+3),
-div:has(> * > #download_history_enabled:not(:checked)) > div:not(:first-of-type) {
+div:has(> * > #vx_button:not(:checked)) > *:nth-child(n+3),
+div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+4),
+div:has(> * > #download_history_enabled:not(:checked)) > *:nth-child(n+3) {
     display: none !important;
 }
