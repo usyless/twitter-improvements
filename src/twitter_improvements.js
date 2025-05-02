@@ -301,11 +301,11 @@
             let button;
             try {
                 image.setAttribute('usy-media', '');
-                button = Image.genericButton(image, Image.imageButtonCallback.bind(null, image));
+                const url = Image.respectiveURL(image), id = Helpers.idWithNumber(url);
+                button = Image.genericButton(image, Image.imageButtonCallback.bind(null, image, url));
 
+                button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
-                    const id = Image.idWithNumber(image);
-                    button.setAttribute('ti-id', id);
                     Background.download_history_has(id).then((response) => {
                         if (response === true) Button.mark(button);
                     });
@@ -326,8 +326,8 @@
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
                     const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
                     const mark_button = () => {
+                        button.setAttribute('ti-id', id);
                         if (Settings.download_preferences.download_history_enabled) { // mark image
-                            button.setAttribute('ti-id', id);
                             Background.download_history_has(id).then((response) => {
                                 if (response === true) Button.mark(button);
                             });
@@ -444,20 +444,14 @@
 
         /**
          * @param {HTMLImageElement} image
-         * @returns {saveId}
-         */
-        idWithNumber: (image) => Helpers.idWithNumber(Image.respectiveURL(image)),
-
-        /**
-         * @param {HTMLImageElement} image
+         * @param {string} url
          * @param {MouseEvent} ev
          */
-        imageButtonCallback: (image, ev) => {
-            const url = Image.respectiveURL(image), save_id = Helpers.idWithNumber(url),
-                split = save_id.split('-');
+        imageButtonCallback: (image, url, ev) => {
+            const save_id = ev.currentTarget.getAttribute('ti-id');
             if (ev?.type === 'click' || !ev) {
                 Downloaders.download_all(url,{
-                    index: +split[1], save_id, type: 'Image',
+                    index: +save_id.split('-')[1], save_id, type: 'Image',
                     url: image.src.replace(/name=[^&]*/, "name=orig"),
                 }, Helpers.eventModifiers(ev));
             } else {
