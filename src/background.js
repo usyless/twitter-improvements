@@ -207,7 +207,7 @@ function send_to_all_tabs(message) {
 
 /**
  * @param {string} url
- * @returns {NameParts}
+ * @returns {Omit<NameParts, 'extension'>}
  */
 function getNamePartsGeneric(url) {
     const parts = url.split("/");

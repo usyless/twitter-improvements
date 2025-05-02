@@ -26,7 +26,7 @@
  * @property {string} username
  * @property {tweetId} tweetId
  * @property {tweetNum} tweetNum
- * @property {string} [extension]
+ * @property {string} extension
  */
 
 /**
