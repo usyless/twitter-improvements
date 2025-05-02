@@ -334,7 +334,7 @@
                         }
                     }
 
-                    const cb =  Image.videoButtonCallback.bind(null, video);
+                    const cb =  Image.videoButtonCallback.bind(null, video, article);
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
@@ -468,14 +468,14 @@
 
         /**
          * @param {HTMLElement} video
+         * @param {HTMLElement} article
          * @param {MouseEvent} ev
          */
-        videoButtonCallback: (video, ev) => {
-            const save_id = ev.currentTarget.getAttribute('ti-id'),
-                url = Tweet.url(Tweet.nearestTweet(video));
+        videoButtonCallback: (video, article, ev) => {
+            const save_id = ev.currentTarget.getAttribute('ti-id');
             if (ev?.type === 'click' || !ev) {
                 if (URL_CACHE.has(save_id.split('-')[0])) {
-                    Downloaders.download_all(url,
+                    Downloaders.download_all(Tweet.url(article),
                         URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id),
                         Helpers.eventModifiers(ev));
                 } else {
