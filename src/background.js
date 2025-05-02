@@ -44,80 +44,82 @@ browser?.contextMenus?.onClicked?.addListener?.((info) => {
     if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
 });
 
-const Settings = { // Setting handling
-    defaults: {
-        setting: {
-            vx_button: true,
-            media_download_button: true,
-            inline_download_button: false,
-            bookmark_on_photo_page: false,
-        },
-
-        vx_preferences: {
-            url_prefix: 'fixvx.com',
-            custom_url: '',
-        },
-
-        image_preferences: {
-            image_button_position: '0',
-            image_button_scale: '1',
-            image_button_height_value: '1',
-            image_button_height_value_small: '1',
-            small_image_size_threshold: '350',
-            image_button_width_value: '1'
-        },
-
-        download_preferences: {
-            save_as_prompt: 'browser',
-            save_as_prompt_shift: 'browser',
-            save_as_prompt_ctrl: 'browser',
-            save_directory: '',
-            save_directory_shift: '',
-            save_directory_ctrl: '',
-            save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
-            download_all_near_click: false,
-            download_all_override_saved: true,
-            download_history_enabled: true,
-            download_history_prevent_download: false,
-        },
-
-        style: {
-            hide_grok: false,
-            hide_premium: false,
-            hide_post_reply_sections: false,
-            hide_tweet_view_count: false,
-            hide_tweet_share_button: false,
-            hide_replies_button_tweet: false,
-            hide_retweet_button_tweet: false,
-            hide_like_button_tweet: false,
-            hide_bookmark_button_tweet: false,
-            hide_notifications: false,
-            hide_messages: false,
-            hide_jobs: false,
-            hide_lists: false,
-            hide_communities: false,
-            hide_create_your_space: false,
-            hide_post_button: false,
-            hide_follower_requests: false,
-            hide_verified_orgs: false,
-            hide_monetization: false,
-            hide_ads_button: false,
-            hide_whats_happening: false,
-            hide_who_to_follow: false,
-            hide_relevant_people: false,
-            hide_live_on_x: false,
-            hide_sidebar_footer: false,
-
-            tweet_button_positions: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}'
-        },
-
-        hidden_extension_notifications: {
-            save_media: false,
-            save_media_duplicate: false,
-            history_remove: false,
-            copied_url: false,
-        }
+const defaultSettings = {
+    setting: {
+        vx_button: true,
+        media_download_button: true,
+        inline_download_button: false,
+        bookmark_on_photo_page: false,
     },
+
+    vx_preferences: {
+        url_prefix: 'fixvx.com',
+        custom_url: '',
+    },
+
+    image_preferences: {
+        image_button_position: '0',
+        image_button_scale: '1',
+        image_button_height_value: '1',
+        image_button_height_value_small: '1',
+        small_image_size_threshold: '350',
+        image_button_width_value: '1'
+    },
+
+    download_preferences: {
+        save_as_prompt: 'browser',
+        save_as_prompt_shift: 'browser',
+        save_as_prompt_ctrl: 'browser',
+        save_directory: '',
+        save_directory_shift: '',
+        save_directory_ctrl: '',
+        save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
+        download_all_near_click: false,
+        download_all_override_saved: true,
+        download_history_enabled: true,
+        download_history_prevent_download: false,
+    },
+
+    style: {
+        hide_grok: false,
+        hide_premium: false,
+        hide_post_reply_sections: false,
+        hide_tweet_view_count: false,
+        hide_tweet_share_button: false,
+        hide_replies_button_tweet: false,
+        hide_retweet_button_tweet: false,
+        hide_like_button_tweet: false,
+        hide_bookmark_button_tweet: false,
+        hide_notifications: false,
+        hide_messages: false,
+        hide_jobs: false,
+        hide_lists: false,
+        hide_communities: false,
+        hide_create_your_space: false,
+        hide_post_button: false,
+        hide_follower_requests: false,
+        hide_verified_orgs: false,
+        hide_monetization: false,
+        hide_ads_button: false,
+        hide_whats_happening: false,
+        hide_who_to_follow: false,
+        hide_relevant_people: false,
+        hide_live_on_x: false,
+        hide_sidebar_footer: false,
+
+        tweet_button_positions: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}'
+    },
+
+    hidden_extension_notifications: {
+        save_media: false,
+        save_media_duplicate: false,
+        history_remove: false,
+        copied_url: false,
+    }
+}
+
+const Settings = { // Setting handling
+    defaults: defaultSettings,
 
     loaded: false,
     loading: false,
@@ -140,23 +142,26 @@ const Settings = { // Setting handling
 
     loadSettings: () => new Promise(resolve => {
         browser.storage.local.get().then((s) => {
-            const defaults = Settings.defaults;
-            for (const setting in defaults) Settings[setting] = {...defaults[setting], ...s[setting]};
+            for (const setting in defaultSettings) Settings[setting] = {...defaultSettings[setting], ...s[setting]};
             resolve();
         });
     }),
 }
 
+/** @typedef {typeof defaultSettings} Settings */
+
+/** @typedef {Settings & { loadSettings: *, loadDefaults: * }} LoadedSettings */
+
 function get_settings(_, sendResponse) {
     Settings.getSettings().then(() => {
         const data = {};
-        for (const setting in Settings.defaults) data[setting] = Settings[setting];
+        for (const setting in defaultSettings) data[setting] = Settings[setting];
         sendResponse(data);
     });
 }
 
 function get_default_settings(_, sendResponse) {
-    sendResponse(Settings.defaults);
+    sendResponse(defaultSettings);
 }
 
 browser.storage.onChanged.addListener((changes, namespace) => {
@@ -295,7 +300,7 @@ function saveImage(url, sourceURL) {
 
 const migrations = [
     ['1.4', () => new Promise((resolve) => {
-        browser.storage.local.get().then(async (s) => {
+        browser.storage.local.get().then(async (/** @type {Settings} */s) => {
             const setting = s?.setting;
             if (setting != null) {
                 if (setting.image_button != null) {
