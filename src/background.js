@@ -69,8 +69,8 @@ const Settings = { // Setting handling
 
         download_preferences: {
             save_as_prompt: 'browser',
-            save_as_prompt_shift: 'default',
-            save_as_prompt_ctrl: 'default',
+            save_as_prompt_shift: 'browser',
+            save_as_prompt_ctrl: 'browser',
             save_directory: '',
             save_directory_shift: '',
             save_directory_ctrl: '',
