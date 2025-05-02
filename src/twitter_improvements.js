@@ -5,9 +5,7 @@
         this.browser = /** @suppress */ chrome;
     }
 
-    // this will memory leak for now, its fine
-    // i will fix this later
-    const /** @type {Map<string, MediaItem[]>}*/ URL_CACHE = new Map();
+    const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
 
     window.addEventListener("message", (e) => {
         if (e.source !== window || e.origin !== "https://x.com") return;
@@ -49,7 +47,9 @@
          */
         save_media: (url, media, modifiers) => browser.runtime.sendMessage({ type: 'save_media', url, media, modifiers }),
 
+        /** @returns {Promise<Settings>} */
         get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
+        /** @returns {Promise<Settings>} */
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
     };
 
