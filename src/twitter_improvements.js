@@ -324,7 +324,8 @@
                 const article = Tweet.nearestTweet(video);
                 // no way to get id from inside quote tweet i think
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
-                    const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
+                    const url = Tweet.url(article),
+                        id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
                     const mark_button = () => {
                         button.setAttribute('ti-id', id);
                         if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -334,7 +335,7 @@
                         }
                     }
 
-                    const cb =  Image.videoButtonCallback.bind(null, video, article);
+                    const cb =  Image.videoButtonCallback.bind(null, video, url);
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
@@ -462,14 +463,14 @@
 
         /**
          * @param {HTMLElement} video
-         * @param {HTMLElement} article
+         * @param {string} url
          * @param {MouseEvent} ev
          */
-        videoButtonCallback: (video, article, ev) => {
+        videoButtonCallback: (video, url, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
             if (ev?.type === 'click' || !ev) {
                 if (URL_CACHE.has(save_id.split('-')[0])) {
-                    Downloaders.download_all(Tweet.url(article),
+                    Downloaders.download_all(url,
                         URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id),
                         Helpers.eventModifiers(ev));
                 } else {
