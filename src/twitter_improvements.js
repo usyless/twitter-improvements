@@ -51,6 +51,9 @@
         get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
         /** @returns {Promise<Settings>} */
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
+
+        /** @param {string} url */
+        open_tab: (url) => browser.runtime.sendMessage({type: 'open_tab', url}),
     };
 
     const Downloaders = {
@@ -834,6 +837,14 @@
             }
             case 'download': {
                 Helpers.download(message.url, message.filename);
+                break;
+            }
+            case 'error': {
+                const notif = Notification.create(message.message, 'error', 10000);
+                if (notif) {
+                    notif.style.cursor = 'pointer';
+                    notif.addEventListener('click', Background.open_tab.bind(null, message.url));
+                }
                 break;
             }
         }

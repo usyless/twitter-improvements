@@ -16,6 +16,11 @@ const requestMap = {
 
     get_settings: get_settings,
     get_default_settings: get_default_settings,
+
+    open_tab: ({url}, sendResponse) => {
+        browser.tabs.create({url});
+        sendResponse(true);
+    }
 }
 
 browser.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -176,17 +181,22 @@ browser.storage.onChanged.addListener((changes, namespace) => {
  * @param {EventModifiers} [modifiers]
  */
 function download(url, filename, {shift, ctrl}={}) {
-    /Android/i.test(navigator.userAgent) ? sendToTab({type: 'download', url, filename}) : Settings.getSettings().then(() => {
-        const {save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
-            save_directory,save_directory_shift, save_directory_ctrl} = Settings.download_preferences;
+    return new Promise((resolve, reject) => {
+        /Android/i.test(navigator.userAgent)
+            ? resolve(sendToTab({ type: 'download', url, filename }) || 1)
+            : Settings.getSettings().then(() => {
+            const {
+                save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
+                save_directory, save_directory_shift, save_directory_ctrl
+            } = Settings.download_preferences;
 
-        const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
-            : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl] : [save_directory, save_as_prompt];
+            const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
+                : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl] : [save_directory, save_as_prompt];
 
-        void browser.downloads.download({
-            url,
-            filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename,
-            saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined
+            browser.downloads.download({
+                url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
+                filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename
+            }).then(resolve, reject);
         });
     });
 }
@@ -276,8 +286,11 @@ function download_media({url, media, modifiers}, sendResponse) {
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
-            download(sourceURL, formatFilename(parts, save_format), modifiers);
             if (download_history_enabled) void download_history_add(save_id);
+            const onError = () => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media, click here to see the tweet.`, url}));
+            download(sourceURL, formatFilename(parts, save_format), modifiers).then((downloadId) => {
+                if (downloadId === undefined) onError();
+            }, onError);
         }
         sendResponse({status: 'success'});
     });
@@ -509,16 +522,21 @@ function getHistoryDB() {
     });
 }
 
-function download_history_has(request, sendResponse) {
+/**
+ * @param {saveId} id
+ * @param {function(any): any} sendResponse
+ */
+function download_history_has({id}, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readonly').objectStore('download_history').index('saved_image')
-            .get(request.id).addEventListener('success', (e) => {
+            .get(id).addEventListener('success', (e) => {
             if (e.target.result) sendResponse(true);
             else sendResponse(false);
         });
     });
 }
 
+/** @param {saveId} saved_image */
 function download_history_add(saved_image) {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
@@ -531,12 +549,16 @@ function download_history_add(saved_image) {
     });
 }
 
-function download_history_remove(request, sendResponse) {
+/**
+ * @param {saveId} id
+ * @param {function(any): any} [sendResponse]
+ */
+function download_history_remove({id}, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readwrite').objectStore('download_history')
-            .delete(request.id).addEventListener('success', () => {
-                send_to_all_tabs({type: 'history_change_remove', id: request.id});
-                sendResponse(true);
+            .delete(id).addEventListener('success', () => {
+                send_to_all_tabs({type: 'history_change_remove', id});
+                sendResponse?.(true);
         });
     });
 }
