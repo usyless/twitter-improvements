@@ -18,7 +18,7 @@ const requestMap = {
     get_default_settings: get_default_settings,
 
     open_tab: ({url}, sendResponse) => {
-        browser.tabs.create({url});
+        void browser.tabs.create({url});
         sendResponse(true);
     }
 }
