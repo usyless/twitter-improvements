@@ -56,4 +56,5 @@
  * @property {function(): *} [onclick]
  * @property {string[]} [class]
  * @property {function(): *} [init]
+ * @property {boolean} [noDefaultListener]
  */
