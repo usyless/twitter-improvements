@@ -321,7 +321,7 @@
                                         });
                                     });
                                 } catch (e) {
-                                    void customPopup('Failed to parse JSON:', e.toString());
+                                    void customPopup(`Failed to parse JSON: ${e.toString()}`);
                                 }
                             };
                             reader.readAsText(file);
@@ -942,6 +942,11 @@
         link.click();
     }
 
+    /**
+     * @param {string} text
+     * @param {boolean} [choice]
+     * @returns {Promise<boolean>}
+     */
     function customPopup(text, choice) {
         const outer = document.createElement('div'),
             notifOuter = document.createElement('div'),
