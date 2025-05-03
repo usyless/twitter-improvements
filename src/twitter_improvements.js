@@ -762,7 +762,7 @@
     };
 
     const Observer = {
-        observer: null,
+        /** @type {(MutationObserver | null)} */ observer: null,
         forceUpdate: null,
 
         start: () => {
@@ -770,42 +770,24 @@
 
             Button.resetAll();
             const observerSettings = {subtree: true, childList: true},
-                callbackMappings = {
-                    vx_button: [{
-                        s: 'article:not([usy])',
-                        f: Tweet.addVXButton
-                    }],
-                    bookmark_on_photo_page: [{
-                        s: 'article:not([usy-bookmarked])',
-                        f: Tweet.copyBookmarkButton
-                    }],
-                    inline_download_button: [{ // tweetPhoto data id doesnt work for maximised view
-                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-download])',
-                        f: Tweet.addDownloadButton
-                    }, {
-                        s: 'div[data-testid="videoComponent"]:not([usy-download])',
-                        f: Tweet.addDownloadButton
-                    }, {
-                        s: 'img[alt="Embedded video"]:not([usy-download])',
-                        f: Tweet.addDownloadButton
-                    }],
-                    media_download_button: [{
-                        s: 'img[src^="https://pbs.twimg.com/media/"]:not([usy-media])',
-                        f: Image.addImageButton
-                    }, {
-                        s: 'div[data-testid="videoComponent"]:not([usy-media])',
-                        f: Image.addVideoButtonTimeout
-                    }, {
-                        s: 'img[alt="Embedded video"]:not([usy-media])',
-                        f: Image.addVideoButton
-                    }]
+                /** @type {Record<string, [string, function(HTMLElement): *][]>} */ callbackMappings = {
+                    vx_button: [['article:not([usy])', Tweet.addVXButton]],
+                    bookmark_on_photo_page: [['article:not([usy-bookmarked])', Tweet.copyBookmarkButton]],
+                    inline_download_button: [ // tweetPhoto doesnt work here, stuff isnt loaded yet
+                        ['img[src^="https://pbs.twimg.com/media/"]:not([usy-download])', Tweet.addDownloadButton],
+                        ['div[data-testid="videoComponent"]:not([usy-download])', Tweet.addDownloadButton],
+                        ['img[alt="Embedded video"]:not([usy-download])', Tweet.addDownloadButton]],
+                    media_download_button: [
+                        ['img[src^="https://pbs.twimg.com/media/"]:not([usy-media])', Image.addImageButton],
+                        ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
+                        ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]]
                 }, getCallback = () => {
-                    const callbacks = [];
+                    const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
                     const update = (_, __, pre) => {
                         Observer.observer?.disconnect();
                         pre?.();
-                        for (const i of callbacks) for (const a of document.body.querySelectorAll(i.s)) i.f(a);
+                        for (const [s, f] of callbacks) for (const a of document.body.querySelectorAll(s)) f(a);
                         Observer.observer?.observe(document.body, observerSettings);
                     };
                     update();
