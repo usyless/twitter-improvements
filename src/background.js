@@ -49,6 +49,18 @@ browser?.contextMenus?.onClicked?.addListener?.((info) => {
     if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
 });
 
+const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
+browser?.downloads?.onChanged?.addListener?.(({error, state, id}) => {
+    if (DOWNLOAD_MAP.has(id)) {
+        if (state?.current === 'complete') {
+            DOWNLOAD_MAP.delete(id);
+        } else if (error?.current) {
+            DOWNLOAD_MAP.get(id)(error.current);
+            DOWNLOAD_MAP.delete(id);
+        }
+    }
+});
+
 const defaultSettings = {
     setting: {
         vx_button: true,
@@ -287,9 +299,10 @@ function download_media({url, media, modifiers}, sendResponse) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             if (download_history_enabled) void download_history_add(save_id);
-            const onError = () => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media, click here to see the tweet.`, url}));
+            const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media with error ${error}\nClick here to see the tweet.`, url}));
             download(sourceURL, formatFilename(parts, save_format), modifiers).then((downloadId) => {
-                if (downloadId === undefined) onError();
+                if (downloadId === undefined) onError("Failed to start download");
+                else DOWNLOAD_MAP.set(downloadId, onError);
             }, onError);
         }
         sendResponse({status: 'success'});
