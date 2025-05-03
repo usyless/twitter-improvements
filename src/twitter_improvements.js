@@ -75,7 +75,6 @@
                 }
             }
             if (!Array.isArray(media)) media = [media];
-            Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
             if (!override && Helpers.shouldPreventDuplicate()) {
                 let newMedia;
                 if (softOverride) {
@@ -95,6 +94,7 @@
             }
             if (media.length > 0) {
                 Background.save_media(url, media, modifiers);
+                Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
             } else {
                 Notification.create('No media to save', 'error');
             }
