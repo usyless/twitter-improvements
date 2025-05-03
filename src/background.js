@@ -345,12 +345,8 @@ const migrations = [
                     delete setting.video_button;
                 }
             }
-            if (s?.video_preferences != null) {
-                delete s.video_preferences;
-            }
-            if (s?.video_details != null) {
-                delete s.video_details;
-            }
+            delete s.video_preferences;
+            delete s.video_details;
 
             const notifs = s?.hidden_extension_notifications;
             if (notifs != null) {
