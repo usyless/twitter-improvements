@@ -103,8 +103,7 @@
         addVXButton: (article) => {
             try {
                 article.setAttribute('usy', '');
-                const a = Tweet.defaultAnchor(article);
-                const cb = Tweet.vxButtonCallback.bind(null, article);
+                const a = Tweet.defaultAnchor(article), cb = Tweet.vxButtonCallback.bind(null, article);
                 a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
 
                 const altAnchor = Tweet.secondaryAnchor(article);
@@ -159,7 +158,7 @@
                         bk.firstElementChild.click();
                     }, 'usy-bookmark', null,
                         [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}],
-                        [(btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff']));
+                        (btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff'));
                 }
             } catch {
                 article.removeAttribute('usy-bookmarked');
@@ -207,13 +206,11 @@
          * @returns {HTMLElement | null}
          */
         nearestTweet: (elem) => {
-            if (Tweet.maximised()) {
-                let c = elem.closest('article');
-                if (c) return c;
-                else {
-                    for (const article of elem.closest('#layers').querySelectorAll('article')) {
-                        if (Tweet.isFocused(article)) return article;
-                    }
+            const c = elem.closest('article');
+            if (c) return c;
+            else if (Tweet.maximised()) {
+                for (const article of elem.closest('#layers').querySelectorAll('article')) {
+                    if (Tweet.isFocused(article)) return article;
                 }
             } else {
                 let anchor;
@@ -348,12 +345,12 @@
                                 const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
                                 if (share && !video.querySelector('[usy-media]')) {
                                     button = Button.newButton(share.cloneNode(true), download_button_path, cb,
-                                        "usy-media", cb, [],
-                                        [(btn) => {
+                                        "usy-media", cb, null,
+                                        (btn) => {
                                             btn.firstElementChild.firstElementChild.style.color = '#ffffff';
                                             btn.classList.add('usy-inline');
-                                        }]);
-                                    share.previousElementSibling.before(button);
+                                        });
+                                    share.previousElementSibling.previousElementSibling.before(button);
                                     mark_button();
                                 }
                                 timer = null;
@@ -498,8 +495,8 @@
         },
 
         getPrefix: () => {
-            if (Settings.vx_preferences.url_prefix === 'x.com') return Settings.vx_preferences.custom_url;
-            return Settings.vx_preferences.url_prefix;
+            const {url_prefix, custom_url} = Settings.vx_preferences;
+            return (url_prefix === 'x.com') ? custom_url : url_prefix;
         }
     };
 
@@ -511,10 +508,10 @@
          * @param {string} attribute
          * @param {function} [rightClickCallback]
          * @param {EventListeners[]} [customListeners]
-         * @param {(function(HTMLElement): any)[]} [extras]
+         * @param {function(HTMLElement): any} [extra]
          * @returns {HTMLElement}
          */
-        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback = null, customListeners = [], extras = []) => {
+        newButton: (shareButton, path, clickCallback, attribute, rightClickCallback, customListeners, extra) => {
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
@@ -531,10 +528,8 @@
                 shareButton.addEventListener('contextmenu', rightClickCallback);
                 shareButton.addEventListener('contextmenu', Button.stopAllEvents);
             }
-            for (const listener of customListeners) {
-                shareButton.addEventListener(listener.type, listener.listener);
-            }
-            for (const extra of extras) extra(shareButton);
+            if (customListeners) for (const {type, listener} of customListeners) shareButton.addEventListener(type, listener);
+            extra?.(shareButton);
             return shareButton;
         },
 
@@ -572,7 +567,7 @@
 
         /**
          * @param {HTMLElement} elem
-         * @returns {HTMLElement | void}
+         * @returns {HTMLElement | null}
          */
         closest: (elem) => elem.closest('.usybuttonclickdiv'),
     };
@@ -594,8 +589,10 @@
                 inner.textContent = text;
 
                 const fixInterval = setInterval(() => {
-                    if (Notification.getCurrentTwitterNotif()) inner.style.transform = 'translateY(-50px)';
-                    else inner.style.transform = '';
+                    if (inner?.isConnected) {
+                        if (Notification.getCurrentTwitterNotif()) inner.style.transform = 'translateY(-50px)';
+                        else inner.style.transform = '';
+                    } else clearInterval(fixInterval);
                 }, 200);
 
                 document.body.appendChild(outer);
@@ -627,7 +624,7 @@
          */
         createDownloadChoices: (url, choices, event) => {
             Notification.clearFullscreen();
-            const /** @type EventListeners[] */ notificationEventListeners = [];
+            const /** @type {EventListeners[]} */ notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
 
