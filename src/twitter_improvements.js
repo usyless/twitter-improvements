@@ -353,7 +353,7 @@
                                             btn.firstElementChild.firstElementChild.style.color = '#ffffff';
                                             btn.classList.add('usy-inline');
                                         }]);
-                                    share.before(button);
+                                    share.previousElementSibling.before(button);
                                     mark_button();
                                 }
                                 timer = null;
