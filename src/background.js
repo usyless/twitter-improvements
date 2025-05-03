@@ -195,7 +195,7 @@ browser.storage.onChanged.addListener((changes, namespace) => {
 function download(url, filename, {shift, ctrl}={}) {
     return new Promise((resolve, reject) => {
         /Android/i.test(navigator.userAgent)
-            ? resolve(sendToTab({ type: 'download', url, filename }) || 1)
+            ? resolve(sendToTab({ type: 'download', url, filename }) || -1)
             : Settings.getSettings().then(() => {
             const {
                 save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
@@ -302,6 +302,7 @@ function download_media({url, media, modifiers}, sendResponse) {
             const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media with error ${error}\nClick here to see the tweet.`, url}));
             download(sourceURL, formatFilename(parts, save_format), modifiers).then((downloadId) => {
                 if (downloadId === undefined) onError("Failed to start download");
+                else if (downloadId === -1) void 0 // android, ignore it
                 else DOWNLOAD_MAP.set(downloadId, onError);
             }, onError);
         }
