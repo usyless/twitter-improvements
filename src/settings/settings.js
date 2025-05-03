@@ -311,18 +311,17 @@
                             if (!file) return;
                             const reader = new FileReader();
                             reader.onload = (r) => {
-                                let j;
                                 try {
-                                    j = JSON.parse(r.target.result);
+                                    const j = JSON.parse(r.target.result);
+                                    clearStorage().then(() => {
+                                        setStorage(j).then(() => {
+                                            customPopup('Imported Settings').then(() => {
+                                                window.location.reload();
+                                            });
+                                        });
+                                    });
                                 } catch (e) {
                                     void customPopup('Failed to parse JSON:', e.toString());
-                                }
-                                if (j) {
-                                    setStorage(j).then(() => {
-                                        customPopup('Imported Settings').then(() => {
-                                            window.location.reload();
-                                        });
-                                    })
                                 }
                             };
                             reader.readAsText(file);
