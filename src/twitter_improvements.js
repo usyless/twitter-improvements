@@ -59,7 +59,7 @@
     const Downloaders = {
         /**
          * @param {string} url
-         * @param {MediaItem[] | MediaItem} [media]
+         * @param {MediaItem[] | MediaItem} media
          * @param {EventModifiers} modifiers
          * @param {boolean} [override]
          * @param {boolean} [softOverride]
@@ -67,9 +67,8 @@
          */
         download_all: async (url, media, modifiers, {override=false, softOverride=false}={}) => {
             if (!media) {
-                const id = Helpers.id(url);
-                if (URL_CACHE.has(id)) media = URL_CACHE.get(id);
-                else {
+                media = URL_CACHE.get(Helpers.id(url));
+                if (!media) {
                     Notification.create('Error downloading, please try again in a second', 'error');
                     return;
                 }
@@ -242,9 +241,8 @@
          * @param {number} attempts
          */
         mediaDownloadCallback: (article, ev, attempts=0) => {
-            const url = Tweet.url(article), id = Helpers.id(url);
-            if (URL_CACHE.has(id)) {
-                const media = URL_CACHE.get(id);
+            const url = Tweet.url(article), media = URL_CACHE.get(Helpers.id(url));
+            if (media) {
                 if (ev.type === 'click') {
                     if (media.length === 1) {
                         Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
@@ -471,9 +469,9 @@
         videoButtonCallback: (video, url, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
             if (ev?.type === 'click' || !ev) {
-                if (URL_CACHE.has(save_id.split('-')[0])) {
-                    Downloaders.download_all(url,
-                        URL_CACHE.get(save_id.split('-')[0]).filter(({save_id: sid}) => sid === save_id),
+                const media = URL_CACHE.get(save_id.split('-')[0]);
+                if (media) {
+                    Downloaders.download_all(url, media.filter(({save_id: sid}) => sid === save_id),
                         Helpers.eventModifiers(ev));
                 } else {
                     Notification.create('Error saving, try again', 'error');
