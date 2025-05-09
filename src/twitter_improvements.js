@@ -582,7 +582,7 @@
         handleClick: (ev, save_id, func, type='media') => {
             if (ev?.type === 'click') {
                 func();
-            } else {
+            } else if (Settings.download_preferences.download_history_enabled) {
                 Background.download_history_has(save_id).then((r) => {
                     if (r === true) {
                         Notification.create(`Removing ${type} from saved`, 'history_remove');
