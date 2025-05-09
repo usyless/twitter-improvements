@@ -338,23 +338,30 @@
                         button = Image.genericButton(video, cb);
                         mark_button();
                     } else { // video player
-                        let timer;
-                        video.addEventListener('pointermove', () => {
-                            if (!timer) timer = setTimeout(() => {
-                                const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
-                                if (share && !video.querySelector('[usy-media]')) {
-                                    button = Button.newButton(share.cloneNode(true), download_button_path, cb,
-                                        "usy-media", cb, null,
-                                        (btn) => {
-                                            btn.firstElementChild.firstElementChild.style.color = '#ffffff';
-                                            btn.classList.add('usy-inline');
-                                        });
-                                    share.previousElementSibling.previousElementSibling.before(button);
-                                    mark_button();
-                                }
-                                timer = null;
-                            }, 100);
+                        const observerSettings = { childList: true, subtree: true };
+                        const observer = new MutationObserver((_, observer) => {
+                            const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
+                            if (share && !video.querySelector('[usy-media]')) {
+                                button = Button.newButton(share.cloneNode(true), download_button_path, cb,
+                                    "usy-media", cb, null,
+                                    (btn) => {
+                                        btn.firstElementChild.firstElementChild.style.color = '#ffffff';
+                                        btn.classList.add('usy-inline');
+                                    });
+                                observer.disconnect();
+                                share.previousElementSibling.previousElementSibling.before(button);
+                                observer.observe(video, observerSettings);
+                                mark_button();
+                            }
                         });
+                        observer.observe(video, observerSettings);
+
+                        const interval = setInterval(() => {
+                            if (!video.isConnected) {
+                                observer.disconnect();
+                                clearInterval(interval);
+                            }
+                        }, 1000);
                     }
                 }
             } catch {
