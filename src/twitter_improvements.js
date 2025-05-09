@@ -488,7 +488,7 @@
             for (const image of document.querySelectorAll('[usy-media]')) image.removeAttribute('usy-media');
         },
 
-        getButtons: (id) => document.querySelectorAll(`[usy-media][ti-id="${id}"]`)
+        getButtons: (id) => document.querySelectorAll(`[ti-id="${id}"]`)
     };
 
     const URLS = { // URL modification functions
@@ -707,7 +707,7 @@
             for (const {index, type, save_id} of choices) {
                 const btn = Notification.getChoiceButton(`${type} ${index}`);
                 btn.dataset.index = index.toString();
-                btn.dataset.save_id = save_id;
+                btn.setAttribute('ti-id', save_id);
 
                 if (Settings.download_preferences.download_history_enabled) {
                     Background.download_history_has(save_id).then((r) => r && Button.mark(btn));
@@ -724,12 +724,10 @@
                 } else Downloaders.download_all(url, choices[choice], Helpers.eventModifiers(e));
             });
             popup.addEventListener('contextmenu', (e) => {
-                const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.dataset?.save_id;
+                const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.getAttribute('ti-id');
                 if (save_id) {
                     e.preventDefault();
-                    Background.download_history_remove(save_id);
-                    Notification.create('Removing media from history', 'history_remove');
-                    Button.unmark(btn);
+                    Button.handleClick(null, save_id, null, 'media');
                 }
             });
 
