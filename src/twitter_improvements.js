@@ -819,7 +819,6 @@
 
     const Observer = {
         /** @type {(MutationObserver | null)} */ observer: null,
-        forceUpdate: null,
 
         start: () => {
             Observer.disable();
@@ -840,7 +839,7 @@
                 }, getCallback = () => {
                     const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
                     for (const m in callbackMappings) if (Settings.setting[m]) callbacks.push(...callbackMappings[m]);
-                    const update = (_, __, pre) => {
+                    const update = () => {
                         if (!ACCENT_COLOUR) {
                             const colourElement = document.querySelector('a[href="/explore/tabs/for-you"]')?.firstElementChild;
                             if (colourElement) {
@@ -848,13 +847,12 @@
                                 if (!bg.includes('(0, 0, 0')) ACCENT_COLOUR = bg;
                             }
                         }
+                        // uses this rather than called with observer to make sure it isn't re-started
                         Observer.observer?.disconnect();
-                        pre?.();
                         for (const [s, f] of callbacks) for (const a of document.body.querySelectorAll(s)) f(a);
                         Observer.observer?.observe(document.body, observerSettings);
                     };
                     update();
-                    Observer.forceUpdate = update;
                     return (callbacks.length > 0) ? update : Observer.disable;
                 };
             Observer.observer = new MutationObserver(getCallback());
@@ -864,7 +862,6 @@
         disable: () => {
             Observer.observer?.disconnect();
             Observer.observer = null;
-            Observer.forceUpdate = null;
         }
     };
 
@@ -886,12 +883,13 @@
                     // only need to reload for vx setting change
                     if (changes.hasOwnProperty('setting')) Observer.start();
                     // update on image pref or download pref change
-                    else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_preferences')) Observer.forceUpdate?.(null, null, Image.resetAll);
+                    else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_preferences')) Image.resetAll();
                 });
                 break;
             }
             case 'history_change': {
-                Observer.forceUpdate?.(null, null, Image.resetAll);
+                // inherently calls observer
+                Image.resetAll();
                 break;
             }
             case 'image_saved': {
