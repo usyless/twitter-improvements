@@ -89,8 +89,6 @@
 
     const start = () => loadSettings().then((settings) => {
         const enabled = settings.style;
-        // Remove current styles
-        for (const s of document.querySelectorAll('style[usyStyle]')) s.remove();
 
         // Apply new enabled styles
         let style = '';
@@ -109,10 +107,10 @@
         }
 
         if (style.length > 0) {
-            const s = document.createElement('style');
+            const s = document.querySelector('[usyStyle]') || document.createElement('style');
             s.setAttribute('usyStyle', '');
             s.textContent = style;
-            document.head.appendChild(s);
+            if (!s.isConnected) document.head.appendChild(s);
         }
     });
 
