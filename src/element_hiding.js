@@ -95,8 +95,11 @@
         // Apply new enabled styles
         let style = '';
         for (const setting in enabled) if (enabled[setting] === true) {
-            const st = SelectorMap?.[setting], styler = st.st;
-            for (const s of st.s) style += s + styler;
+            const sm = SelectorMap?.[setting];
+            if (sm) {
+                const {s, st} = sm;
+                for (const a of s) style += a + st;
+            }
         }
 
         // Apply button ordering if exists
