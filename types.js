@@ -14,7 +14,7 @@
 
 /**
  * @typedef {('error' | 'copied_url' | 'history_remove'
- * | 'save_media_duplicate' | 'save_media')} NotificationTypes
+ * | 'save_media_duplicate' | 'save_media' | 'history_add')} NotificationTypes
  */
 
 /** @typedef {string} tweetId */

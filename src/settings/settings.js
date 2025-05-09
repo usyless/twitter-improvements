@@ -638,6 +638,11 @@
                     description: 'Removing from history',
                 },
                 {
+                    name: 'history_add',
+                    category: 'hidden_extension_notifications',
+                    description: 'Adding to history',
+                },
+                {
                     name: 'copied_url',
                     category: 'hidden_extension_notifications',
                     description: 'URL Copy',

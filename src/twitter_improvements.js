@@ -39,6 +39,7 @@
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
         /** @param {saveId} id */
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
+        download_history_add: (id) => browser.runtime.sendMessage({type: 'download_history_add', id}),
 
         /**
          * @param {string} url
@@ -244,14 +245,11 @@
             const url = Tweet.url(article), media = URL_CACHE.get(Helpers.id(url));
             if (media) {
                 if (ev.type === 'click') {
-                    if (media.length === 1) {
-                        Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
-                    } else Notification.createDownloadChoices(url, media, ev);
+                    if (media.length === 1) Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
+                    else Notification.createDownloadChoices(url, media, ev);
                 } else {
-                    if (media.length === 1) {
-                        Background.download_history_remove(media[0].save_id);
-                        Notification.create('Removing media from history', 'history_remove');
-                    } else Notification.create('Multi-media tweet\nClick download button first to remove', 'error');
+                    if (media.length === 1) Button.handleClick(null, media[0].save_id, null);
+                    else Notification.create('Multi-media tweet\nClick download button first to modify history', 'error');
                 }
             } else if (article.isConnected) { // look into this
                 if (attempts < 20) setTimeout(Tweet.mediaDownloadCallback, 100, article, ev, attempts + 1);
@@ -450,15 +448,12 @@
          */
         imageButtonCallback: (image, url, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
-            if (ev?.type === 'click' || !ev) {
+            Button.handleClick(ev, save_id, () => {
                 Downloaders.download_all(url,{
                     index: +save_id.split('-')[1], save_id, type: 'Image',
                     url: image.src.replace(/name=[^&]*/, "name=orig"),
                 }, Helpers.eventModifiers(ev));
-            } else {
-                Notification.create('Removing image from saved', 'history_remove');
-                Background.download_history_remove(save_id);
-            }
+            }, 'image');
         },
 
         /**
@@ -468,7 +463,7 @@
          */
         videoButtonCallback: (video, url, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
-            if (ev?.type === 'click' || !ev) {
+            Button.handleClick(ev, save_id, () => {
                 const media = URL_CACHE.get(save_id.split('-')[0]);
                 if (media) {
                     Downloaders.download_all(url, media.filter(({save_id: sid}) => sid === save_id),
@@ -476,10 +471,7 @@
                 } else {
                     Notification.create('Error saving, try again', 'error');
                 }
-            } else {
-                Notification.create('Removing video from saved', 'history_remove');
-                Background.download_history_remove(save_id);
-            }
+            }, 'video');
         },
 
         resetAll: () => {
@@ -571,6 +563,28 @@
          * @returns {HTMLElement | null}
          */
         closest: (elem) => elem.closest('.usybuttonclickdiv'),
+
+        /**
+         * @param {MouseEvent} ev
+         * @param {saveId} save_id
+         * @param {(...any) => any} func
+         * @param {string} type
+         */
+        handleClick: (ev, save_id, func, type='media') => {
+            if (ev?.type === 'click') {
+                func();
+            } else {
+                Background.download_history_has(save_id).then((r) => {
+                    if (r === true) {
+                        Notification.create(`Removing ${type} from saved`, 'history_remove');
+                        Background.download_history_remove(save_id);
+                    } else {
+                        Notification.create(`Adding ${type} to saved`, 'history_add');
+                        Background.download_history_add(save_id);
+                    }
+                });
+            }
+        }
     };
 
     const Notification = {
