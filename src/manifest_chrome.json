@@ -30,16 +30,13 @@
     "contextMenus",
     "downloads",
     "clipboardWrite",
-    "storage",
-    "webRequest"
+    "storage"
   ],
   "background": {
     "service_worker": "/background.js"
   },
   "host_permissions": [
-    "https://x.com/*",
-    "https://video.twimg.com/*",
-    "https://pbs.twimg.com/*"
+    "https://x.com/*"
   ],
   "content_scripts": [
     {

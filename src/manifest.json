@@ -22,7 +22,6 @@
     "downloads",
     "clipboardWrite",
     "storage",
-    "webRequest",
     "https://x.com/*",
     "https://video.twimg.com/*",
     "https://pbs.twimg.com/*"
