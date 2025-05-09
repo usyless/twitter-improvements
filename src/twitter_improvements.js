@@ -614,7 +614,7 @@
          * @param {string} text
          * @param {string} url
          */
-        downloadError: (text, url) => {
+        persistentError: (text, url) => {
             const outer = document.querySelector('.usyErrorNotificationOuter')
                 || document.createElement('div');
             const inner = document.createElement('div');
@@ -872,7 +872,7 @@
                 break;
             }
             case 'error': {
-                Notification.downloadError(message.message, message.url);
+                Notification.persistentError(message.message, message.url);
                 break;
             }
         }
