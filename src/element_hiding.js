@@ -72,6 +72,7 @@
             'div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])'
         ], st: HideType.DISPLAY},
         hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: HideType.DISPLAY},
+        hide_subscribe_buttons: {s: ['button[aria-label^="Subscribe to "]'], st: HideType.DISPLAY},
 
         hide_tweet_view_count: {s: CommonSelectors.views, st: HideType.VISIBILITY},
         hide_tweet_share_button: {s: CommonSelectors.share, st: HideType.VISIBILITY},

@@ -348,6 +348,11 @@
                     category: 'style',
                     description: '"Post" and "Reply" sections',
                 },
+                {
+                    name: 'hide_subscribe_buttons',
+                    category: 'style',
+                    description: '"Subscribe" buttons',
+                }
             ],
             'Tweets': [
                 {
