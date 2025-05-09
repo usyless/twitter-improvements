@@ -38,6 +38,7 @@ body {
     left: 0;
     max-width: 100%;
     max-height: 100%;
+    gap: 5px;
 
     pointer-events: none;
 }
@@ -64,6 +65,21 @@ body {
     opacity: 1;
 
     transition: opacity 0.3s;
+}
+
+.usyErrorNotificationOuter {
+    align-items: flex-end;
+}
+
+.usyErrorNotificationInner {
+    background-color: #911a1a;
+    position: relative;
+    bottom: 1em;
+    right: 1em;
+}
+
+.usyErrorNotificationClear {
+    background-color: #530a0a;
 }
 
 .usyNotificationInner.usyFadeOut {

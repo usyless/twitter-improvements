@@ -585,7 +585,7 @@
                 Notification.clear();
                 const outer = document.createElement('div'), inner = document.createElement('div');
                 outer.appendChild(inner);
-                outer.classList.add('usyNotificationOuter');
+                outer.classList.add('usyNotificationOuter', 'usyDefaultNotification');
                 inner.classList.add('usyNotificationInner');
                 inner.textContent = text;
 
@@ -610,8 +610,42 @@
             }
         },
 
+        /**
+         * @param {string} text
+         * @param {string} url
+         */
+        downloadError: (text, url) => {
+            const outer = document.querySelector('.usyErrorNotificationOuter')
+                || document.createElement('div');
+            const inner = document.createElement('div');
+            outer.classList.add('usyNotificationOuter', 'usyErrorNotificationOuter');
+            inner.classList.add('usyNotificationInner', 'usyErrorNotificationInner');
+            inner.textContent = text;
+            inner.style.cursor = 'pointer';
+            inner.addEventListener('click', () => {
+                Background.open_tab(url);
+                outer.remove();
+            });
+
+            if (!outer.isConnected) {
+                const clear = document.createElement('div');
+                clear.classList.add('usyNotificationInner', 'usyErrorNotificationInner', 'usyErrorNotificationClear');
+                clear.textContent = 'Click here to clear all errors';
+                clear.style.cursor = 'pointer';
+                clear.addEventListener('click', () => {
+                    outer.remove();
+                });
+
+                outer.append(inner, clear);
+
+                document.body.appendChild(outer);
+            } else {
+                outer.lastElementChild.before(inner);
+            }
+        },
+
         clear: () => {
-            document.querySelectorAll('div.usyNotificationOuter:not(.usyFullscreen)').forEach((e) => e.remove());
+            document.querySelectorAll('div.usyDefaultNotification').forEach((e) => e.remove());
         },
 
         clearFullscreen: () => {
@@ -838,11 +872,7 @@
                 break;
             }
             case 'error': {
-                const notif = Notification.create(message.message, 'error', 10000);
-                if (notif) {
-                    notif.style.cursor = 'pointer';
-                    notif.addEventListener('click', Background.open_tab.bind(null, message.url));
-                }
+                Notification.downloadError(message.message, message.url);
                 break;
             }
         }
