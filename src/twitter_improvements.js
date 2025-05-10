@@ -124,7 +124,6 @@
 
         /** @param {HTMLElement} media */
         addDownloadButton: (media)=> {
-            let button;
             try {
                 media.setAttribute('usy-download', '');
                 const article = Tweet.nearestTweet(media);
@@ -133,38 +132,39 @@
                 if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
                     const a = Tweet.defaultAnchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
                     const id = Helpers.id(Tweet.url(article));
-                    button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
+                    const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
                     button.setAttribute('ti-id-vague', id);
                     a.after(button);
-
-                    // ensure it exists in url cache by this point, might be unnecessary
-                    setTimeout(() => Tweet.downloadUpdateMarked(button, id), 0);
 
                     const altAnchor = Tweet.secondaryAnchor(article);
                     if (altAnchor) {
                         for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
-                        altAnchor.after(Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb));
+                        const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
+                        button.setAttribute('ti-id-vague', id);
+                        altAnchor.after(button);
                     }
+
+                    // ensure it exists in url cache by this point, might be unnecessary
+                    setTimeout(Tweet.downloadUpdateMarked, 0, id);
                 }
             } catch {
                 media.removeAttribute('usy-download');
-                button?.remove();
             }
         },
 
-        /**
-         * @param {HTMLElement} button
-         * @param {tweetId} id
-         */
-        downloadUpdateMarked: async (button, id) => {
+        /** @param {tweetId} id */
+        downloadUpdateMarked: async (id) => {
             // should exist in url cache by the time this is called
             const media = URL_CACHE.get(id);
             if (media) {
-                // all saved
-                if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
-                    Button.mark(button);
-                } else {
-                    Button.unmark(button);
+                const buttons = document.querySelectorAll(`[ti-id-vague="${id}"]`);
+                if (buttons.length > 0) {
+                    // all saved
+                    if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
+                        for (const button of buttons) Button.mark(button);
+                    } else {
+                        for (const button of buttons) Button.unmark(button);
+                    }
                 }
             }
         },
@@ -897,8 +897,7 @@
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
-                const id = message.id.split('-')[0];
-                for (const button of document.querySelectorAll(`[ti-id-vague="${id}"]`)) void Tweet.downloadUpdateMarked(button, id);
+                void Tweet.downloadUpdateMarked(message.id.split('-')[0]);
                 break;
             }
             case 'history_change_remove': {
