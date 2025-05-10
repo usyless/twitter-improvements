@@ -41,6 +41,7 @@
         download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
         /** @param {saveId} id */
         download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
+        /** @param {saveId} id */
         download_history_add: (id) => browser.runtime.sendMessage({type: 'download_history_add', id}),
 
         /**
@@ -577,13 +578,14 @@
          * @param {MouseEvent} ev
          * @param {saveId} save_id
          * @param {(...any) => any} func
-         * @param {string} type
+         * @param {string} [type]
          */
         handleClick: (ev, save_id, func, type='media') => {
             if (ev?.type === 'click') {
                 func();
             } else if (Settings.download_preferences.download_history_enabled) {
                 Background.download_history_has(save_id).then((r) => {
+                    // buttons implicitly adjusted
                     if (r === true) {
                         Notification.create(`Removing ${type} from saved`, 'history_remove');
                         Background.download_history_remove(save_id);
@@ -727,7 +729,7 @@
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.getAttribute('ti-id');
                 if (save_id) {
                     e.preventDefault();
-                    Button.handleClick(null, save_id, null, 'media');
+                    Button.handleClick(null, save_id, null);
                 }
             });
 
