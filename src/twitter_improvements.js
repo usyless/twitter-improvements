@@ -800,6 +800,7 @@
 
     const Helpers = {
         /**
+         * Basic download fallback for android where the downloads.download API isn't supported
          * @param {string} url
          * @param {string} filename
          */
