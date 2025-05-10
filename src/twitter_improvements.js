@@ -420,7 +420,7 @@
 
             const height = image.clientHeight;
 
-            if (height <= 0 && image.isConnected) setTimeout(Image.setButtonHeight.bind(null, image, button), 50);
+            if (height <= 0 && image.isConnected) setTimeout(Image.setButtonHeight, 50, image, button);
             else if (height > +small_image_size_threshold) {
                 if (ibh !== dibh) button.style.height = `${+ibh / +image_button_scale}%`;
             } else if (ibhs !== dibhs) button.style.height = `${+ibhs / +image_button_scale}%`;
