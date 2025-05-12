@@ -2,7 +2,7 @@
 
 A simple web extension which brings a few quality of life features to twitter/X.  
 
-**Screenshots available on the Mozilla addons page**
+**Screenshots available on the Mozilla and Chrome stores**
 
 # Features
 
@@ -40,8 +40,4 @@ Save Image Context Menu
 1. Install extension through the [Mozilla addons page](https://addons.mozilla.org/en-GB/firefox/addon/improvements-for-twitter/)
 
 **Chrome or other chromium based browsers**
-1. Download the "Chromium" ZIP from the [latest release](https://github.com/usyless/twitter-improvements/releases/latest)
-2. Unzip it into a known directory
-3. Visit chrome://extensions in your browser
-4. Enable developer mode (There should be a toggle present on the page)
-5. Press "Load Unpacked" or equivalent, select the unzipped folder
+1. Install extension through the [Chrome web store](https://chromewebstore.google.com/detail/improvements-for-twitter/joficcmkfcceifjloncilgpnljofjfdc)
