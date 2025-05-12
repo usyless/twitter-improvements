@@ -535,8 +535,8 @@
                 }
             ]
         },
-        'Button Positions': {
-            'Tweet': [
+        'Extras': {
+            'Tweet Button Positions': [
                 {
                     name: 'tweet_button_positions',
                     category: 'style',
@@ -621,10 +621,8 @@
                         });
                     }
                 }
-            ]
-        },
-        'Hidden Notifications': {
-            'This Extension': [
+            ],
+            'Hidden Extension Notifications': [
                 {
                     name: 'save_media',
                     category: 'hidden_extension_notifications',
@@ -651,7 +649,7 @@
                     description: 'URL Copy',
                 }
             ]
-        }
+        },
     }
 
     const valuesToUpdate = [];
