@@ -458,7 +458,7 @@
                 const li = image.closest('li');
                 if (li) {
                     const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
-                    return `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`
+                    return `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
                 } else {
                     return url;
                 }
@@ -475,7 +475,7 @@
                 const li = video.closest('li');
                 if (li) {
                     const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
-                    return Array.from(valid).indexOf(li) + 1
+                    return Array.from(valid).indexOf(li) + 1;
                 } else {
                     return 1;
                 }
