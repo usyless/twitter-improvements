@@ -1,7 +1,9 @@
 'use strict';
 
+let chromeMode = false;
 if (typeof this.browser === 'undefined') {
     this.browser = chrome;
+    chromeMode = true;
 }
 
 const DOWNLOAD_DB_VERSION = 1;
@@ -21,7 +23,9 @@ const requestMap = {
     open_tab: ({url}, sendResponse) => {
         void browser.tabs.create({url});
         sendResponse(true);
-    }
+    },
+
+    set_icon: setIcon
 }
 
 browser.runtime.onMessage.addListener((request, _, sendResponse) => {
@@ -133,6 +137,10 @@ const defaultSettings = {
         save_media_duplicate: false,
         history_remove: false,
         copied_url: false,
+    },
+
+    extension_icon: {
+        custom: false,
     }
 }
 
@@ -606,3 +614,31 @@ function download_history_get_all(_, sendResponse) {
         })
     });
 }
+
+// icon changing
+function setIcon(_, sendResponse) {
+    Settings.getSettings().then(() => {
+        ((chromeMode) ? browser.action : browser.browserAction).setIcon((Settings.extension_icon.custom)
+            ? ((chromeMode) ? {
+                path: {
+                    "16": "/icons/alt/icon-16.png",
+                    "32": "/icons/alt/icon-32.png",
+                    "48": "/icons/alt/icon-48.png",
+                    "96": "/icons/alt/icon-96.png",
+                    "128": "/icons/alt/icon-128.png"
+                }
+            } : { path: "/icons/alt/icon.svg" }) // firefox
+            : ((chromeMode) ? {
+                path: {
+                    "16": "/icons/icon-16.png",
+                    "32": "/icons/icon-32.png",
+                    "48": "/icons/icon-48.png",
+                    "96": "/icons/icon-96.png",
+                    "128": "/icons/icon-128.png"
+                }
+            } : { path: "/icons/icon.svg" }) // firefox
+        );
+        sendResponse?.(true);
+    });
+}
+setIcon();

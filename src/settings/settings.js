@@ -1,21 +1,17 @@
 'use strict';
 
 (() => {
+    let chromeMode = false;
     if (typeof this.browser === 'undefined') {
+        chromeMode = true;
+        document.body.classList.add('chrome');
         this.browser = chrome;
     }
-
-    let chromeMode = false;
 
     document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
 
     if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {
         document.body.classList.add('mobile');
-    }
-
-    if (!navigator.userAgent.includes("Firefox")) {
-        chromeMode = true;
-        document.body.classList.add('chrome');
     }
 
     const Defaults = {
@@ -37,7 +33,9 @@
 
         clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
         download_history_add_all: (saved_images) => browser.runtime.sendMessage({type: 'download_history_add_all', saved_images}),
-        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'})
+        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
+
+        set_icon: () => browser.runtime.sendMessage({type: 'set_icon'}),
     };
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
@@ -765,6 +763,21 @@
             obj.element?.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
+
+        // icon switching
+        let counter = 0, altSet = Settings.extension_icon.custom;
+
+        const setIcon = () => document.querySelector('link[rel="icon"]').href = (altSet) ? '../icons/alt/icon.svg' : '../icons/icon.svg';
+        setIcon();
+        document.getElementById('madeText').addEventListener('click', () => {
+            if (++counter >= 5) {
+                counter = 0;
+                setStorage({extension_icon: {custom: !altSet}});
+                altSet = !altSet;
+                setIcon();
+                setTimeout(Background.set_icon, 500);
+            }
+        });
     });
 
     { // Settings panes scrolling
