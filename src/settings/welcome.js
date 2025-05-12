@@ -17,10 +17,10 @@ if ((new URLSearchParams(window.location.search)).get('installed')) {
     const continueButton = document.createElement('button');
 
     {
-        for (let i = -2; i <= 4; ++i) { // creates 7 layers
+        for (let i = -10; i <= 4; ++i) { // creates 7 layers
             const l = document.createElement('img');
-            l.src = '/icons/icon-bg.svg';
-            l.style.setProperty('--pos', `${i * 5}px`); // 5 change per layer
+            l.src = '/icons/icon.svg';
+            l.style.setProperty('--pos', `${i * 2}px`); // 2 change per layer
             logoContainer.appendChild(l);
         }
         logoContainer.lastElementChild.src = '/icons/icon.svg';
