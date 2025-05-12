@@ -1,8 +1,10 @@
 <h1 align="center"><a href="#"><img src="https://github.com/usyless/twitter-improvements/blob/main/src/icons/icon.svg?raw=true" width="160" height="160" alt="logo"></a><br>Improvements for Twitter</h1>
 
-A simple web extension which brings a few quality of life features to twitter/X.  
+| ![](https://github.com/usyless/twitter-improvements/blob/main/media/cover.png?raw=true) | ![](https://github.com/usyless/twitter-improvements/blob/main/media/features.png?raw=true) |
+|-|-|
+| ![](https://github.com/usyless/twitter-improvements/blob/main/media/settings1.png?raw=true) | ![](https://github.com/usyless/twitter-improvements/blob/main/media/settings2.png?raw=true) |
 
-**Screenshots available on the Mozilla and Chrome stores**
+A simple web extension which brings a few quality of life features to twitter/X. 
 
 # Features
 
