@@ -2,8 +2,6 @@
 
 makes X better ig
 
-**Screenshots available on the Mozilla addons page**
-
 # Features (or whatever lol)
 
 Copy as VX/FX/Custom Button Thingy
