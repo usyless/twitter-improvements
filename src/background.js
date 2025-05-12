@@ -40,6 +40,8 @@ browser?.runtime?.onInstalled?.addListener?.((details) => {
     });
 });
 
+browser?.runtime?.onStartup?.addListener?.(setIcon);
+
 browser?.contextMenus?.create?.(
     {
         id: "save-image",
