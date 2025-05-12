@@ -456,7 +456,8 @@
             if (Tweet.maximised()) {
                 url = window.location.href;
                 const li = image.closest('li');
-                return (li) ? `${url.slice(0, -1)}${Array.from(li.parentElement.children).indexOf(li) + 1}` : url;
+                const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
+                return (li) ? `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}` : url;
             }
         },
 
@@ -468,7 +469,8 @@
         videoRespectiveIndex: (video, tweet) => {
             if (Tweet.maximised()) {
                 const li = video.closest('li');
-                return li ? (Array.from(li.parentElement.children).indexOf(li) + 1) : 1;
+                const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
+                return li ? (Array.from(valid).indexOf(li) + 1) : 1;
             } else {
                 if (!tweet) tweet = Tweet.nearestTweet(video);
                 return Array.from(tweet.querySelectorAll('[data-testid="tweetPhoto"]'))
