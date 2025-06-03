@@ -291,6 +291,9 @@
             return pathname.includes('/photo/') || pathname.includes('/video/');
         },
 
+        /** @returns {boolean} */
+        previewing: () => window.location.pathname.includes('/status/'),
+
         /**
          * @param {HTMLElement} article
          * @returns {HTMLElement | null}
@@ -901,7 +904,42 @@
         }
     };
 
-    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()]).then(Observer.start);
+    const Listeners = {
+        listeners: {
+            vx_copy_shortcut: [{
+                event: 'keydown',
+                target: () => window,
+                listener: (e) => {
+                    if (e.ctrlKey && e.key.toLowerCase() === 'c' && Tweet.previewing()) {
+                        const id = Helpers.id(window.location.href);
+                        for (const elem of document.querySelectorAll('[usy-copy]')) {
+                            if (Helpers.id(Tweet.url(Tweet.nearestTweet(elem))) === id) {
+                                elem.click();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }]
+        },
+
+        start: () => {
+            const settings = Settings.listeners, callbacks = Listeners.listeners;
+            for (const setting in callbacks) {
+                for (const {event, target, listener} of callbacks[setting]) {
+                    if (settings[setting]) target()?.addEventListener(event, listener);
+                    else target()?.removeEventListener(event, listener);
+                }
+            }
+        }
+    };
+
+    const start = () => {
+        Observer.start();
+        Listeners.start();
+    }
+
+    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()]).then(start);
 
     browser.runtime.onMessage.addListener((message) => {
         switch (message.type) {
@@ -922,6 +960,8 @@
                     if (changes.hasOwnProperty('setting')) Observer.start();
                     // update on image pref or download pref change
                     else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_preferences')) Image.resetAll();
+
+                    if (changes.hasOwnProperty('listeners')) Listeners.start();
                 });
                 break;
             }

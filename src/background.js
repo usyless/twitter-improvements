@@ -76,6 +76,10 @@ const defaultSettings = {
         bookmark_on_photo_page: false,
     },
 
+    listeners: {
+        vx_copy_shortcut: true
+    },
+
     vx_preferences: {
         url_prefix: 'fixvx.com',
         custom_url: '',

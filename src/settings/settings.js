@@ -69,6 +69,11 @@
                     description: 'Custom copy URL (Set prefix to \'Custom\')',
                     type: 'text',
                 },
+                {
+                    name: 'vx_copy_shortcut',
+                    category: 'listeners',
+                    description: 'Allow Ctrl+C to copy the url of the currently maximised tweet'
+                }
             ],
             'Media Saving': [
                 {
