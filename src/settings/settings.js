@@ -242,7 +242,7 @@
                     button: 'Get saved media count',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            void customPopup(`You have downloaded approximately ${r.length} unique medias`);
+                            void customPopup(`You have downloaded approximately ${r.length} unique media`);
                         });
                     }
                 }
