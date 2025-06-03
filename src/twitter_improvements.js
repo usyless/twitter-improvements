@@ -914,7 +914,7 @@
                 event: 'keydown',
                 target: () => window,
                 listener: (e) => {
-                    if (e.ctrlKey && e.key.toLowerCase() === 'c' && Tweet.previewing()) {
+                    if (e.ctrlKey && e.key.toLowerCase() === 'c' && Tweet.previewing() && window.getSelection().isCollapsed) {
                         const id = Helpers.id(window.location.href);
                         for (const elem of document.querySelectorAll('[usy-copy]')) {
                             if (Helpers.id(Tweet.url(Tweet.nearestTweet(elem))) === id) {
