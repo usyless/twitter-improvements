@@ -259,7 +259,8 @@ function getNamePartsGeneric(url) {
 function getNamePartsImage(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
-        extension: sourceURL.match(/format=(\w+)/)[1]
+        extension: sourceURL.match(/format=(\w+)/)[1],
+        imageId: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0],
     }
 }
 
@@ -290,10 +291,11 @@ function formatPartsForStorage(parts) {
  */
 function formatFilename(parts, save_format) {
     return save_format
-        .replaceAll('{username}', parts.username)
-        .replaceAll('{tweetId}', parts.tweetId)
-        .replaceAll('{tweetNum}', parts.tweetNum ?? '')
-        .replaceAll('{extension}', parts.extension ?? '') +
+            .replaceAll('{username}', parts.username)
+            .replaceAll('{tweetId}', parts.tweetId)
+            .replaceAll('{tweetNum}', parts.tweetNum ?? '')
+            .replaceAll('{imageId}', parts.imageId ?? '')
+            .replaceAll('{extension}', parts.extension ?? '') +
         (parts.extension ? `.${parts.extension}` : '');
 }
 
