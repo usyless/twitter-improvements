@@ -931,8 +931,11 @@
             const settings = Settings.listeners, callbacks = Listeners.listeners;
             for (const setting in callbacks) {
                 for (const {event, target, listener} of callbacks[setting]) {
-                    if (settings[setting]) target()?.addEventListener(event, listener);
-                    else target()?.removeEventListener(event, listener);
+                    const t = target?.();
+                    if (t) {
+                        t.removeEventListener(event, listener);
+                        if (settings[setting]) t.addEventListener(event, listener);
+                    }
                 }
             }
         }
