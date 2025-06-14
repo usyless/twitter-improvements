@@ -853,7 +853,7 @@
          * @param {MouseEvent} e
          * @returns {EventModifiers}
          */
-        eventModifiers: (e) => ({shift: e.shiftKey, ctrl: e.ctrlKey})
+        eventModifiers: ({shiftKey: shift, ctrlKey: ctrl}) => ({shift, ctrl})
     };
 
     const Observer = {
