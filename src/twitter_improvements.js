@@ -122,19 +122,21 @@
             }
         },
 
-        /** @param {HTMLElement} media */
-        addDownloadButton: (media)=> {
+        /** @param {HTMLElement} article */
+        addDownloadButton: (article) => {
             try {
-                media.setAttribute('usy-download', '');
-                const article = Tweet.nearestTweet(media);
-                // checks if quote tweet contains given media (don't show button)
-                // doesn't affect a video QRT as each media checked separately
-                if (!(article.querySelector('div[id] > div[id]')?.contains(media)) && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                    const a = Tweet.defaultAnchor(article), cb = Tweet.mediaDownloadCallback.bind(null, article);
-                    const id = Helpers.id(Tweet.url(article));
+                article.setAttribute('usy-download', '');
+                const url = Tweet.url(article);
+                const id = Helpers.id(url);
+                const media = URL_CACHE.get(id);
+                if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
+                    const a = Tweet.defaultAnchor(article);
+                    const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
                     const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
                     button.setAttribute('ti-id-vague', id);
                     a.after(button);
+
+                    const buttons = [button];
 
                     const altAnchor = Tweet.secondaryAnchor(article);
                     if (altAnchor) {
@@ -142,30 +144,27 @@
                         const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
                         button.setAttribute('ti-id-vague', id);
                         altAnchor.after(button);
+                        buttons.push(button);
                     }
 
-                    // ensure it exists in url cache by this point, might be unnecessary
-                    setTimeout(Tweet.downloadUpdateMarked, 0, id);
+                    void Tweet.downloadUpdateMarked(media, id, buttons);
                 }
             } catch {
-                media.removeAttribute('usy-download');
+                article.removeAttribute('usy-download');
             }
         },
 
-        /** @param {tweetId} id */
-        downloadUpdateMarked: async (id) => {
-            // should exist in url cache by the time this is called
-            const media = URL_CACHE.get(id);
-            if (media) {
-                const buttons = document.querySelectorAll(`[ti-id-vague="${id}"]`);
-                if (buttons.length > 0) {
-                    // all saved
-                    if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
-                        for (const button of buttons) Button.mark(button);
-                    } else {
-                        for (const button of buttons) Button.unmark(button);
-                    }
-                }
+        /**
+         * @param {MediaItem[]} media
+         * @param {tweetId} id
+         * @param {HTMLElement[]} buttons
+         */
+        downloadUpdateMarked: async (media, id, buttons) => {
+            // all saved
+            if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
+                for (const button of buttons) Button.mark(button);
+            } else {
+                for (const button of buttons) Button.unmark(button);
             }
         },
 
@@ -265,23 +264,17 @@
         },
 
         /**
-         * @param {HTMLElement} article
+         * @param {MediaItem[]} media
+         * @param {string} url
          * @param {MouseEvent} ev
-         * @param {number} attempts
          */
-        mediaDownloadCallback: (article, ev, attempts=0) => {
-            const url = Tweet.url(article), media = URL_CACHE.get(Helpers.id(url));
-            if (media) {
-                if (ev.type === 'click') {
-                    if (media.length === 1) Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
-                    else Notification.createDownloadChoices(url, media, ev);
-                } else {
-                    if (media.length === 1) Button.handleClick(null, media[0].save_id, null);
-                    else Notification.create('Multi-media tweet\nClick download button first to modify history', 'error');
-                }
-            } else if (article.isConnected) { // look into this
-                if (attempts < 20) setTimeout(Tweet.mediaDownloadCallback, 100, article, ev, attempts + 1);
-                else Notification.create('Failed to create download menu\nTry again or report this tweet and current url to the developer', 'error');
+        mediaDownloadCallback: (media, url, ev) => {
+            if (ev.type === 'click') {
+                if (media.length === 1) Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
+                else Notification.createDownloadChoices(url, media, ev);
+            } else {
+                if (media.length === 1) Button.handleClick(null, media[0].save_id, null);
+                else Notification.create('Multi-media tweet\nClick download button first to modify history', 'error');
             }
         },
 
@@ -862,10 +855,7 @@
         /** @type {Record<string, [string, function(HTMLElement): *][]>} */ callbackMappings: {
             vx_button: [['article:not([usy])', Tweet.addVXButton]],
             bookmark_on_photo_page: [['article:not([usy-bookmarked])', Tweet.copyBookmarkButton]],
-            inline_download_button: [ // tweetPhoto doesnt work here, stuff isnt loaded yet
-                ['img[src^="https://pbs.twimg.com/media/"]:not([usy-download])', Tweet.addDownloadButton],
-                ['div[data-testid="videoComponent"]:not([usy-download])', Tweet.addDownloadButton],
-                ['img[alt="Embedded video"]:not([usy-download])', Tweet.addDownloadButton]],
+            inline_download_button: [['article:not([usy-download])', Tweet.addDownloadButton]],
             media_download_button: [
                 ['img[src^="https://pbs.twimg.com/media/"]:not([usy-media])', Image.addImageButton],
                 ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
@@ -952,7 +942,8 @@
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
-                void Tweet.downloadUpdateMarked(message.id.split('-')[0]);
+                const id = message.id.split('-')[0];
+                void Tweet.downloadUpdateMarked(URL_CACHE.get(id), id, document.querySelectorAll(`[ti-id-vague="${id}"]`));
                 break;
             }
             case 'history_change_remove': {
