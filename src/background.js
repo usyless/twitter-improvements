@@ -618,7 +618,14 @@ function download_history_get_all(_, sendResponse) {
     getHistoryDB().then((db) => {
         db.transaction(['download_history'], 'readonly').objectStore('download_history')
             .getAllKeys().addEventListener('success', (e) => {
-                sendResponse(e.target.result);
+                const valid = [];
+                for (const /** @type {saveId} */ saveId of e.target.result) {
+                    const [tweetId, tweetNum] = saveId.split('-');
+                    if (tweetId && tweetNum) valid.push(saveId);
+                    else download_history_remove({id: saveId});
+                }
+
+                sendResponse(valid);
         })
     });
 }

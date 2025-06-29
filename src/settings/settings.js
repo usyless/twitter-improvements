@@ -171,7 +171,7 @@
                 {
                     name: 'import_download_history',
                     type: 'button',
-                    button: 'Import download history from export',
+                    button: 'Import download history from export (normal or binary)',
                     onclick: () => {
                         document.getElementById('download_history_input').click();
                     },
@@ -180,16 +180,33 @@
                         i.type = 'file';
                         i.id = 'download_history_input';
                         i.hidden = true;
-                        i.accept = '.twitterimprovements';
+                        i.accept = '.twitterimprovements,.twitterimprovementsbin';
                         i.addEventListener('change', (e) => {
                             const file = e.target.files[0];
                             if (!file) return;
+
+                            const onFinish = () => customPopup('Successfully imported!');
+
                             const reader = new FileReader();
-                            reader.onload = (r) => {
-                                Background.download_history_add_all(r.target.result.split(' '))
-                                    .then(() => customPopup('Successfully imported!'));
-                            };
-                            reader.readAsText(file);
+                            if (file.name.endsWith('.twitterimprovementsbin')) {
+                                reader.onload = (r) => {
+                                    const ids = [];
+                                    const view = new DataView(r.target.result);
+                                    const max = view.byteLength;
+
+                                    for (let offset = 0; offset < max; offset += 9) {
+                                        ids.push(`${view.getBigUint64(offset, true)}-${view.getUint8(offset + 8)}`)
+                                    }
+
+                                    Background.download_history_add_all(ids).then(onFinish);
+                                };
+                                reader.readAsArrayBuffer(file);
+                            } else {
+                                reader.onload = (r) => {
+                                    Background.download_history_add_all(r.target.result.split(' ')).then(onFinish);
+                                };
+                                reader.readAsText(file);
+                            }
                         });
                         document.body.appendChild(i);
                     }
@@ -227,10 +244,10 @@
                 {
                     name: 'export_download_history',
                     type: 'button',
-                    button: 'Export downloaded history\nExports as {tweet id}-{media number}',
+                    button: 'Export download history\nExports as {tweet id}-{media number}',
                     onclick: () => {
                         Background.download_history_get_all().then((r) => {
-                            const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'text/plain' }));
+                            const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'application/octet-stream' }));
                             download(url, 'export.twitterimprovements');
                             URL.revokeObjectURL(url);
                         });
@@ -331,7 +348,43 @@
                         });
                         document.body.appendChild(i);
                     }
-                }
+                },
+                {
+                    type: 'break'
+                },
+                {
+                    name: 'export_download_history_binary',
+                    type: 'button',
+                    button: 'Export download history\n(Binary - for a smaller file size)',
+                    onclick: () => {
+                        Background.download_history_get_all().then((r) => {
+                            const buffers = [];
+                            for (const /** @type {saveId} */ saveId of r) {
+                                const [tweetId, tweetNum] = saveId.split('-');
+                                if (tweetId && tweetNum) {
+                                    const buffer = new ArrayBuffer(9);
+                                    const view = new DataView(buffer);
+
+                                    view.setBigUint64(0, BigInt(tweetId), true);
+                                    view.setUint8(8, +tweetNum);
+                                    buffers.push(buffer);
+                                }
+                            }
+
+                            const buffer = new Uint8Array(buffers.length * 9);
+                            let offset = 0;
+                            for (const buf of buffers) {
+                                buffer.set(new Uint8Array(buf), offset);
+                                offset += 9;
+                            }
+
+
+                            const url = URL.createObjectURL(new Blob([buffer], { type: 'application/octet-stream' }));
+                            download(url, 'export.twitterimprovementsbin');
+                            URL.revokeObjectURL(url);
+                        });
+                    }
+                },
             ]
         },
         'Hidden Elements': {
