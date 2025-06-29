@@ -324,20 +324,17 @@
                         i.addEventListener('change', (e) => {
                             const file = e.target.files[0];
                             if (!file) return;
-                            file.text().then((r) => {
-                                try {
+                            file.text()
+                                .then(async (r) => {
                                     const j = JSON.parse(r);
-                                    clearStorage().then(() => {
-                                        setStorage(j).then(() => {
-                                            customPopup('Imported Settings').then(() => {
-                                                window.location.reload();
-                                            });
-                                        });
-                                    });
-                                } catch (e) {
-                                    void customPopup(`Failed to parse JSON: ${e.toString()}`);
-                                }
-                            });
+                                    // order important here
+                                    await clearStorage();
+                                    await setStorage(j);
+                                })
+                                .then(() => {
+                                    customPopup('Imported Settings').then(location.reload.bind(location));
+                                })
+                                .catch((e) => customPopup(`Failed to parse JSON: ${e.toString()}`));
                         });
                         document.body.appendChild(i);
                     }
