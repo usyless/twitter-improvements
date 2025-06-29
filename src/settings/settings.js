@@ -187,25 +187,20 @@
 
                             const onFinish = () => customPopup('Successfully imported!');
 
-                            const reader = new FileReader();
                             if (file.name.endsWith('.twitterimprovementsbin')) {
-                                reader.onload = (r) => {
+                                file.arrayBuffer().then((buffer) => {
                                     const ids = [];
-                                    const view = new DataView(r.target.result);
+                                    const view = new DataView(buffer);
                                     const max = view.byteLength;
 
                                     for (let offset = 0; offset < max; offset += 9) {
                                         ids.push(`${view.getBigUint64(offset, true)}-${view.getUint8(offset + 8)}`)
                                     }
 
-                                    Background.download_history_add_all(ids).then(onFinish);
-                                };
-                                reader.readAsArrayBuffer(file);
+                                    return Background.download_history_add_all(ids);
+                                }).then(onFinish);
                             } else {
-                                reader.onload = (r) => {
-                                    Background.download_history_add_all(r.target.result.split(' ')).then(onFinish);
-                                };
-                                reader.readAsText(file);
+                                file.text().then((r) => Background.download_history_add_all(r.split(' '))).then(onFinish);
                             }
                         });
                         document.body.appendChild(i);
