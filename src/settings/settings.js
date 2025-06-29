@@ -324,10 +324,9 @@
                         i.addEventListener('change', (e) => {
                             const file = e.target.files[0];
                             if (!file) return;
-                            const reader = new FileReader();
-                            reader.onload = (r) => {
+                            file.text().then((r) => {
                                 try {
-                                    const j = JSON.parse(r.target.result);
+                                    const j = JSON.parse(r);
                                     clearStorage().then(() => {
                                         setStorage(j).then(() => {
                                             customPopup('Imported Settings').then(() => {
@@ -338,8 +337,7 @@
                                 } catch (e) {
                                     void customPopup(`Failed to parse JSON: ${e.toString()}`);
                                 }
-                            };
-                            reader.readAsText(file);
+                            });
                         });
                         document.body.appendChild(i);
                     }
