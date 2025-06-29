@@ -331,9 +331,7 @@
                                     await clearStorage();
                                     await setStorage(j);
                                 })
-                                .then(() => {
-                                    customPopup('Imported Settings').then(location.reload.bind(location));
-                                })
+                                .then(() => customPopup('Imported Settings').then(location.reload.bind(location)))
                                 .catch((e) => customPopup(`Failed to parse JSON: ${e.toString()}`));
                         });
                         document.body.appendChild(i);
