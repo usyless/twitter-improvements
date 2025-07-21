@@ -12,7 +12,7 @@
         this.addEventListener("readystatechange",  () => {
             if (
                 xhr.readyState === 4 && xhr.status === 200
-                && xhr.getResponseHeader("Content-Type").includes('application/json')
+                && xhr.getResponseHeader("Content-Type")?.includes('application/json')
                 && (xhr.responseType === 'text' || xhr.responseType === '')
             ) {
                 const /** @type {MediaTransfer[]} */ media = [];
