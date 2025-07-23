@@ -67,15 +67,45 @@ body {
     transition: opacity 0.3s;
 }
 
-.usyErrorNotificationOuter {
+.usyErrorNotificationOuter, .usyDownloadNotificationOuter {
     align-items: flex-end;
 }
 
-.usyErrorNotificationInner {
+.usyErrorNotificationInner, .usyDownloadNotificationInner {
     background-color: #911a1a;
     position: relative;
     bottom: 1em;
     right: 1em;
+}
+
+.usyDownloadNotificationInner {
+    width: 50vw;
+    height: auto;
+    min-height: 50px;
+    background-color: #43647a;
+    z-index: 100;
+    overflow: hidden;
+
+    > .usyDownloadProgressBar {
+        position: absolute;
+        background-color: #0d9af1;
+        width: 0;
+        left: 0;
+        top: 0;
+        height: 100%;
+        z-index: 101;
+        transition: width 0.1s;
+    }
+
+    > .usyDownloadTextBox {
+        position: relative;
+        top: 50%;
+        left: 0;
+        transform: translate(0, -50%);
+        text-align: center;
+        z-index: 102;
+        width: 100%;
+    }
 }
 
 .usyErrorNotificationClear {

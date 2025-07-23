@@ -815,24 +815,107 @@
             return b;
         },
 
-        getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]')
+        getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]'),
+
+        createMobileDownloadPopup: () => {
+            const outer = document.querySelector('.usyDownloadNotificationOuter')
+                || document.createElement('div');
+            const inner = document.createElement('div');
+            const progressBar = document.createElement('div');
+            const textBox = document.createElement('div');
+            outer.classList.add('usyNotificationOuter', 'usyDownloadNotificationOuter');
+            inner.classList.add('usyNotificationInner', 'usyDownloadNotificationInner');
+            progressBar.classList.add('usyDownloadProgressBar');
+            textBox.classList.add('usyDownloadTextBox');
+            inner.append(progressBar, textBox);
+
+            if (!outer.isConnected) {
+                outer.appendChild(inner);
+                document.body.appendChild(outer);
+            } else {
+                outer.prepend(inner);
+            }
+
+            return {
+                downloadFinished: (filename) => new Promise(resolve => {
+                    textBox.textContent = `Click here to download\n${filename}`;
+                    progressBar.style.width = '100%';
+                    inner.style.cursor = 'pointer';
+                    inner.addEventListener('click', () => {
+                        resolve();
+                        if (outer.children.length === 1) outer.remove();
+                        else inner.remove();
+                    });
+                }),
+
+                onProgress: (totalBytes, receivedBytes) => {
+                    if (totalBytes) {
+                        progressBar.style.width = `${(receivedBytes / totalBytes) * 100}%`;
+                    }
+                    textBox.textContent = `Downloaded: ${receivedBytes} / ${totalBytes ? totalBytes : 'Unknown'} Bytes`;
+                }
+            }
+        }
     };
 
     const Helpers = {
+        progressDownload: async (url, progressCallback) => {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const totalBytes = parseInt(response.headers.get('Content-Length'), 10);
+            const reader = response.body.getReader();
+            let receivedBytes = 0;
+            const chunks = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) break;
+
+                chunks.push(value);
+                receivedBytes += value.length;
+                progressCallback(totalBytes, receivedBytes);
+            }
+
+            const finalResult = new Uint8Array(receivedBytes);
+            let position = 0;
+            for (const chunk of chunks) {
+                finalResult.set(chunk, position);
+                position += chunk.length;
+            }
+
+            return finalResult;
+        },
+
+        downloadFromBlob: (blob, filename) => {
+            const link = document.createElement('a'),
+                objectURL = URL.createObjectURL(blob);
+            link.href = objectURL;
+            link.download = filename;
+            link.dispatchEvent(new MouseEvent('click'));
+            URL.revokeObjectURL(objectURL);
+        },
+
         /**
          * Basic download fallback for android where the downloads.download API isn't supported
          * @param {string} url
          * @param {string} filename
          */
-        download: (url, filename) => {
-            fetch(url).then(r => r.blob()).then((blob) => {
-                const link = document.createElement('a'),
-                    objectURL = URL.createObjectURL(blob);
-                link.href = objectURL;
-                link.download = filename;
-                link.dispatchEvent(new MouseEvent('click'));
-                URL.revokeObjectURL(objectURL);
-            });
+        download: async (url, filename) => {
+            if (true) { // be setting controlled
+                const { downloadFinished, onProgress } = Notification.createMobileDownloadPopup();
+                onProgress(null, 0);
+                const binary_data = await Helpers.progressDownload(url, onProgress);
+                await downloadFinished(filename);
+                Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
+            } else {
+                const r = await fetch(url);
+                Helpers.downloadFromBlob(await r.blob(), filename);
+            }
         },
 
         /**
