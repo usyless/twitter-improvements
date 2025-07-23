@@ -691,13 +691,14 @@
             inner.style.cursor = 'pointer';
             inner.addEventListener('click', () => {
                 Background.open_tab(url);
-                outer.remove();
+                if (outer.children.length === 2) outer.remove();
+                else inner.remove();
             });
 
             if (!outer.isConnected) {
                 const clear = document.createElement('div');
                 clear.classList.add('usyNotificationInner', 'usyErrorNotificationInner', 'usyErrorNotificationClear');
-                clear.textContent = 'Click here to clear all errors';
+                clear.textContent = 'Clear all errors';
                 clear.style.cursor = 'pointer';
                 clear.addEventListener('click', () => {
                     outer.remove();
