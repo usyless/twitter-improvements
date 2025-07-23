@@ -777,26 +777,29 @@
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
 
-            const rect = popup.getBoundingClientRect();
-            if (rect.left < 0) popup.style.left = '0px';
-            else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
+            // ensure popup has a size in the body
+            requestAnimationFrame(() => {
+                const rect = popup.getBoundingClientRect();
+                if (rect.left < 0) popup.style.left = '0px';
+                else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
 
-            if (rect.top < 0) popup.style.top = '0px';
-            else if (rect.bottom > window.innerHeight) {
-                popup.style.removeProperty('top');
-                popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
-                fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
-            } else if (Settings.download_preferences.download_all_near_click) {
-                popup.firstElementChild.before(popup.lastElementChild);
-            }
+                if (rect.top < 0) popup.style.top = '0px';
+                else if (rect.bottom > window.innerHeight) {
+                    popup.style.removeProperty('top');
+                    popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
+                    fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
+                } else if (Settings.download_preferences.download_all_near_click) {
+                    popup.firstElementChild.before(popup.lastElementChild);
+                }
 
-            popup.classList.add('animate');
-            notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
+                popup.classList.add('animate');
+                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
 
-            for (const {type, listener} of notificationEventListeners) {
-                listener();
-                window.addEventListener(type, listener);
-            }
+                for (const {type, listener} of notificationEventListeners) {
+                    listener();
+                    window.addEventListener(type, listener);
+                }
+            });
         },
 
         /**
