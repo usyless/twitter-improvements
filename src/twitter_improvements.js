@@ -957,7 +957,10 @@
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
                 const id = message.id.split('-')[0];
-                void Tweet.downloadUpdateMarked(URL_CACHE.get(id), id, document.querySelectorAll(`[ti-id-vague="${id}"]`));
+                const media = URL_CACHE.get(id);
+                if (media) {
+                    void Tweet.downloadUpdateMarked(media, id, document.querySelectorAll(`[ti-id-vague="${id}"]`));
+                }
                 break;
             }
             case 'history_change_remove': {
