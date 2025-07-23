@@ -122,13 +122,23 @@
             }
         },
 
-        /** @param {HTMLElement} article */
-        addDownloadButton: (article) => {
+        /**
+         * @param {HTMLElement} article
+         * @param {boolean} [retry]
+         */
+        addDownloadButton: (article, retry=false) => {
             try {
                 article.setAttribute('usy-download', '');
                 const url = Tweet.url(article);
                 const id = Helpers.id(url);
                 const media = URL_CACHE.get(id);
+                if (!media) {
+                    if (retry) {
+                        return;
+                    } else {
+                        setTimeout(Tweet.addDownloadButton, 0, article, true);
+                    }
+                }
                 if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
                     const a = Tweet.defaultAnchor(article);
                     const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
