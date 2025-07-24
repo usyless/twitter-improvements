@@ -906,7 +906,7 @@
          * @param {string} filename
          */
         download: async (url, filename) => {
-            if (true) { // be setting controlled
+            if (Settings.download_preferences.use_download_progress) {
                 const { downloadFinished, onProgress } = Notification.createMobileDownloadPopup();
                 onProgress(null, 0);
                 const binary_data = await Helpers.progressDownload(url, onProgress);

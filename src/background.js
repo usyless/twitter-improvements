@@ -106,6 +106,8 @@ const defaultSettings = {
         download_all_override_saved: true,
         download_history_enabled: true,
         download_history_prevent_download: false,
+
+        use_download_progress: false,
     },
 
     style: {

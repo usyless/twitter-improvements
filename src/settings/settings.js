@@ -281,6 +281,11 @@
                     description: 'Make the "more media" icon on the media pages of user profiles stand out more'
                 },
                 {
+                    name: 'use_download_progress',
+                    category: 'download_preferences',
+                    description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'
+                },
+                {
                     name: 'reset_all_settings',
                     type: 'button',
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',
