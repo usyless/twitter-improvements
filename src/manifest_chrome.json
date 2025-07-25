@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Improvements for Twitter",
-  "version": "1.4.0.4",
+  "version": "1.4.1",
   "author": "usy",
   "homepage_url": "https://github.com/usyless/twitter-improvements",
   "description": "Various helpful additions and changes for Twitter",
@@ -65,8 +65,9 @@
         "https://x.com/*"
       ],
       "js": [
-        "/fetch-intercept-loader.js"
+        "/fetch-intercept.js"
       ],
+      "world": "MAIN",
       "run_at": "document_start"
     }
   ],
