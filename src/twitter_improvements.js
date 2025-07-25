@@ -367,7 +367,7 @@
                         }
                     }
 
-                    const cb =  Image.downloadButtonCallback.bind(null, url, 'video');
+                    const cb =  Image.downloadButtonCallback.bind(null, url);
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
@@ -495,19 +495,19 @@
         /**
          * @param {string} url
          * @param {MouseEvent} ev
-         * @param {string} type
          */
-        downloadButtonCallback: (url, ev, type = 'media') => {
+        downloadButtonCallback: (url, ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
+            const split = save_id.split('-');
+            // - 1 is because indexes are 1-4
+            const /** @type {MediaItem | null} */ media = URL_CACHE.get(split[0])?.[(+split[1]) - 1];
             Button.handleClick(ev, save_id, () => {
-                const split = save_id.split('-');
-                const media = URL_CACHE.get(split[0]);
-                if (media) { // - 1 is because indexes are 1-4
-                    Downloaders.download_all(url, media[(+split[1]) - 1], Helpers.eventModifiers(ev));
+                if (media) {
+                    Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
                 } else {
                     Notification.create('Error saving, try again', 'error');
                 }
-            }, type);
+            }, media.type.toLowerCase() ?? 'media');
         },
 
         resetAll: () => {
