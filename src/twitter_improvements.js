@@ -334,7 +334,7 @@
             try {
                 image.setAttribute('usy-media', '');
                 const url = Image.respectiveURL(image), id = Helpers.idWithNumber(url);
-                button = Image.genericButton(image, Image.imageButtonCallback.bind(null, image, url));
+                button = Image.genericButton(image, Image.downloadButtonCallback.bind(null, url));
 
                 button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -367,7 +367,7 @@
                         }
                     }
 
-                    const cb =  Image.videoButtonCallback.bind(null, video, url);
+                    const cb =  Image.downloadButtonCallback.bind(null, url, 'video');
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
@@ -493,36 +493,21 @@
         },
 
         /**
-         * @param {HTMLImageElement} image
          * @param {string} url
          * @param {MouseEvent} ev
+         * @param {string} type
          */
-        imageButtonCallback: (image, url, ev) => {
+        downloadButtonCallback: (url, ev, type = 'media') => {
             const save_id = ev.currentTarget.getAttribute('ti-id');
             Button.handleClick(ev, save_id, () => {
-                Downloaders.download_all(url,{
-                    index: +save_id.split('-')[1], save_id, type: 'Image',
-                    url: image.src.replace(/name=[^&]*/, "name=orig"),
-                }, Helpers.eventModifiers(ev));
-            }, 'image');
-        },
-
-        /**
-         * @param {HTMLElement} video
-         * @param {string} url
-         * @param {MouseEvent} ev
-         */
-        videoButtonCallback: (video, url, ev) => {
-            const save_id = ev.currentTarget.getAttribute('ti-id');
-            Button.handleClick(ev, save_id, () => {
-                const media = URL_CACHE.get(save_id.split('-')[0]);
-                if (media) {
-                    Downloaders.download_all(url, media.filter(({save_id: sid}) => sid === save_id),
-                        Helpers.eventModifiers(ev));
+                const split = save_id.split('-');
+                const media = URL_CACHE.get(split[0]);
+                if (media) { // - 1 is because indexes are 1-4
+                    Downloaders.download_all(url, media[(+split[1]) - 1], Helpers.eventModifiers(ev));
                 } else {
                     Notification.create('Error saving, try again', 'error');
                 }
-            }, 'video');
+            }, type);
         },
 
         resetAll: () => {
@@ -955,6 +940,7 @@
             inline_download_button: [['article:not([usy-download])', Tweet.addDownloadButton]],
             media_download_button: [
                 ['img[src^="https://pbs.twimg.com/media/"]:not([usy-media])', Image.addImageButton],
+                ['img[src^="https://pbs.twimg.com/ext_tw_video_thumb/"]:not([usy-media])', Image.addImageButton],
                 ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
                 ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]]
         },
