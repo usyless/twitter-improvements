@@ -500,14 +500,20 @@
             const save_id = ev.currentTarget.getAttribute('ti-id');
             const split = save_id.split('-');
             // - 1 is because indexes are 1-4
-            const /** @type {MediaItem | null} */ media = URL_CACHE.get(split[0])?.[(+split[1]) - 1];
-            Button.handleClick(ev, save_id, () => {
-                if (media) {
-                    Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
-                } else {
-                    Notification.create('Error saving, try again', 'error');
-                }
-            }, media.type.toLowerCase() ?? 'media');
+            const /** @type {MediaItem[]} */ media = URL_CACHE.get(split[0]);
+            if (Settings.download_preferences.download_picker_on_media_page
+                && media?.length > 1 && location.pathname.endsWith('/media')) {
+                Notification.createDownloadChoices(url, media, ev);
+            } else {
+                const /** @type {MediaItem} */ exactMedia = media?.[(+split[1]) - 1];
+                Button.handleClick(ev, save_id, () => {
+                    if (exactMedia) {
+                        Downloaders.download_all(url, exactMedia, Helpers.eventModifiers(ev));
+                    } else {
+                        Notification.create('Error saving, try again', 'error');
+                    }
+                }, exactMedia.type.toLowerCase() ?? 'media');
+            }
         },
 
         resetAll: () => {

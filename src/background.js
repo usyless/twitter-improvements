@@ -110,6 +110,7 @@ const defaultSettings = {
         download_history_prevent_download: false,
 
         use_download_progress: false,
+        download_picker_on_media_page: false,
     },
 
     style: {

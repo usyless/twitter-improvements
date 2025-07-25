@@ -286,6 +286,11 @@
                     description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'
                 },
                 {
+                    name: 'download_picker_on_media_page',
+                    category: 'download_preferences',
+                    description: 'Show download picker for multi-media tweets in the media page'
+                },
+                {
                     name: 'reset_all_settings',
                     type: 'button',
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',
