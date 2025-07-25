@@ -567,6 +567,22 @@
                     type: 'choice',
                     choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
                 },
+                {
+                    type: 'break',
+                },
+                {
+                    name: 'save_directory_alt',
+                    category: 'download_preferences',
+                    description: 'Holding alt: Relative file save directory',
+                    type: 'text',
+                },
+                {
+                    name: 'save_as_prompt_alt',
+                    category: 'download_preferences',
+                    description: 'Holding alt: Prompt to "Save As" when saving files with this extension',
+                    type: 'choice',
+                    choices: [{name: 'Follow browser setting', type: 'browser'}, {name: 'Don\'t prompt', type: 'off'}, {name: 'Prompt', type: 'on'}],
+                },
             ],
             'Save file name': [
                 {

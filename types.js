@@ -40,6 +40,7 @@
  * @typedef {Object} EventModifiers
  * @property {boolean} shift
  * @property {boolean} ctrl
+ * @property {boolean} alt
  */
 
 /**

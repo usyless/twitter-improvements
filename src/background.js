@@ -98,9 +98,11 @@ const defaultSettings = {
         save_as_prompt: 'browser',
         save_as_prompt_shift: 'browser',
         save_as_prompt_ctrl: 'browser',
+        save_as_prompt_alt: 'browser',
         save_directory: '',
         save_directory_shift: '',
         save_directory_ctrl: '',
+        save_directory_alt: '',
         save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
         download_all_near_click: false,
         download_all_override_saved: true,
@@ -209,18 +211,19 @@ browser.storage.onChanged.addListener((changes, namespace) => {
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
  */
-function download(url, filename, {shift, ctrl}={}) {
+function download(url, filename, {shift, ctrl, alt}={}) {
     return new Promise((resolve, reject) => {
         /Android/i.test(navigator.userAgent)
             ? resolve(sendToTab({ type: 'download', url, filename }) || -1)
             : Settings.getSettings().then(() => {
             const {
-                save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl,
-                save_directory, save_directory_shift, save_directory_ctrl
+                save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl, save_as_prompt_alt,
+                save_directory, save_directory_shift, save_directory_ctrl, save_directory_alt
             } = Settings.download_preferences;
 
             const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
-                : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl] : [save_directory, save_as_prompt];
+                : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
+                    : (alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
 
             browser.downloads.download({
                 url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
@@ -341,7 +344,7 @@ function saveImage(url, sourceURL) {
             save_id: formatPartsForStorage(parts),
             url: sourceURL.replace(/name=[^&]*/, "name=orig"),
             type: 'Image'
-        }], modifiers: {shift: false, ctrl: false}}, () => sendToTab({type: 'image_saved'}))
+        }], modifiers: {shift: false, ctrl: false, alt: false}}, () => sendToTab({type: 'image_saved'}))
 }
 
 const migrations = [
