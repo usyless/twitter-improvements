@@ -939,8 +939,10 @@
             bookmark_on_photo_page: [['article:not([usy-bookmarked])', Tweet.copyBookmarkButton]],
             inline_download_button: [['article:not([usy-download])', Tweet.addDownloadButton]],
             media_download_button: [
-                ['img[src^="https://pbs.twimg.com/media/"]:not([usy-media])', Image.addImageButton],
-                ['img[src^="https://pbs.twimg.com/ext_tw_video_thumb/"]:not([usy-media])', Image.addImageButton],
+                [`img[src^="https://pbs.twimg.com/media/"]:not([usy-media]),
+                img[src^="https://pbs.twimg.com/ext_tw_video_thumb/"]:not([usy-media]),
+                img[src^="https://pbs.twimg.com/amplify_video_thumb/"]:not([usy-media]),
+                img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media])`, Image.addImageButton],
                 ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
                 ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]]
         },
