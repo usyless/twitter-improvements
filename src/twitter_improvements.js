@@ -407,7 +407,7 @@
         /** @param {HTMLElement} video */
         addVideoButtonTimeout: (video) => {
             video.setAttribute('usy-media', '');
-            setTimeout(Image.addVideoButton, 100, video);
+            setTimeout(Image.addVideoButton, 1000, video);
         },
 
         buttonModes: {
