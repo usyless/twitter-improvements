@@ -59,9 +59,8 @@
         "https://x.com/*"
       ],
       "js": [
-        "/fetch-intercept.js"
+        "/fetch-intercept-loader.js"
       ],
-      "world": "MAIN",
       "run_at": "document_start"
     }
   ],
