@@ -108,6 +108,19 @@ body {
     }
 }
 
+.usyVideoPreview {
+    position: absolute;
+    max-width: min(300px, var(--usy-max-width, 300px));
+    max-height: 300px;
+    height: auto;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translateY(-50%);
+    border-radius: 9px;
+    box-shadow: rgba(255, 255, 255, 0.2) 0 0 15px, rgba(255, 255, 255, 0.15) 0 0 3px 1px;
+}
+
 .usyErrorNotificationClear {
     background-color: #530a0a;
 }
@@ -239,7 +252,7 @@ body {
     cursor: pointer;
     text-align: left;
     padding: 10px;
-    z-index: 9999999999;
+    z-index: 999;
     width: 100%;
     box-sizing: border-box;
     transition: 200ms ease-in-out;

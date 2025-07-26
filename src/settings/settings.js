@@ -291,6 +291,11 @@
                     description: 'Show download picker for multi-media tweets in the media page'
                 },
                 {
+                    name: 'preview_media_in_picker',
+                    category: 'download_preferences',
+                    description: 'Preview the media being hovered over in the download picker'
+                },
+                {
                     name: 'reset_all_settings',
                     type: 'button',
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',

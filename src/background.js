@@ -111,6 +111,7 @@ const defaultSettings = {
 
         use_download_progress: false,
         download_picker_on_media_page: false,
+        preview_media_in_picker: false,
     },
 
     style: {

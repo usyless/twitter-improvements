@@ -766,16 +766,79 @@
                 }
             });
 
+            let popupHeight, popupLeft, popupTop, popupRight;
+
+            if (Settings.download_preferences.preview_media_in_picker) {
+                let lastIndex;
+                let lastPreview;
+                const onExit = () => {
+                    lastPreview?.remove();
+                    lastPreview = null;
+                }
+                popup.addEventListener('pointermove', (e) => {
+                    let index = e.target.closest('.usyDownloadChoiceButton')?.dataset?.index;
+                    if (index != null) {
+                        index -= 1;
+                        const choice = choices[index];
+
+                        if (index !== lastIndex) onExit();
+
+                        if (!lastPreview) {
+                            lastPreview = document.createElement((choice.type === 'Video') ? 'video' : 'img');
+                            lastPreview.src = choice.url;
+                            lastPreview.classList.add('usyVideoPreview');
+                            if (choice.type === 'Video') {
+                                lastPreview.autoplay = true;
+                                lastPreview.muted = false;
+                                lastPreview.loop = true;
+                                lastPreview.controls = false;
+                            }
+
+                            lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
+                            lastPreview.style.display = 'none';
+
+                            fullscreen.appendChild(lastPreview);
+
+                            lastPreview.addEventListener((choice.type === 'Video') ? 'loadeddata' : 'load', () => {
+                                if (lastPreview?.isConnected) {
+                                    const leftDistance = popupLeft - 10;
+                                    const rightDistance = window.innerWidth - popupRight + 10;
+
+                                    if (leftDistance > rightDistance) { // show on left
+                                        lastPreview.style.right = `${window.innerWidth - popupLeft + 10}px`;
+                                        lastPreview.style.setProperty('--usy-max-width', `${leftDistance}px`);
+                                    } else { // show on right
+                                        lastPreview.style.left = `${popupRight + 10}px`;
+                                        lastPreview.style.setProperty('--usy-max-width', `${rightDistance}px`);
+                                    }
+                                    lastPreview.style.display = '';
+                                }
+                            });
+                        }
+
+                        lastIndex = index;
+                    } else {
+                        onExit();
+                    }
+                });
+                popup.addEventListener('pointerleave', onExit);
+            }
+
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
 
             // ensure popup has a size in the body
             requestAnimationFrame(() => {
                 const rect = popup.getBoundingClientRect();
-                if (rect.left < 0) popup.style.left = '0px';
-                else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
+                popupHeight = rect.height;
+                popupLeft = rect.left;
+                popupTop = rect.top;
+                popupRight = rect.right;
 
-                if (rect.top < 0) popup.style.top = '0px';
+                if (popupLeft < 0) popup.style.left = '0px';
+                else if (popupRight > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
+
+                if (popupTop < 0) popup.style.top = '0px';
                 else if (rect.bottom > window.innerHeight) {
                     popup.style.removeProperty('top');
                     popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
