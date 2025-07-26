@@ -784,8 +784,17 @@
                         if (index !== lastIndex) onExit();
 
                         if (!lastPreview) {
+                            let url;
+                            if (choice.type === 'Image') {
+                                const base_url = choice.url.split('?')[0];
+                                url = document.querySelector(`[src^="${base_url}"]`).src
+                                    ?? choice.url.replaceAll('&name=orig', '&name=360x360');
+                            } else {
+                                url = choice.url;
+                            }
+
                             lastPreview = document.createElement((choice.type === 'Video') ? 'video' : 'img');
-                            lastPreview.src = choice.url;
+                            lastPreview.src = url;
                             lastPreview.classList.add('usyVideoPreview');
                             if (choice.type === 'Video') {
                                 lastPreview.autoplay = true;
