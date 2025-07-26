@@ -787,7 +787,7 @@
                             let url;
                             if (choice.type === 'Image') {
                                 const base_url = choice.url.split('?')[0];
-                                url = document.querySelector(`[src^="${base_url}"]`).src
+                                url = document.querySelector(`[src^="${base_url}"]`)?.src
                                     ?? choice.url.replaceAll('&name=orig', '&name=360x360');
                             } else {
                                 // maybe use lower quality video?

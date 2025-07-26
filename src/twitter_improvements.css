@@ -110,7 +110,7 @@ body {
 
 .usyVideoPreview {
     position: absolute;
-    max-width: min(300px, var(--usy-max-width, 300px));
+    max-width: min(360px, var(--usy-max-width, 360px));
     max-height: 300px;
     height: auto;
     object-fit: contain;
