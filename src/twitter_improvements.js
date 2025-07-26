@@ -766,7 +766,7 @@
                 }
             });
 
-            let popupHeight, popupLeft, popupTop, popupRight;
+            let popupHeight;
 
             if (Settings.download_preferences.preview_media_in_picker) {
                 let lastIndex;
@@ -794,25 +794,29 @@
                                 lastPreview.controls = false;
                             }
 
-                            lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
                             lastPreview.style.display = 'none';
 
                             fullscreen.appendChild(lastPreview);
 
                             lastPreview.addEventListener((choice.type === 'Video') ? 'loadeddata' : 'load', () => {
-                                if (lastPreview?.isConnected) {
-                                    const leftDistance = popupLeft - 10;
-                                    const rightDistance = window.innerWidth - popupRight + 10;
+                                requestAnimationFrame(() => {
+                                    if (lastPreview?.isConnected) {
+                                        const {left: popupLeft, right: popupRight,
+                                            top: popupTop} = popup.getBoundingClientRect();
+                                        const leftDistance = popupLeft - 10;
+                                        const rightDistance = window.innerWidth - popupRight - 10;
 
-                                    if (leftDistance > rightDistance) { // show on left
-                                        lastPreview.style.right = `${window.innerWidth - popupLeft + 10}px`;
-                                        lastPreview.style.setProperty('--usy-max-width', `${leftDistance}px`);
-                                    } else { // show on right
-                                        lastPreview.style.left = `${popupRight + 10}px`;
-                                        lastPreview.style.setProperty('--usy-max-width', `${rightDistance}px`);
+                                        if (leftDistance > rightDistance) { // show on left
+                                            lastPreview.style.right = `${window.innerWidth - popupLeft + 5}px`;
+                                            lastPreview.style.setProperty('--usy-max-width', `${leftDistance}px`);
+                                        } else { // show on right
+                                            lastPreview.style.left = `${popupRight + 5}px`;
+                                            lastPreview.style.setProperty('--usy-max-width', `${rightDistance}px`);
+                                        }
+                                        lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
+                                        lastPreview.style.display = '';
                                     }
-                                    lastPreview.style.display = '';
-                                }
+                                });
                             });
                         }
 
@@ -831,14 +835,11 @@
             requestAnimationFrame(() => {
                 const rect = popup.getBoundingClientRect();
                 popupHeight = rect.height;
-                popupLeft = rect.left;
-                popupTop = rect.top;
-                popupRight = rect.right;
 
-                if (popupLeft < 0) popup.style.left = '0px';
-                else if (popupRight > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
+                if (rect.left < 0) popup.style.left = '0px';
+                else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
 
-                if (popupTop < 0) popup.style.top = '0px';
+                if (rect.top < 0) popup.style.top = '0px';
                 else if (rect.bottom > window.innerHeight) {
                     popup.style.removeProperty('top');
                     popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
