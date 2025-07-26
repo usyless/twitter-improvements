@@ -790,6 +790,7 @@
                                 url = document.querySelector(`[src^="${base_url}"]`).src
                                     ?? choice.url.replaceAll('&name=orig', '&name=360x360');
                             } else {
+                                // maybe use lower quality video?
                                 url = choice.url;
                             }
 
@@ -1032,22 +1033,29 @@
             Button.resetAll();
             const callbackMappings = Observer.callbackMappings;
             const observerSettings = {subtree: true, childList: true};
+            let lastReactRoot;
             const getCallback = () => {
                 const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
                 const settings = Settings.setting;
                 for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
                 const update = () => {
-                    if (!ACCENT_COLOUR) {
-                        const colourElement = document.querySelector('a[href="/explore/tabs/for-you"]')?.firstElementChild;
-                        if (colourElement) {
-                            const bg = window.getComputedStyle(colourElement).color;
-                            if (!bg.includes('(0, 0, 0')) ACCENT_COLOUR = bg;
-                        }
+                    if (!lastReactRoot?.isConnected) {
+                        lastReactRoot = document.getElementById('react-root');
                     }
-                    // uses this rather than called with observer to make sure it isn't re-started
-                    Observer.observer?.disconnect();
-                    for (const [s, f] of callbacks) for (const a of document.body.querySelectorAll(s)) f(a);
-                    Observer.observer?.observe(document.body, observerSettings);
+
+                    if (lastReactRoot) {
+                        if (!ACCENT_COLOUR) {
+                            const colourElement = document.querySelector('a[href="/explore/tabs/for-you"]')?.firstElementChild;
+                            if (colourElement) {
+                                const bg = window.getComputedStyle(colourElement).color;
+                                if (!bg.includes('(0, 0, 0')) ACCENT_COLOUR = bg;
+                            }
+                        }
+                        // uses this rather than called with observer to make sure it isn't re-started
+                        Observer.observer?.disconnect();
+                        for (const [s, f] of callbacks) for (const a of lastReactRoot.querySelectorAll(s)) f(a);
+                        Observer.observer?.observe(document.body, observerSettings);
+                    }
                 };
                 update();
                 return (callbacks.length > 0) ? update : Observer.disable;
