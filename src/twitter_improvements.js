@@ -1208,7 +1208,7 @@
                 break;
             }
             case 'download': {
-                Helpers.download(message.url, message.filename);
+                void Helpers.download(message.url, message.filename);
                 break;
             }
             case 'error': {
