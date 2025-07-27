@@ -369,9 +369,9 @@
                         button.removeAttribute('ti-id');
                         const id_vague = id.split('-')[0];
                         button.setAttribute('ti-id-vague', id_vague);
-                        setTimeout(() => {
-                            void Tweet.downloadUpdateMarked(URL_CACHE.get(id_vague), [button]);
-                        }, 0);
+                        URLCacheGet(id_vague).then((media) => {
+                            void Tweet.downloadUpdateMarked(media, [button]);
+                        });
                     } else {
                         Background.download_history_has(id).then((response) => {
                             if (response === true) Button.mark(button);
