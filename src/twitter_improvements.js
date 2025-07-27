@@ -95,7 +95,7 @@
          */
         download_all: async (url, media, modifiers, {override=false, softOverride=false}={}) => {
             if (!media) {
-                media = URL_CACHE.get(Helpers.id(url));
+                media = await URLCacheGet(Helpers.id(url));
                 if (!media) {
                     Notification.create('Error downloading, please try again in a second', 'error');
                     return;
