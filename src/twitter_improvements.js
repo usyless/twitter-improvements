@@ -158,7 +158,7 @@
                         buttons.push(button);
                     }
 
-                    void Tweet.downloadUpdateMarked(media, id, buttons);
+                    void Tweet.downloadUpdateMarked(media, buttons);
                 }
             } catch {
                 article.removeAttribute('usy-download');
@@ -167,10 +167,9 @@
 
         /**
          * @param {MediaItem[]} media
-         * @param {tweetId} id
          * @param {HTMLElement[]} buttons
          */
-        downloadUpdateMarked: async (media, id, buttons) => {
+        downloadUpdateMarked: async (media, buttons) => {
             // all saved
             if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
                 for (const button of buttons) Button.mark(button);
@@ -339,9 +338,22 @@
 
                 button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
-                    Background.download_history_has(id).then((response) => {
-                        if (response === true) Button.mark(button);
-                    });
+                    if (Settings.download_preferences.download_picker_on_media_page) {
+                        // is multi-media, and on media page
+                        const closestLink = image.closest('a[href$="/photo/1"], a[href$="/video/1"]');
+                        if (closestLink?.querySelector(':scope > div + svg')) {
+                            button.removeAttribute('ti-id');
+                            const id_vague = id.split('-')[0];
+                            button.setAttribute('ti-id-vague', id_vague);
+                            setTimeout(() => {
+                                void Tweet.downloadUpdateMarked(URL_CACHE.get(id_vague), [button]);
+                            }, 0);
+                        }
+                    } else {
+                        Background.download_history_has(id).then((response) => {
+                            if (response === true) Button.mark(button);
+                        });
+                    }
                 }
             } catch {
                 image.removeAttribute('usy-media');
@@ -1141,7 +1153,7 @@
                 const id = message.id.split('-')[0];
                 const media = URL_CACHE.get(id);
                 if (media) {
-                    void Tweet.downloadUpdateMarked(media, id, document.querySelectorAll(`[ti-id-vague="${id}"]`));
+                    void Tweet.downloadUpdateMarked(media, document.querySelectorAll(`[ti-id-vague="${id}"]`));
                 }
                 break;
             }
