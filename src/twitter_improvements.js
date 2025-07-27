@@ -510,12 +510,14 @@
          * @param {MouseEvent} ev
          */
         downloadButtonCallback: (url, ev) => {
-            const save_id = ev.currentTarget.getAttribute('ti-id');
+            const save_id = ev.currentTarget.getAttribute('ti-id')
+                ?? ev.currentTarget.getAttribute('ti-id-vague');
             const split = save_id.split('-');
             // - 1 is because indexes are 1-4
             const /** @type {MediaItem[]} */ media = URL_CACHE.get(split[0]);
             if (Settings.download_preferences.download_picker_on_media_page
                 && media?.length > 1 && location.pathname.endsWith('/media')) {
+                // if using ti-id-vague, this should always be true
                 Notification.createDownloadChoices(url, media, ev);
             } else {
                 const /** @type {MediaItem} */ exactMedia = media?.[(+split[1]) - 1];
