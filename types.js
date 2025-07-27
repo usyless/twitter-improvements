@@ -3,6 +3,7 @@
  * @property {tweetNum} index
  * @property {saveId} save_id
  * @property {string} url
+ * @property {string} [url_lowres]
  * @property {('Image' | 'Video')} type
  */
 

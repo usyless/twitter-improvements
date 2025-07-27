@@ -803,8 +803,7 @@
                                 url = document.querySelector(`[src^="${base_url}"]`)?.src
                                     ?? choice.url.replaceAll('&name=orig', '&name=360x360');
                             } else {
-                                // maybe use lower quality video?
-                                url = choice.url;
+                                url = choice.url_lowres ?? choice.url;
                             }
 
                             lastPreview = document.createElement((choice.type === 'Video') ? 'video' : 'img');

@@ -1,5 +1,11 @@
 (() =>  {
-    const getBestQuality = (variants) => variants.filter(v => v?.content_type === "video/mp4").reduce((x, y) => +x?.bitrate > +y?.bitrate ? x : y).url;
+    const getQualities = (variants) => {
+        if (variants) {
+            variants = variants.filter(v => v.content_type === "video/mp4");
+            variants.sort((x, y) => (+y.bitrate) - (+x.bitrate));
+            return variants.map(v => v.url);
+        }
+    }
     /** @param {MediaTransfer[]} media */
     const postMedia = (media) => {
         window.postMessage({ source: "ift", type: "media-urls", media }, "https://x.com");
@@ -65,7 +71,9 @@
                     }
                     case 'video':
                     case 'animated_gif': {
-                        info.url = getBestQuality(video_info?.variants);
+                        const qualities = getQualities(video_info?.variants);
+                        info.url = qualities?.[0];
+                        info.url_lowres = qualities?.[qualities.length - 1];
                         info.type = 'Video';
                         break;
                     }
