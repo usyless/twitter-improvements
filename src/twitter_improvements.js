@@ -338,17 +338,15 @@
 
                 button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
-                    if (Settings.download_preferences.download_picker_on_media_page) {
+                    if (Settings.download_preferences.download_picker_on_media_page
+                        && image.closest('a[href$="/photo/1"], a[href$="/video/1"]')?.querySelector(':scope > div + svg')) {
                         // is multi-media, and on media page
-                        const closestLink = image.closest('a[href$="/photo/1"], a[href$="/video/1"]');
-                        if (closestLink?.querySelector(':scope > div + svg')) {
-                            button.removeAttribute('ti-id');
-                            const id_vague = id.split('-')[0];
-                            button.setAttribute('ti-id-vague', id_vague);
-                            setTimeout(() => {
-                                void Tweet.downloadUpdateMarked(URL_CACHE.get(id_vague), [button]);
-                            }, 0);
-                        }
+                        button.removeAttribute('ti-id');
+                        const id_vague = id.split('-')[0];
+                        button.setAttribute('ti-id-vague', id_vague);
+                        setTimeout(() => {
+                            void Tweet.downloadUpdateMarked(URL_CACHE.get(id_vague), [button]);
+                        }, 0);
                     } else {
                         Background.download_history_has(id).then((response) => {
                             if (response === true) Button.mark(button);
