@@ -192,7 +192,7 @@
 
         /**
          * @param {MediaItem[]} media
-         * @param {HTMLElement[]} buttons
+         * @param {Iterable<HTMLElement>} buttons
          */
         downloadUpdateMarked: async (media, buttons) => {
             // all saved
@@ -1176,7 +1176,7 @@
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
 
                 const id = message.id.split('-')[0];
-                const multi_media_buttons = document.querySelectorAll(`[ti-id-vague="${id}"]`);
+                const multi_media_buttons = /** @type {NodeListOf<HTMLElement>} */ document.querySelectorAll(`[ti-id-vague="${id}"]`);
                 if (multi_media_buttons.length > 0) {
                     URLCacheGet(id).then((media) => {
                         void Tweet.downloadUpdateMarked(media, multi_media_buttons);
