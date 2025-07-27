@@ -18,8 +18,8 @@
         this.addEventListener("readystatechange",  () => {
             if (
                 xhr.readyState === 4 && xhr.status === 200
-                && xhr.getResponseHeader("Content-Type")?.includes('application/json')
                 && (xhr.responseType === 'text' || xhr.responseType === '')
+                && xhr.getResponseHeader("Content-Type")?.includes('application/json')
             ) {
                 const /** @type {MediaTransfer[]} */ media = [];
                 for (const m of findTweets(JSON.parse(xhr.responseText))) {
