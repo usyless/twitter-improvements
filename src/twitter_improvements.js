@@ -1117,8 +1117,12 @@
                         Observer.observer?.observe(document.body, observerSettings);
                     }
                 };
-                update();
-                return (callbacks.length > 0) ? update : Observer.disable;
+                if (callbacks.length > 0) {
+                    update();
+                    return update;
+                } else {
+                    return Observer.disable;
+                }
             };
             Observer.observer = new MutationObserver(getCallback());
             Observer.observer?.observe(document.body, observerSettings);
