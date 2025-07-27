@@ -1174,10 +1174,13 @@
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
+
                 const id = message.id.split('-')[0];
-                const media = URL_CACHE.get(id);
-                if (media) {
-                    void Tweet.downloadUpdateMarked(media, document.querySelectorAll(`[ti-id-vague="${id}"]`));
+                const multi_media_buttons = document.querySelectorAll(`[ti-id-vague="${id}"]`);
+                if (multi_media_buttons.length > 0) {
+                    URLCacheGet(id).then((media) => {
+                        void Tweet.downloadUpdateMarked(media, multi_media_buttons);
+                    });
                 }
                 break;
             }
