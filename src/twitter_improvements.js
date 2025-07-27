@@ -5,14 +5,37 @@
         this.browser = /** @suppress */ chrome;
     }
 
+    const /** @type {Map<tweetId, [function(MediaItem[])]>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
+
+    const URLCacheGet = (id) => new Promise((resolve) => {
+        const result = URL_CACHE.get(id);
+        if (result) {
+            resolve(result);
+            return;
+        }
+
+        let promisesArr = URL_CACHE_PROMISES.get(id);
+        if (promisesArr == null) {
+            promisesArr = [];
+            URL_CACHE_PROMISES.set(id, promisesArr);
+        }
+
+        promisesArr.push(resolve);
+    });
 
     window.addEventListener("message", (e) => {
         if (e.source !== window || e.origin !== "https://x.com") return;
 
         const data = e?.data;
-        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media)
+        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media) {
             URL_CACHE.set(id, media);
+            const promises = URL_CACHE_PROMISES.get(id);
+            if (promises) {
+                for (const resolve of promises) resolve(media);
+                URL_CACHE_PROMISES.delete(id);
+            }
+        }
     });
 
     let ACCENT_COLOUR;
@@ -125,45 +148,47 @@
 
         /**
          * @param {HTMLElement} article
-         * @param {boolean} [retry]
          */
-        addDownloadButton: (article, retry=false) => {
-            try {
-                article.setAttribute('usy-download', '');
-                const url = Tweet.url(article);
-                const id = Helpers.id(url);
-                const media = URL_CACHE.get(id);
-                if (!media) {
-                    if (retry) {
-                        return;
-                    } else {
-                        setTimeout(Tweet.addDownloadButton, 0, article, true);
-                    }
-                }
-                if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                    const a = Tweet.defaultAnchor(article);
-                    const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
-                    const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
-                    button.setAttribute('ti-id-vague', id);
-                    a.after(button);
-
-                    const buttons = [button];
-
-                    const altAnchor = Tweet.secondaryAnchor(article);
-                    if (altAnchor) {
-                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
-                        const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
+        addDownloadButton: (() => {
+            const finishButton = (media, article, url, id) => {
+                try {
+                    if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
+                        const a = Tweet.defaultAnchor(article);
+                        const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
+                        const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
                         button.setAttribute('ti-id-vague', id);
-                        altAnchor.after(button);
-                        buttons.push(button);
-                    }
+                        a.after(button);
 
-                    void Tweet.downloadUpdateMarked(media, buttons);
+                        const buttons = [button];
+
+                        const altAnchor = Tweet.secondaryAnchor(article);
+                        if (altAnchor) {
+                            for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
+                            const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
+                            button.setAttribute('ti-id-vague', id);
+                            altAnchor.after(button);
+                            buttons.push(button);
+                        }
+
+                        void Tweet.downloadUpdateMarked(media, buttons);
+                    }
+                } catch {
+                    article.removeAttribute('usy-download');
                 }
-            } catch {
-                article.removeAttribute('usy-download');
             }
-        },
+            return (article) => {
+                try {
+                    article.setAttribute('usy-download', '');
+                    const url = Tweet.url(article);
+                    const id = Helpers.id(url);
+                    URLCacheGet(id).then((media) => {
+                        finishButton(media, article, url, id);
+                    });
+                } catch {
+                    article.removeAttribute('usy-download');
+                }
+            }
+        })(),
 
         /**
          * @param {MediaItem[]} media
