@@ -247,6 +247,7 @@ body {
 }
 
 .usyDownloadChoiceButton {
+    position: relative;
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -256,6 +257,21 @@ body {
     width: 100%;
     box-sizing: border-box;
     transition: 200ms ease-in-out;
+
+    .usyThumbnailDiv {
+        box-sizing: border-box;
+        padding: 5px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: 30%;
+        z-index: 1000;
+
+        svg {
+            z-index: 1001;
+        }
+    }
 }
 
 .usyDownloadChoiceButton:active {
@@ -264,6 +280,12 @@ body {
 
 @media (hover: hover) {
     .usyDownloadChoiceButton:hover {
+        background-color: #ffffff0b;
+    }
+}
+
+@media (hover: hover) {
+    .usyDownloadChoiceButton .usyThumbnailDiv:hover {
         background-color: #ffffff0b;
     }
 }

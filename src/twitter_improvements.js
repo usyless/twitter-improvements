@@ -18,7 +18,8 @@
     let ACCENT_COLOUR;
 
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
-        download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z";
+        download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z",
+        thumbnail_path = "M2 3C0 3 0 3 0 5V9c0 2 0 2 2 2H12c2 0 2 0 2-2V5c0-2 0-2-2-2H2";
 
     const /** @type {LoadedSettings} */ Defaults = {
         loadDefaults: async () => {
@@ -740,7 +741,7 @@
             });
 
             for (const {index, type, save_id} of choices) {
-                const btn = Notification.getChoiceButton(`${type} ${index}`);
+                const btn = Notification.getChoiceButton(`${type} ${index}`, true);
                 btn.dataset.index = index.toString();
                 btn.setAttribute('ti-id', save_id);
 
@@ -768,14 +769,14 @@
 
             let popupHeight;
 
-            if (Settings.download_preferences.preview_media_in_picker) {
+            { // thumbnails
                 let lastIndex;
                 let lastPreview;
                 const onExit = () => {
                     lastPreview?.remove();
                     lastPreview = null;
                 }
-                popup.addEventListener('pointermove', (e) => {
+                const showThumbnail = (e) => {
                     let index = e.target.closest('.usyDownloadChoiceButton')?.dataset?.index;
                     if (index != null) {
                         index -= 1;
@@ -834,8 +835,17 @@
                     } else {
                         onExit();
                     }
-                });
-                popup.addEventListener('pointerleave', onExit);
+                }
+                for (const button of popup.querySelectorAll('.usyThumbnailDiv')) {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        showThumbnail(e);
+                    });
+                    button.addEventListener('pointermove', showThumbnail);
+                    button.addEventListener('pointerleave', onExit);
+                }
             }
 
             fullscreen.appendChild(popup);
@@ -870,13 +880,27 @@
 
         /**
          * @param {string} text
+         * @param {boolean} [thumbnail]
          * @returns {HTMLButtonElement}
          */
-        getChoiceButton: (text) => {
-            const b = document.createElement('button'), t = document.createElement('b');
+        getChoiceButton: (text, thumbnail = false) => {
+            const b = document.createElement('button'),
+                t = document.createElement('b');
             b.classList.add('usyDownloadChoiceButton');
             t.textContent = text;
             b.appendChild(t);
+            if (thumbnail) {
+                const thumb = document.createElement('div');
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                svg.appendChild(path);
+                svg.setAttributeNS(null, 'viewBox', '0 0 14 14');
+                path.setAttributeNS(null, 'd', thumbnail_path);
+                path.setAttributeNS(null, 'fill', '#ffffff');
+                thumb.classList.add('usyThumbnailDiv');
+                thumb.appendChild(svg);
+                b.appendChild(thumb);
+            }
             return b;
         },
 
@@ -1039,7 +1063,7 @@
                 const settings = Settings.setting;
                 for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
                 const update = () => {
-                    if (!lastReactRoot?.isConnected) {
+                    if (!(lastReactRoot?.isConnected)) {
                         lastReactRoot = document.getElementById('react-root');
                     }
 
