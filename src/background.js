@@ -212,7 +212,8 @@ browser.storage.onChanged.addListener((changes, namespace) => {
  * @param {string} url
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
- * @param {Object} [additionalMetadata]
+ * @param {string} [tweetURL]
+ * @param {saveId} [save_id]
  */
 function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) {
     return new Promise((resolve, reject) => {
