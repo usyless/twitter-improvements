@@ -483,10 +483,10 @@
             }, { once: true });
 
             const closeThumb = () => {
-                thumb.remove?.();
                 element.removeEventListener('pointerleave', closeThumb);
                 element.removeEventListener('pointerdown', closeThumb);
                 element.removeEventListener('click', closeThumb);
+                thumb.remove();
             }
 
             element.addEventListener('pointerleave', closeThumb);
