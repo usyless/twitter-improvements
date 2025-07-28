@@ -158,6 +158,7 @@
                         const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
                         button.setAttribute('ti-id-vague', id);
                         a.after(button);
+                        Image.addThumbnailSupport(button, id);
 
                         const buttons = [button];
 
@@ -360,6 +361,7 @@
                 image.setAttribute('usy-media', '');
                 const url = Image.respectiveURL(image), id = Helpers.idWithNumber(url);
                 button = Image.genericButton(image, Image.downloadButtonCallback.bind(null, url));
+                Image.addThumbnailSupport(button, id.split('-')[0]);
 
                 button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -406,6 +408,7 @@
                     const cb =  Image.downloadButtonCallback.bind(null, url);
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
+                        Image.addThumbnailSupport(button, id.split('-')[0]);
                         mark_button();
                     } else { // video player
                         const observerSettings = { childList: true, subtree: true };
@@ -451,7 +454,10 @@
          * @param {MediaItem} media
          */
         showThumbnail: (element, media) => {
+            const fullscreen = document.createElement('div');
+            fullscreen.classList.add('usyNotificationOuter');
             const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
+            fullscreen.appendChild(thumb);
 
             thumb.classList.add('usyVideoPreview', 'topBottom');
             if (media.type === 'Video') {
@@ -462,7 +468,7 @@
             }
             thumb.style.display = 'none';
 
-            document.body.appendChild(thumb);
+            document.body.appendChild(fullscreen);
 
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
                 requestAnimationFrame(() => {
@@ -486,7 +492,7 @@
                 element.removeEventListener('pointerleave', closeThumb);
                 element.removeEventListener('pointerdown', closeThumb);
                 element.removeEventListener('click', closeThumb);
-                thumb.remove();
+                fullscreen.remove();
             }
 
             element.addEventListener('pointerleave', closeThumb);
@@ -756,7 +762,7 @@
          */
         create: (text, type, timeout = 5000) => {
             if (!Settings.hidden_extension_notifications[type]) {
-                Notification.clear();
+                document.querySelectorAll('div.usyDefaultNotification').forEach((e) => e.remove());
                 const outer = document.createElement('div'), inner = document.createElement('div');
                 outer.appendChild(inner);
                 outer.classList.add('usyNotificationOuter', 'usyDefaultNotification');
@@ -818,10 +824,6 @@
             } else {
                 outer.lastElementChild.before(inner);
             }
-        },
-
-        clear: () => {
-            document.querySelectorAll('div.usyDefaultNotification').forEach((e) => e.remove());
         },
 
         clearFullscreen: () => {
