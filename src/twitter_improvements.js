@@ -1089,6 +1089,9 @@
 
         getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]'),
 
+        /**
+         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number)}}
+         */
         createMobileDownloadPopup: () => {
             const outer = document.querySelector('.usyDownloadNotificationOuter')
                 || document.createElement('div');
@@ -1131,6 +1134,11 @@
     };
 
     const Helpers = {
+        /**
+         * @param {string} url
+         * @param {function(number, number)} progressCallback
+         * @returns {Promise<Uint8Array>}
+         */
         progressDownload: async (url, progressCallback) => {
             const response = await fetch(url);
 
@@ -1163,6 +1171,10 @@
             return finalResult;
         },
 
+        /**
+         * @param {Blob} blob
+         * @param {string} filename
+         */
         downloadFromBlob: (blob, filename) => {
             const link = document.createElement('a'),
                 objectURL = URL.createObjectURL(blob);
