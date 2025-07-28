@@ -112,6 +112,8 @@ body {
     position: absolute;
     max-width: min(var(--usy-max-width, 100vw), 100vw);
     max-height: min(var(--usy-max-height, 100vh), 100vh);
+    box-sizing: border-box;
+    border: 5px solid white;
     height: auto;
     object-fit: scale-down;
     pointer-events: none;

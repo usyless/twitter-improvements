@@ -490,15 +490,14 @@
                 requestAnimationFrame(() => {
                     if (thumb.isConnected) {
                         const {left, width, top, bottom} = element.getBoundingClientRect();
-                        const topDistance = top - 10;
-                        const bottomDistance = window.innerHeight - bottom - 10;
+                        const bottomDistance = window.innerHeight - bottom;
 
-                        if (bottomDistance > topDistance) { // show on bottom
-                            thumb.style.top = `${bottom + 5}px`;
+                        if (bottomDistance > top) { // show on bottom
+                            thumb.style.top = `${bottom}px`;
                             thumb.style.setProperty('--usy-max-height', `${bottomDistance}px`);
                         } else { // show on top
-                            thumb.style.bottom = `${window.innerHeight - top + 5}px`;
-                            thumb.style.setProperty('--usy-max-height', `${topDistance}px`);
+                            thumb.style.bottom = `${window.innerHeight - top}px`;
+                            thumb.style.setProperty('--usy-max-height', `${top}px`);
                         }
                         thumb.style.left = `${left + (width / 2)}px`;
                         thumb.style.display = '';
@@ -953,14 +952,13 @@
                                     if (lastPreview?.isConnected) {
                                         const {left: popupLeft, right: popupRight,
                                             top: popupTop} = popup.getBoundingClientRect();
-                                        const leftDistance = popupLeft - 10;
-                                        const rightDistance = window.innerWidth - popupRight - 10;
+                                        const rightDistance = window.innerWidth - popupRight;
 
-                                        if (leftDistance > rightDistance) { // show on left
-                                            lastPreview.style.right = `${window.innerWidth - popupLeft + 5}px`;
-                                            lastPreview.style.setProperty('--usy-max-width', `${leftDistance}px`);
+                                        if (popupLeft > rightDistance) { // show on left
+                                            lastPreview.style.right = `${window.innerWidth - popupLeft}px`;
+                                            lastPreview.style.setProperty('--usy-max-width', `${popupLeft}px`);
                                         } else { // show on right
-                                            lastPreview.style.left = `${popupRight + 5}px`;
+                                            lastPreview.style.left = `${popupRight}px`;
                                             lastPreview.style.setProperty('--usy-max-width', `${rightDistance}px`);
                                         }
                                         lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
