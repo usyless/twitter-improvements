@@ -809,6 +809,7 @@
             { // thumbnails
                 let lastIndex;
                 let lastPreview;
+                let imageSearch;
                 const onExit = () => {
                     lastPreview?.remove();
                     lastPreview = null;
@@ -821,12 +822,26 @@
 
                         if (index !== lastIndex) onExit();
 
+                        if (!imageSearch) {
+                            for (const m of choices) {
+                                if (m.type === 'Image') {
+                                    const url = document.querySelector(`[src^="${m.url.split('?')[0]}"]`)?.src;
+                                    if (url) {
+                                        imageSearch = '?' + url.split('?')[1];
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
                         if (!lastPreview) {
                             let url;
                             if (choice.type === 'Image') {
                                 const base_url = choice.url.split('?')[0];
-                                url = document.querySelector(`[src^="${base_url}"]`)?.src
-                                    ?? choice.url.replaceAll('&name=orig', '&name=360x360');
+                                url = (document.querySelector(`[src^="${base_url}"]`)?.src)
+                                    ?? (imageSearch)
+                                        ? (base_url + imageSearch)
+                                        : (choice.url.replaceAll('&name=orig', '&name=360x360'));
                             } else {
                                 url = choice.url_lowres ?? choice.url;
                             }
