@@ -125,6 +125,10 @@ body {
     &.topBottom {
         transform: translateX(-50%);
     }
+
+    &.removeTransform {
+        transform: none !important;
+    }
 }
 
 .usyErrorNotificationClear {

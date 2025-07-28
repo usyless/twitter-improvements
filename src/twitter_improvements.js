@@ -465,6 +465,35 @@
             setTimeout(Image.addVideoButton, 1000, video);
         },
 
+        /** @param {HTMLElement} thumb */
+        fixThumbnailPosition: (thumb) => {
+            requestAnimationFrame(() => {
+                // now preview is loaded, reposition if needed
+                if (thumb?.isConnected) {
+                    const {left, right, top, bottom} = thumb.getBoundingClientRect();
+                    if (left < 0) {
+                        thumb.style.right = '';
+                        thumb.classList.add('removeTransform');
+                        thumb.style.left = `0px`;
+                    } else if (right > window.innerWidth) {
+                        thumb.style.left = '';
+                        thumb.classList.add('removeTransform');
+                        thumb.style.right = '0px';
+                    }
+
+                    if (bottom > window.innerHeight) {
+                        thumb.style.top = '';
+                        thumb.classList.add('removeTransform');
+                        thumb.style.bottom = '0px';
+                    } else if (top < 0) {
+                        thumb.style.bottom = '';
+                        thumb.classList.add('removeTransform');
+                        thumb.style.top = '0px';
+                    }
+                }
+            });
+        },
+
         /**
          * @param {HTMLElement} element
          * @param {MediaItem} media
@@ -501,6 +530,7 @@
                         }
                         thumb.style.left = `${left + (width / 2)}px`;
                         thumb.style.display = '';
+                        Image.fixThumbnailPosition(thumb);
                     }
                 });
             }, { once: true });
@@ -963,6 +993,7 @@
                                         }
                                         lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
                                         lastPreview.style.display = '';
+                                        Image.fixThumbnailPosition(lastPreview);
                                     }
                                 });
                             }, { once: true });
