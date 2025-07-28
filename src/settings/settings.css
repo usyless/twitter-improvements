@@ -390,6 +390,19 @@ button {
             }
         }
     }
+
+    &.loading {
+        backdrop-filter: blur(3px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+
+        h1 {
+            text-shadow: 0 0 5px black;
+        }
+    }
 }
 
 /*Mobile settings hiding*/

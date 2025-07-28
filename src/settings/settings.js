@@ -38,6 +38,20 @@
         set_icon: () => browser.runtime.sendMessage({type: 'set_icon'}),
     };
 
+    const makeScreenOverlay = (text) => {
+        const full = document.createElement('div');
+        full.classList.add('fullscreenOverlay', 'loading');
+        const t = document.createElement('h1');
+        t.textContent = text;
+        full.appendChild(t);
+        document.body.appendChild(full);
+        full.animate(
+            [{ opacity: 0 }, { opacity: 1 }],
+            { delay: 400, duration: 200, easing: 'ease-in-out', fill: 'forwards' }
+        );
+        return () => full.remove();
+    }
+
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
     const resizeEvent = new Event('resize');
@@ -185,8 +199,11 @@
                             const file = e.target.files[0];
                             if (!file) return;
 
-                            const onFinish = () => customPopup('Successfully imported!');
-
+                            const removeOverlay = makeScreenOverlay("Importing, please wait...");
+                            const onFinish = () => {
+                                removeOverlay();
+                                customPopup('Successfully imported!');
+                            }
                             if (file.name.endsWith('.twitterimprovementsbin')) {
                                 file.arrayBuffer().then((buffer) => {
                                     const ids = [];
@@ -222,6 +239,7 @@
                         i.accept = 'image/*, video/*';
                         const validNums = new Set([1, 2, 3, 4]);
                         i.addEventListener('change', (e) => {
+                            const removeOverlay = makeScreenOverlay("Importing, please wait...");
                             const saved_images = [];
                             for (const {name} of e.target.files) {
                                 const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
@@ -231,7 +249,10 @@
                                 }
                             }
                             Background.download_history_add_all(saved_images)
-                                .then(() => customPopup(`Successfully imported ${saved_images.length} files!`));
+                                .then(() => {
+                                    removeOverlay();
+                                    customPopup(`Successfully imported ${saved_images.length} files!`);
+                                });
                         });
                         document.body.appendChild(i);
                     }
@@ -241,7 +262,9 @@
                     type: 'button',
                     button: 'Export download history\nExports as {tweet id}-{media number}',
                     onclick: () => {
+                        const removeOverlay = makeScreenOverlay("Exporting, please wait...");
                         Background.download_history_get_all().then((r) => {
+                            removeOverlay();
                             const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'application/octet-stream' }));
                             download(url, 'export.twitterimprovements');
                             URL.revokeObjectURL(url);
@@ -253,7 +276,9 @@
                     type: 'button',
                     button: 'Get saved media count',
                     onclick: () => {
+                        const removeOverlay = makeScreenOverlay("Calculating, please wait...");
                         Background.download_history_get_all().then((r) => {
+                            removeOverlay();
                             void customPopup(`You have downloaded approximately ${r.length} unique media`);
                         });
                     }
@@ -364,6 +389,7 @@
                     type: 'button',
                     button: 'Export download history\n(Binary - for a smaller file size)',
                     onclick: () => {
+                        const removeOverlay = makeScreenOverlay("Exporting, please wait...");
                         Background.download_history_get_all().then((r) => {
                             const buffers = [];
                             for (const /** @type {saveId} */ saveId of r) {
@@ -385,7 +411,7 @@
                                 offset += 9;
                             }
 
-
+                            removeOverlay();
                             const url = URL.createObjectURL(new Blob([buffer], { type: 'application/octet-stream' }));
                             download(url, 'export.twitterimprovementsbin');
                             URL.revokeObjectURL(url);
