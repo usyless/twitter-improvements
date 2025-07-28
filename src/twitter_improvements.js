@@ -559,7 +559,7 @@
         /** @param {HTMLElement} button */
         addThumbnailSupport: (button) => {
             const timeout = Settings.download_preferences.hover_thumbnail_timeout;
-            if (!(About.android) && timeout > 0) {
+            if (!(About.android) && timeout >= 0) {
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
                     const [id, index] = id_specific.split('-');
