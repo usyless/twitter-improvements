@@ -110,7 +110,7 @@ body {
 
 .usyVideoPreview {
     position: absolute;
-    max-width: min(360px, var(--usy-max-width, 360px));
+    max-width: min(360px, var(--usy-max-width, 360px), 100vw);
     max-height: 300px;
     height: auto;
     object-fit: contain;
@@ -119,6 +119,10 @@ body {
     transform: translateY(-50%);
     border-radius: 9px;
     box-shadow: rgba(255, 255, 255, 0.2) 0 0 15px, rgba(255, 255, 255, 0.15) 0 0 3px 1px;
+
+    &.topBottom {
+        transform: translateX(-50%);
+    }
 }
 
 .usyErrorNotificationClear {

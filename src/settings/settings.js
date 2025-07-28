@@ -291,6 +291,15 @@
                     description: 'Show download picker for multi-media tweets in the media page'
                 },
                 {
+                    name: 'hover_thumbnail_timeout',
+                    category: 'download_preferences',
+                    description: 'Hover over download button duration to show thumbnail (negative for disabled)',
+                    type: 'number',
+                    validate: (v) => v,
+                    post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
+                    attributes: {step: '0.1'}
+                },
+                {
                     name: 'reset_all_settings',
                     type: 'button',
                     button: 'Reset to DEFAULT settings (excluding download history)\nYou can reset single settings by right clicking them',

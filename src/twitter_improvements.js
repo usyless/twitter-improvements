@@ -446,6 +446,85 @@
             setTimeout(Image.addVideoButton, 1000, video);
         },
 
+        /**
+         * @param {HTMLElement} element
+         * @param {MediaItem} media
+         */
+        showThumbnail: (element, media) => {
+            const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
+
+            thumb.classList.add('usyVideoPreview', 'topBottom');
+            if (media.type === 'Video') {
+                thumb.autoplay = true;
+                thumb.muted = false;
+                thumb.loop = true;
+                thumb.controls = false;
+            }
+            thumb.style.display = 'none';
+
+            document.body.appendChild(thumb);
+
+            thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
+                requestAnimationFrame(() => {
+                    if (thumb.isConnected) {
+                        const {left, width, top, bottom} = element.getBoundingClientRect();
+                        const topDistance = top - 10;
+                        const bottomDistance = window.innerHeight - bottom - 10;
+
+                        if (bottomDistance > topDistance) { // show on bottom
+                            thumb.style.top = `${bottom + 5}px`;
+                        } else { // show on top
+                            thumb.style.bottom = `${window.innerHeight - top + 5}px`;
+                        }
+                        thumb.style.left = `${left + (width / 2)}px`;
+                        thumb.style.display = '';
+                    }
+                });
+            }, { once: true });
+
+            const closeThumb = () => {
+                thumb.remove?.();
+                element.removeEventListener('pointerleave', closeThumb);
+                element.removeEventListener('pointerdown', closeThumb);
+                element.removeEventListener('click', closeThumb);
+            }
+
+            element.addEventListener('pointerleave', closeThumb);
+            element.addEventListener('click', closeThumb, { capture: true });
+            element.addEventListener('pointerdown', closeThumb, { capture: true });
+
+            if (media.type === 'Image') {
+                thumb.src = (document.querySelector(`[src^="${media.url.split('?')[0]}"]`)?.src)
+                    ?? (media.url.replaceAll('&name=orig', '&name=360x360'));
+            } else {
+                thumb.src = media.url_lowres ?? media.url;
+            }
+        },
+
+        /**
+         * @param {HTMLElement} button
+         * @param {tweetId} vague_id
+         */
+        addThumbnailSupport: (button, vague_id) => {
+            if (!(About.android) && Settings.download_preferences.hover_thumbnail_timeout > 0) {
+                URLCacheGet(vague_id).then(/** @param {MediaItem[]} media*/ (media) => {
+                    if (media.length === 1) {
+                        let hoverTimeout;
+                        button.addEventListener('pointerenter', () => {
+                            hoverTimeout = setTimeout(Image.showThumbnail,
+                                Settings.download_preferences.hover_thumbnail_timeout * 1000,
+                                button, media[0]);
+                        });
+                        const clearTimer = () => clearTimeout(hoverTimeout);
+                        // clear timer on click or mouse exit
+                        button.addEventListener('pointerleave', clearTimer);
+                        button.addEventListener('click', clearTimer, { capture: true });
+                        button.addEventListener('pointerdown', clearTimer, { capture: true });
+                    }
+                });
+            }
+        },
+
         buttonModes: {
             0: ['usy-top', 'usy-left'],
             1: ['usy-top', 'usy-right'],
@@ -835,19 +914,7 @@
                         }
 
                         if (!lastPreview) {
-                            let url;
-                            if (choice.type === 'Image') {
-                                const base_url = choice.url.split('?')[0];
-                                url = (document.querySelector(`[src^="${base_url}"]`)?.src)
-                                    ?? (imageSearch)
-                                        ? (base_url + imageSearch)
-                                        : (choice.url.replaceAll('&name=orig', '&name=360x360'));
-                            } else {
-                                url = choice.url_lowres ?? choice.url;
-                            }
-
                             lastPreview = document.createElement((choice.type === 'Video') ? 'video' : 'img');
-                            lastPreview.src = url;
                             lastPreview.classList.add('usyVideoPreview');
                             if (choice.type === 'Video') {
                                 lastPreview.autoplay = true;
@@ -879,7 +946,17 @@
                                         lastPreview.style.display = '';
                                     }
                                 });
-                            });
+                            }, { once: true });
+
+                            if (choice.type === 'Image') {
+                                const base_url = choice.url.split('?')[0];
+                                lastPreview.src = (document.querySelector(`[src^="${base_url}"]`)?.src)
+                                    ?? (imageSearch)
+                                        ? (base_url + imageSearch)
+                                        : (choice.url.replaceAll('&name=orig', '&name=360x360'));
+                            } else {
+                                lastPreview.src = choice.url_lowres ?? choice.url;
+                            }
                         }
 
                         lastIndex = index;
