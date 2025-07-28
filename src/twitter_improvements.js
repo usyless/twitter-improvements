@@ -1217,7 +1217,11 @@
             } else {
                 try {
                     const r = await fetch(url);
-                    Helpers.downloadFromBlob(await r.blob(), filename);
+                    if (r.ok) {
+                        Helpers.downloadFromBlob(await r.blob(), filename);
+                    } else {
+                        throw new Error(`HTTP error! status: ${r.status}`);
+                    }
                 } catch {
                     Background.download_history_remove(save_id);
                     Notification.persistentError(`Error downloading file: ${filename}\nClick here to see the tweet`, tweetURL);
