@@ -345,7 +345,7 @@
                     button: 'Export Settings',
                     onclick: () => {
                         getStorage().then((r) => {
-                            const url = URL.createObjectURL(new Blob([JSON.stringify(r, null, 2)], { type: 'text/plain' }));
+                            const url = URL.createObjectURL(new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' }));
                             download(url, 'twitterimprovements.json');
                             URL.revokeObjectURL(url);
                         })
