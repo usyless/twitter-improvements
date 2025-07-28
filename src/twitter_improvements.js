@@ -1005,10 +1005,9 @@
 
                             if (choice.type === 'Image') {
                                 const base_url = choice.url.split('?')[0];
-                                lastPreview.src = (document.querySelector(`[src^="${base_url}"]`)?.src)
-                                    ?? (imageSearch)
+                                lastPreview.src = (document.querySelector(`[src^="${base_url}"]`)?.src) ?? ((imageSearch)
                                         ? (base_url + imageSearch)
-                                        : (choice.url.replaceAll('&name=orig', '&name=360x360'));
+                                        : (choice.url.replaceAll('&name=orig', '&name=360x360')));
                             } else {
                                 lastPreview.src = choice.url_lowres ?? choice.url;
                             }
