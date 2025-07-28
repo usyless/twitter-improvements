@@ -1130,7 +1130,7 @@
                 },
 
                 downloadError: (filename, url) => {
-                    textBox.textContent = `Error Downloading: \n${filename}`;
+                    textBox.textContent = `Error Downloading: ${filename}\nClick here to see the tweet`;
                     progressBar.style.width = '100%';
                     progressBar.classList.add('usyDownloadError');
                     inner.style.cursor = 'pointer';
