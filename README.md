@@ -22,6 +22,10 @@ Image/Video Download History
 - Can keep track of downloaded files, and even prevent you from re-saving them if enabled!
 - Can import previously downloaded files to keep track, and export downloaded files list to re-import
 
+Image/Video full thumbnail previews
+- Hover/click button in download picker to show media that may be obscured/not fully visible!
+- Setting to set timeout for full media thumbnails on hovering over download buttons
+
 Hide various unnecessary buttons or tabs (such as premium, verified orgs, etc.)
 
 Rearrange the buttons on tweets (like, reply, retweet, etc.)
