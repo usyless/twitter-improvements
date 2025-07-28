@@ -558,16 +558,21 @@
 
         /** @param {HTMLElement} button */
         addThumbnailSupport: (button) => {
-            if (!(About.android) && Settings.download_preferences.hover_thumbnail_timeout > 0) {
+            const timeout = Settings.download_preferences.hover_thumbnail_timeout;
+            if (!(About.android) && timeout > 0) {
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
                     const [id, index] = id_specific.split('-');
                     URLCacheGet(id).then(/** @param {MediaItem[]} media*/(media) => {
                         let hoverTimeout;
                         button.addEventListener('pointerenter', () => {
-                            hoverTimeout = setTimeout(Image.showThumbnail,
-                                Settings.download_preferences.hover_thumbnail_timeout * 1000,
-                                button, media[(+index) - 1]);
+                            if (timeout === 0) {
+                                Image.showThumbnail(button, media[(+index) - 1]);
+                            } else {
+                                hoverTimeout = setTimeout(Image.showThumbnail,
+                                    timeout * 1000,
+                                    button, media[(+index) - 1]);
+                            }
                         });
                         const clearTimer = () => clearTimeout(hoverTimeout);
                         // clear timer on click or mouse exit
