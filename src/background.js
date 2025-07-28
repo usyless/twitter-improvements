@@ -212,11 +212,12 @@ browser.storage.onChanged.addListener((changes, namespace) => {
  * @param {string} url
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
+ * @param {Object} [additionalMetadata]
  */
-function download(url, filename, {shift, ctrl, alt}={}) {
+function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) {
     return new Promise((resolve, reject) => {
         /Android/i.test(navigator.userAgent)
-            ? resolve(sendToTab({ type: 'download', url, filename }) || -1)
+            ? resolve(sendToTab({ type: 'download', url, filename, tweetURL, save_id }) || -1)
             : Settings.getSettings().then(() => {
             const {
                 save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl, save_as_prompt_alt,
@@ -324,7 +325,7 @@ function download_media({url, media, modifiers}, sendResponse) {
             parts.tweetNum = index;
             if (download_history_enabled) void download_history_add(save_id);
             const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media with error ${error}\nClick here to see the tweet.`, url}));
-            download(sourceURL, formatFilename(parts, save_format), modifiers).then((downloadId) => {
+            download(sourceURL, formatFilename(parts, save_format), modifiers, {tweetURL: url, save_id}).then((downloadId) => {
                 if (downloadId === undefined) onError("Failed to start download");
                 else if (downloadId === -1) void 0 // android, ignore it
                 else DOWNLOAD_MAP.set(downloadId, onError);

@@ -7,6 +7,13 @@
  * @property {('Image' | 'Video')} type
  */
 
+// could have stuff like likes and retweets but not needed for now
+/**
+ * @typedef {Object} Tweet
+ * @property {MediaItem[]} media
+ * @property {string} text
+ */
+
 /**
  * @typedef {Object} MediaTransfer
  * @property {tweetId} id

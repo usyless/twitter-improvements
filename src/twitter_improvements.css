@@ -95,6 +95,10 @@ body {
         height: 100%;
         z-index: 101;
         transition: width 0.1s;
+
+        &.usyDownloadError {
+            background-color: #911a1a;
+        }
     }
 
     > .usyDownloadTextBox {

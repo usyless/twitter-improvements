@@ -1089,7 +1089,7 @@
         getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]'),
 
         /**
-         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number)}}
+         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number), downloadError: function(string, string)}}
          */
         createMobileDownloadPopup: () => {
             const outer = document.querySelector('.usyDownloadNotificationOuter')
@@ -1127,6 +1127,18 @@
                         progressBar.style.width = `${(receivedBytes / totalBytes) * 100}%`;
                     }
                     textBox.textContent = `Downloaded: ${receivedBytes} / ${totalBytes ? totalBytes : 'Unknown'} Bytes`;
+                },
+
+                downloadError: (filename, url) => {
+                    textBox.textContent = `Error Downloading: \n${filename}`;
+                    progressBar.style.width = '100%';
+                    progressBar.classList.add('usyDownloadError');
+                    inner.style.cursor = 'pointer';
+                    inner.addEventListener('click', () => {
+                        Background.open_tab(url);
+                        if (outer.children.length === 1) outer.remove();
+                        else inner.remove();
+                    });
                 }
             }
         }
@@ -1187,17 +1199,29 @@
          * Basic download fallback for android where the downloads.download API isn't supported
          * @param {string} url
          * @param {string} filename
+         * @param {string} tweetURL
+         * @param {saveId} save_id
          */
-        download: async (url, filename) => {
+        download: async (url, filename, tweetURL, save_id) => {
             if (Settings.download_preferences.use_download_progress) {
-                const { downloadFinished, onProgress } = Notification.createMobileDownloadPopup();
+                const { downloadFinished, onProgress, downloadError } = Notification.createMobileDownloadPopup();
                 onProgress(null, 0);
-                const binary_data = await Helpers.progressDownload(url, onProgress);
-                await downloadFinished(filename);
-                Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
+                try {
+                    const binary_data = await Helpers.progressDownload(url, onProgress);
+                    await downloadFinished(filename);
+                    Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
+                } catch {
+                    Background.download_history_remove(save_id);
+                    downloadError(filename, tweetURL);
+                }
             } else {
-                const r = await fetch(url);
-                Helpers.downloadFromBlob(await r.blob(), filename);
+                try {
+                    const r = await fetch(url);
+                    Helpers.downloadFromBlob(await r.blob(), filename);
+                } catch {
+                    Background.download_history_remove(save_id);
+                    Notification.persistentError(`Error downloading file: ${filename}\nClick here to see the tweet`, tweetURL);
+                }
             }
         },
 
@@ -1373,7 +1397,7 @@
                 break;
             }
             case 'download': {
-                void Helpers.download(message.url, message.filename);
+                void Helpers.download(message.url, message.filename, message.tweetURL, message.save_id);
                 break;
             }
             case 'error': {
