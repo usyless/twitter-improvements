@@ -156,9 +156,14 @@
                         const a = Tweet.defaultAnchor(article);
                         const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
                         const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
-                        button.setAttribute('ti-id-vague', id);
+                        const id_specific = `${id}-1`;
+                        if (media.length === 1) {
+                            button.setAttribute('ti-id', id_specific);
+                            Image.addThumbnailSupport(button, id_specific);
+                        } else {
+                            button.setAttribute('ti-id-vague', id);
+                        }
                         a.after(button);
-                        Image.addThumbnailSupport(button, id);
 
                         const buttons = [button];
 
@@ -166,12 +171,21 @@
                         if (altAnchor) {
                             for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
                             const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
-                            button.setAttribute('ti-id-vague', id);
+                            if (media.length === 1) {
+                                button.setAttribute('ti-id', id_specific);
+                            } else {
+                                button.setAttribute('ti-id-vague', id);
+                            }
                             altAnchor.after(button);
                             buttons.push(button);
                         }
 
-                        void Tweet.downloadUpdateMarked(media, buttons);
+                        if (media.length > 1) void Tweet.downloadUpdateMarked(media, buttons);
+                        else {
+                            Background.download_history_has(id_specific).then((response) => {
+                                if (response === true) for (const button of buttons) Button.mark(button);
+                            });
+                        }
                     }
                 } catch {
                     article.removeAttribute('usy-download');
@@ -363,7 +377,6 @@
                 button = Image.genericButton(image, Image.downloadButtonCallback.bind(null, url));
 
                 button.setAttribute('ti-id', id);
-                Image.addThumbnailSupport(button, id.split('-')[0]);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
                     if (Settings.download_preferences.download_picker_on_media_page
                         && image.closest('a[href$="/photo/1"], a[href$="/video/1"]')?.querySelector(':scope > div + svg')) {
@@ -378,7 +391,10 @@
                         Background.download_history_has(id).then((response) => {
                             if (response === true) Button.mark(button);
                         });
+                        Image.addThumbnailSupport(button, id);
                     }
+                } else {
+                    Image.addThumbnailSupport(button, id);
                 }
             } catch {
                 image.removeAttribute('usy-media');
@@ -394,8 +410,8 @@
                 const article = Tweet.nearestTweet(video);
                 // no way to get id from inside quote tweet i think
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
-                    const url = Tweet.url(article),
-                        id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
+                    const url = Tweet.url(article);
+                    const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
                     const mark_button = () => {
                         button.setAttribute('ti-id', id);
                         if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -409,7 +425,7 @@
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
-                        Image.addThumbnailSupport(button, id.split('-')[0]);
+                        Image.addThumbnailSupport(button, id);
                     } else { // video player
                         const observerSettings = { childList: true, subtree: true };
                         const observer = new MutationObserver((_, observer) => {
@@ -509,24 +525,22 @@
 
         /**
          * @param {HTMLElement} button
-         * @param {tweetId} vague_id
+         * @param {saveId} id_specific
          */
-        addThumbnailSupport: (button, vague_id) => {
+        addThumbnailSupport: (button, id_specific) => {
             if (!(About.android) && Settings.download_preferences.hover_thumbnail_timeout > 0) {
-                URLCacheGet(vague_id).then(/** @param {MediaItem[]} media*/ (media) => {
-                    if (media.length === 1) {
-                        let hoverTimeout;
-                        button.addEventListener('pointerenter', () => {
-                            hoverTimeout = setTimeout(Image.showThumbnail,
-                                Settings.download_preferences.hover_thumbnail_timeout * 1000,
-                                button, media[0]);
-                        });
-                        const clearTimer = () => clearTimeout(hoverTimeout);
-                        // clear timer on click or mouse exit
-                        button.addEventListener('pointerleave', clearTimer);
-                        button.addEventListener('click', clearTimer, { capture: true });
-                        button.addEventListener('pointerdown', clearTimer, { capture: true });
-                    }
+                URLCacheGet(id_specific.split('-')[0]).then(/** @param {MediaItem[]} media*/ (media) => {
+                    let hoverTimeout;
+                    button.addEventListener('pointerenter', () => {
+                        hoverTimeout = setTimeout(Image.showThumbnail,
+                            Settings.download_preferences.hover_thumbnail_timeout * 1000,
+                            button, media[0]);
+                    });
+                    const clearTimer = () => clearTimeout(hoverTimeout);
+                    // clear timer on click or mouse exit
+                    button.addEventListener('pointerleave', clearTimer);
+                    button.addEventListener('click', clearTimer, { capture: true });
+                    button.addEventListener('pointerdown', clearTimer, { capture: true });
                 });
             }
         },
