@@ -361,9 +361,9 @@
                 image.setAttribute('usy-media', '');
                 const url = Image.respectiveURL(image), id = Helpers.idWithNumber(url);
                 button = Image.genericButton(image, Image.downloadButtonCallback.bind(null, url));
-                Image.addThumbnailSupport(button, id.split('-')[0]);
 
                 button.setAttribute('ti-id', id);
+                Image.addThumbnailSupport(button, id.split('-')[0]);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
                     if (Settings.download_preferences.download_picker_on_media_page
                         && image.closest('a[href$="/photo/1"], a[href$="/video/1"]')?.querySelector(':scope > div + svg')) {
@@ -408,8 +408,8 @@
                     const cb =  Image.downloadButtonCallback.bind(null, url);
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
-                        Image.addThumbnailSupport(button, id.split('-')[0]);
                         mark_button();
+                        Image.addThumbnailSupport(button, id.split('-')[0]);
                     } else { // video player
                         const observerSettings = { childList: true, subtree: true };
                         const observer = new MutationObserver((_, observer) => {
