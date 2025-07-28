@@ -495,8 +495,10 @@
 
                         if (bottomDistance > topDistance) { // show on bottom
                             thumb.style.top = `${bottom + 5}px`;
+                            thumb.style.setProperty('--usy-max-height', `${bottomDistance}px`);
                         } else { // show on top
                             thumb.style.bottom = `${window.innerHeight - top + 5}px`;
+                            thumb.style.setProperty('--usy-max-height', `${topDistance}px`);
                         }
                         thumb.style.left = `${left + (width / 2)}px`;
                         thumb.style.display = '';
