@@ -506,14 +506,16 @@
 
             const closeThumb = () => {
                 element.removeEventListener('pointerleave', closeThumb);
-                element.removeEventListener('pointerdown', closeThumb);
-                element.removeEventListener('click', closeThumb);
+                element.removeEventListener('pointerdown', closeThumb, { capture: true });
+                element.removeEventListener('click', closeThumb, { capture: true });
+                window.removeEventListener('popstate', closeThumb, { capture: true });
                 fullscreen.remove();
             }
 
             element.addEventListener('pointerleave', closeThumb);
             element.addEventListener('click', closeThumb, { capture: true });
             element.addEventListener('pointerdown', closeThumb, { capture: true });
+            window.addEventListener('popstate', closeThumb, { capture: true });
 
             if (media.type === 'Image') {
                 thumb.src = (document.querySelector(`[src^="${media.url.split('?')[0]}"]`)?.src)
