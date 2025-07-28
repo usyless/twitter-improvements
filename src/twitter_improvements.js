@@ -159,7 +159,7 @@
                         const id_specific = `${id}-1`;
                         if (media.length === 1) {
                             button.setAttribute('ti-id', id_specific);
-                            Image.addThumbnailSupport(button, id_specific);
+                            Image.addThumbnailSupport(button);
                         } else {
                             button.setAttribute('ti-id-vague', id);
                         }
@@ -391,10 +391,10 @@
                         Background.download_history_has(id).then((response) => {
                             if (response === true) Button.mark(button);
                         });
-                        Image.addThumbnailSupport(button, id);
+                        Image.addThumbnailSupport(button);
                     }
                 } else {
-                    Image.addThumbnailSupport(button, id);
+                    Image.addThumbnailSupport(button);
                 }
             } catch {
                 image.removeAttribute('usy-media');
@@ -425,7 +425,7 @@
                     if (video.textContent.includes('GIF')) { // gif
                         button = Image.genericButton(video, cb);
                         mark_button();
-                        Image.addThumbnailSupport(button, id);
+                        Image.addThumbnailSupport(button);
                     } else { // video player
                         const observerSettings = { childList: true, subtree: true };
                         const observer = new MutationObserver((_, observer) => {
@@ -525,25 +525,26 @@
             }
         },
 
-        /**
-         * @param {HTMLElement} button
-         * @param {saveId} id_specific
-         */
-        addThumbnailSupport: (button, id_specific) => {
+        /** @param {HTMLElement} button */
+        addThumbnailSupport: (button) => {
             if (!(About.android) && Settings.download_preferences.hover_thumbnail_timeout > 0) {
-                URLCacheGet(id_specific.split('-')[0]).then(/** @param {MediaItem[]} media*/ (media) => {
-                    let hoverTimeout;
-                    button.addEventListener('pointerenter', () => {
-                        hoverTimeout = setTimeout(Image.showThumbnail,
-                            Settings.download_preferences.hover_thumbnail_timeout * 1000,
-                            button, media[0]);
+                const id_specific = button.getAttribute('ti-id');
+                if (id_specific) {
+                    const [id, index] = id_specific.split('-');
+                    URLCacheGet(id).then(/** @param {MediaItem[]} media*/(media) => {
+                        let hoverTimeout;
+                        button.addEventListener('pointerenter', () => {
+                            hoverTimeout = setTimeout(Image.showThumbnail,
+                                Settings.download_preferences.hover_thumbnail_timeout * 1000,
+                                button, media[(+index) - 1]);
+                        });
+                        const clearTimer = () => clearTimeout(hoverTimeout);
+                        // clear timer on click or mouse exit
+                        button.addEventListener('pointerleave', clearTimer);
+                        button.addEventListener('click', clearTimer, {capture: true});
+                        button.addEventListener('pointerdown', clearTimer, {capture: true});
                     });
-                    const clearTimer = () => clearTimeout(hoverTimeout);
-                    // clear timer on click or mouse exit
-                    button.addEventListener('pointerleave', clearTimer);
-                    button.addEventListener('click', clearTimer, { capture: true });
-                    button.addEventListener('pointerdown', clearTimer, { capture: true });
-                });
+                }
             }
         },
 
