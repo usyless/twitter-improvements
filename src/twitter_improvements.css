@@ -269,6 +269,7 @@ body {
     transition: 200ms ease-in-out;
 
     .usyThumbnailDiv {
+        transition: 200ms ease-in-out;
         box-sizing: border-box;
         padding: 12px;
         position: absolute;
@@ -277,6 +278,9 @@ body {
         height: 100%;
         width: 30%;
         z-index: 1000;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+        border: 0 solid transparent;
 
         svg {
             z-index: 1001;
