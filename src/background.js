@@ -35,7 +35,10 @@ const requestMap = {
     download_history_has: download_history_has,
     download_history_remove: download_history_remove,
     download_history_clear: download_history_clear,
-    download_history_add: ({id}) => download_history_add(id),
+    download_history_add: ({id}, sendResponse) => {
+        void download_history_add(id);
+        sendResponse(true);
+    },
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
 
