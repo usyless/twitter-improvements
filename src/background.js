@@ -181,24 +181,24 @@ const defaultSettings = {
 const Settings = { // Setting handling
     defaults: defaultSettings,
 
-    loaded: false,
-    loading: false,
-    promiseQueue: [],
-
-    getSettings: () => new Promise((resolve) => {
-        if (Settings.loading) Settings.promiseQueue.push(resolve);
-        else if (Settings.loaded) resolve();
-        else {
-            Settings.loading = true;
-            Settings.loadSettings().then(() => {
-                Settings.loading = false;
-                Settings.loaded = true;
-                for (const promise of Settings.promiseQueue) promise();
-                delete Settings.promiseQueue;
-                resolve();
-            });
-        }
-    }),
+    getSettings: (() => {
+        let loaded = false;
+        let loading = false;
+        const promiseQueue = [];
+        return () => new Promise((resolve) => {
+            if (loaded) resolve();
+            else if (loading) promiseQueue.push(resolve);
+            else {
+                loading = true;
+                Settings.loadSettings().then(() => {
+                    loaded = true;
+                    for (const promise of promiseQueue) promise();
+                    resolve();
+                    promiseQueue.length = 0;
+                });
+            }
+        });
+    })(),
 
     loadSettings: () => new Promise(resolve => {
         browser.storage.local.get().then((s) => {
