@@ -6,7 +6,7 @@ if (typeof this.browser === 'undefined') {
     chromeMode = true;
 }
 
-const DOWNLOAD_DB_VERSION = 1;
+const DOWNLOAD_DB_VERSION = 2;
 
 const requestMap = {
     save_media: download_media,
@@ -421,19 +421,12 @@ const migrations = [
         });
     })],
     ['1.1.1.4', () => new Promise((resolve) => {
-        getHistoryDB().then((db) => {
-            browser.storage.local.get(['download_history']).then(async (r) => {
-                const history = r.download_history ?? {};
-                const transaction = db.transaction(['download_history'], 'readwrite');
-                if (Object.keys(history).length > 0) {
-                    const objectStore = transaction.objectStore('download_history');
-                    for (const saved_image in history) objectStore.put({saved_image});
-                }
-
-                await browser.storage.local.remove('download_history');
-
-                transaction.addEventListener('complete', resolve);
-            });
+        browser.storage.local.get(['download_history']).then((r) => {
+            const history = r.download_history ?? {};
+            Promise.all([
+                new Promise((res) => download_history_add_all({saved_images: Object.keys(history)}, res)),
+                browser.storage.local.remove('download_history')
+            ]).then(resolve);
         });
     })],
     ['1.1.1.1', () => new Promise((resolve) => {
@@ -524,12 +517,29 @@ async function migrateSettings(previousVersion) {
 function updateHistoryDb() {
     return new Promise((resolve) => {
         const idb = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
-        idb.addEventListener('upgradeneeded', (event) => {
+        idb.addEventListener('upgradeneeded', async (event) => {
             const db = event.target.result;
+            const transaction = event.target.transaction;
 
-            if (event.oldVersion <= 0) {
-                const objectStore = db.createObjectStore('download_history', {keyPath: 'saved_image'});
-                objectStore.createIndex('saved_image', 'saved_image', {unique: true});
+            // remove unnecessary index
+            if (event.oldVersion <= 1) {
+                if (db.objectStoreNames.contains('download_history')) {
+                    // update to new version
+                    const keys = [];
+                    await new Promise((resolve) => {
+                        transaction.objectStore('download_history')
+                            .getAllKeys().addEventListener('success', (e) => {
+                            for (const saveId of e.target.result) keys.push(saveId);
+                            resolve();
+                        });
+                    });
+                    db.deleteObjectStore('download_history');
+                    const objectStore = db.createObjectStore('download_history');
+                    for (const key of keys) objectStore.put(true, key);
+                } else {
+                    // just create without the update process
+                    db.createObjectStore('download_history');
+                }
             }
         });
         idb.addEventListener('success', resolve);
@@ -564,11 +574,8 @@ function getHistoryDB() {
  */
 function download_history_has({id}, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readonly').objectStore('download_history').index('saved_image')
-            .get(id).addEventListener('success', (e) => {
-            if (e.target.result) sendResponse(true);
-            else sendResponse(false);
-        });
+        db.transaction('download_history', 'readonly').objectStore('download_history')
+            .get(id).addEventListener('success', (e) => sendResponse(e.target.result != null));
     });
 }
 
@@ -576,8 +583,8 @@ function download_history_has({id}, sendResponse) {
 function download_history_add(saved_image) {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
-            db.transaction(['download_history'], 'readwrite').objectStore('download_history')
-                .put({saved_image}).addEventListener('success', () => {
+            db.transaction('download_history', 'readwrite').objectStore('download_history')
+                .put(true, saved_image).addEventListener('success', () => {
                 send_to_all_tabs({type: 'history_change_add', id: saved_image});
                 resolve();
             });
@@ -591,7 +598,7 @@ function download_history_add(saved_image) {
  */
 function download_history_remove({id}, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+        db.transaction('download_history', 'readwrite').objectStore('download_history')
             .delete(id).addEventListener('success', () => {
                 send_to_all_tabs({type: 'history_change_remove', id});
                 sendResponse?.(true);
@@ -601,7 +608,7 @@ function download_history_remove({id}, sendResponse) {
 
 function download_history_clear(_, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readwrite').objectStore('download_history')
+        db.transaction('download_history', 'readwrite').objectStore('download_history')
             .clear().addEventListener('success', () => {
                 send_to_all_tabs({type: 'history_change'});
                 sendResponse(true);
@@ -611,10 +618,10 @@ function download_history_clear(_, sendResponse) {
 
 function download_history_add_all(request, sendResponse) {
     getHistoryDB().then((db) => {
-        const transaction = db.transaction(['download_history'], 'readwrite');
+        const transaction = db.transaction('download_history', 'readwrite');
         const objectStore = transaction.objectStore('download_history');
 
-        for (const saved_image of request.saved_images) objectStore.put({saved_image});
+        for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
 
         transaction.addEventListener('complete', () => {
             send_to_all_tabs({type: 'history_change'});
@@ -625,7 +632,7 @@ function download_history_add_all(request, sendResponse) {
 
 function download_history_get_all(_, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction(['download_history'], 'readonly').objectStore('download_history')
+        db.transaction('download_history', 'readonly').objectStore('download_history')
             .getAllKeys().addEventListener('success', (e) => {
                 const valid = [];
                 for (const /** @type {saveId} */ saveId of e.target.result) {
