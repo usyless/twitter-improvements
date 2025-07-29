@@ -559,9 +559,9 @@ function getHistoryDB() {
                 .addEventListener('success', (e) => {
                     download_history_db = e.target.result;
                     db_opening = false;
-                    resolve(download_history_db);
 
                     for (const promise of pending_db_promises) promise(download_history_db);
+                    resolve(download_history_db);
                     pending_db_promises.length = 0;
                 });
         }
