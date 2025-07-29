@@ -8,6 +8,28 @@ if (typeof this.browser === 'undefined') {
 
 const DOWNLOAD_DB_VERSION = 2;
 
+const getHistoryDB = (() => {
+    let download_history_db;
+    let db_opening = false;
+    const pending_db_promises = [];
+    return () => new Promise((resolve) => {
+        if (download_history_db != null) resolve(download_history_db);
+        else if (db_opening) pending_db_promises.push(resolve);
+        else {
+            db_opening = true;
+            indexedDB.open('download_history', DOWNLOAD_DB_VERSION)
+                .addEventListener('success', (e) => {
+                    download_history_db = e.target.result;
+                    db_opening = false;
+
+                    for (const promise of pending_db_promises) promise(download_history_db);
+                    resolve(download_history_db);
+                    pending_db_promises.length = 0;
+                });
+        }
+    });
+})();
+
 const requestMap = {
     save_media: download_media,
     download_history_has: download_history_has,
@@ -543,28 +565,6 @@ function updateHistoryDb() {
             }
         });
         idb.addEventListener('success', resolve);
-    });
-}
-
-let download_history_db;
-let db_opening = false;
-const pending_db_promises = [];
-function getHistoryDB() {
-    return new Promise((resolve) => {
-        if (download_history_db != null) resolve(download_history_db);
-        else if (db_opening) pending_db_promises.push(resolve);
-        else {
-            db_opening = true;
-            indexedDB.open('download_history', DOWNLOAD_DB_VERSION)
-                .addEventListener('success', (e) => {
-                    download_history_db = e.target.result;
-                    db_opening = false;
-
-                    for (const promise of pending_db_promises) promise(download_history_db);
-                    resolve(download_history_db);
-                    pending_db_promises.length = 0;
-                });
-        }
     });
 }
 
