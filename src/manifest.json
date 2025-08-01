@@ -13,9 +13,7 @@
     "128": "/icons/icon.svg"
   },
   "browser_action": {
-    "default_icon": "/icons/icon.svg",
-    "default_title": "Settings",
-    "default_popup": "/popup/popup.html"
+    "default_icon": "/icons/icon.svg"
   },
   "permissions": [
     "contextMenus",

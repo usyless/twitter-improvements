@@ -676,3 +676,8 @@ function setIcon(_, sendResponse) {
     });
 }
 setIcon();
+
+// opening settings page
+((chromeMode) ? browser.action : browser.browserAction)?.onClicked?.addListener(() => {
+    void browser.runtime.openOptionsPage();
+});
