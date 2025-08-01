@@ -46,7 +46,7 @@
         })
     }
 
-    const makeScreenOverlay = (text) => {
+    const makeScreenOverlay = (text, progressBar) => {
         const full = document.createElement('div');
         full.classList.add('fullscreenOverlay', 'loading');
         const t = document.createElement('h1');
@@ -57,7 +57,23 @@
             [{ opacity: 0 }, { opacity: 1 }],
             { delay: 400, duration: 200, easing: 'ease-in-out', fill: 'forwards' }
         );
-        return () => full.remove();
+        let bar, barText;
+        if (progressBar) {
+            bar = document.createElement('div');
+            barText = document.createElement('span');
+            bar.classList.add('progressBar');
+            bar.appendChild(barText);
+            full.appendChild(bar);
+        }
+        return {
+            removeOverlay: () => full.remove(),
+            progressCallback: (progress, total) => {
+                if (bar) {
+                    bar.style.setProperty('--progress-width', `${(progress/total)*100}%`);
+                    barText.textContent = `Progress: ${progress}/${total}`;
+                }
+            }
+        }
     }
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
@@ -207,7 +223,7 @@
                             const file = e.target.files[0];
                             if (!file) return;
 
-                            const removeOverlay = makeScreenOverlay("Importing, please wait...");
+                            const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const onFinish = () => {
                                 removeOverlay();
                                 void customPopup('Successfully imported!');
@@ -222,10 +238,19 @@
                                         ids.push(`${view.getBigUint64(offset, true)}-${view.getUint8(offset + 8)}`)
                                     }
 
-                                    return BackgroundPorts.download_history_add_all(ids, console.log);
+                                    const length = ids.length;
+                                    return BackgroundPorts.download_history_add_all(ids, (progress) => {
+                                        progressCallback(progress, length);
+                                    });
                                 }).then(onFinish);
                             } else {
-                                file.text().then((r) => BackgroundPorts.download_history_add_all(r.split(' '), console.log)).then(onFinish);
+                                file.text().then((r) => {
+                                    const split = r.split(' ');
+                                    const length = split.length;
+                                    return BackgroundPorts.download_history_add_all(split, (progress) => {
+                                        progressCallback(progress, length);
+                                    });
+                                }).then(onFinish);
                             }
                         });
                         document.body.appendChild(i);
@@ -247,7 +272,7 @@
                         i.accept = 'image/*, video/*';
                         const validNums = new Set([1, 2, 3, 4]);
                         i.addEventListener('change', (e) => {
-                            const removeOverlay = makeScreenOverlay("Importing, please wait...");
+                            const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const saved_images = [];
                             for (const {name} of e.target.files) {
                                 const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
@@ -256,11 +281,13 @@
                                     if (validNums.has(+num)) saved_images.push(`${id}-${num}`);
                                 }
                             }
-                            BackgroundPorts.download_history_add_all(saved_images, console.log)
-                                .then(() => {
-                                    removeOverlay();
-                                    void customPopup(`Successfully imported ${saved_images.length} files!`);
-                                });
+                            const length = saved_images.length;
+                            BackgroundPorts.download_history_add_all(saved_images, (progress) => {
+                                progressCallback(progress, length);
+                            }).then(() => {
+                                removeOverlay();
+                                void customPopup(`Successfully imported ${saved_images.length} files!`);
+                            });
                         });
                         document.body.appendChild(i);
                     }
@@ -270,7 +297,7 @@
                     type: 'button',
                     button: 'Export download history\nExports as {tweet id}-{media number}',
                     onclick: () => {
-                        const removeOverlay = makeScreenOverlay("Exporting, please wait...");
+                        const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
                         Background.download_history_get_all().then((r) => {
                             removeOverlay();
                             const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'application/octet-stream' }));
@@ -284,7 +311,7 @@
                     type: 'button',
                     button: 'Get saved media count',
                     onclick: () => {
-                        const removeOverlay = makeScreenOverlay("Calculating, please wait...");
+                        const {removeOverlay} = makeScreenOverlay("Calculating, please wait...");
                         Background.download_history_get_all().then((r) => {
                             removeOverlay();
                             void customPopup(`You have downloaded approximately ${r.length} unique media`);
@@ -397,7 +424,7 @@
                     type: 'button',
                     button: 'Export download history\n(Binary - for a smaller file size)',
                     onclick: () => {
-                        const removeOverlay = makeScreenOverlay("Exporting, please wait...");
+                        const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
                         Background.download_history_get_all().then((r) => {
                             const buffers = [];
                             for (const /** @type {saveId} */ saveId of r) {
