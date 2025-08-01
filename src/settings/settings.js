@@ -62,15 +62,21 @@
             bar = document.createElement('div');
             barText = document.createElement('span');
             bar.classList.add('progressBar');
+            barText.textContent = `Progress: 0/0`;
             bar.appendChild(barText);
             full.appendChild(bar);
         }
         return {
             removeOverlay: () => full.remove(),
-            progressCallback: (progress, total) => {
+            progressCallback: (progress, total,  text) => {
                 if (bar) {
-                    bar.style.setProperty('--progress-width', `${(progress/total)*100}%`);
-                    barText.textContent = `Progress: ${progress}/${total}`;
+                    if (text) {
+                        bar.style.setProperty('--progress-width', '100%');
+                        barText.textContent = text;
+                    } else {
+                        bar.style.setProperty('--progress-width', `${(progress / total) * 100}%`);
+                        barText.textContent = `Progress: ${progress}/${total}`;
+                    }
                 }
             }
         }
@@ -239,16 +245,16 @@
                                     }
 
                                     const length = ids.length;
-                                    return BackgroundPorts.download_history_add_all(ids, (progress) => {
-                                        progressCallback(progress, length);
+                                    return BackgroundPorts.download_history_add_all(ids, ({progress, text}) => {
+                                        progressCallback(progress, length, text);
                                     });
                                 }).then(onFinish);
                             } else {
                                 file.text().then((r) => {
                                     const split = r.split(' ');
                                     const length = split.length;
-                                    return BackgroundPorts.download_history_add_all(split, (progress) => {
-                                        progressCallback(progress, length);
+                                    return BackgroundPorts.download_history_add_all(split, ({progress, text}) => {
+                                        progressCallback(progress, length, text);
                                     });
                                 }).then(onFinish);
                             }
@@ -282,8 +288,8 @@
                                 }
                             }
                             const length = saved_images.length;
-                            BackgroundPorts.download_history_add_all(saved_images, (progress) => {
-                                progressCallback(progress, length);
+                            BackgroundPorts.download_history_add_all(saved_images, ({progress, text}) => {
+                                progressCallback(progress, length, text);
                             }).then(() => {
                                 removeOverlay();
                                 void customPopup(`Successfully imported ${saved_images.length} files!`);

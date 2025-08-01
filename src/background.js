@@ -98,8 +98,8 @@ const requestMapPorts = {
         port.onMessage.addListener((request) => {
             download_history_add_all(request, () => {
                 port.disconnect();
-            }, (progress) => {
-                port.postMessage(progress);
+            }, (message) => {
+                port.postMessage(message);
             });
         });
     }
@@ -649,20 +649,22 @@ function download_history_add_all(request, sendResponse, progressCallback) {
         const transaction = db.transaction('download_history', 'readwrite');
         const objectStore = transaction.objectStore('download_history');
 
+        transaction.addEventListener('complete', () => {
+            send_to_all_tabs({type: 'history_change'});
+            sendResponse?.(true);
+        });
+
         if (progressCallback) {
             let progress = 0;
             for (const saved_image of request.saved_images) {
                 objectStore.put(true, saved_image);
-                if ((++progress % 250) === 0) progressCallback(progress);
+                if ((++progress % 250) === 0) progressCallback({progress});
             }
         } else {
             for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
         }
 
-        transaction.addEventListener('complete', () => {
-            send_to_all_tabs({type: 'history_change'});
-            sendResponse?.(true);
-        });
+        progressCallback({text: 'Finished importing, waiting...'});
     });
 }
 
