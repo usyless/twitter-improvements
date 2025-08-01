@@ -38,6 +38,32 @@ const getHistoryDB = (() => {
                 reject(error);
                 pending_db_promises.length = 0;
             };
+
+            request.onupgradeneeded = async (event) => {
+                const db = event.target.result;
+                const transaction = event.target.transaction;
+
+                // remove unnecessary index
+                if (event.oldVersion <= 1) {
+                    if (db.objectStoreNames.contains('download_history')) {
+                        // update to new version
+                        const keys = [];
+                        await new Promise((resolve) => {
+                            transaction.objectStore('download_history')
+                                .getAllKeys().addEventListener('success', (e) => {
+                                for (const saveId of e.target.result) keys.push(saveId);
+                                resolve();
+                            });
+                        });
+                        db.deleteObjectStore('download_history');
+                        const objectStore = db.createObjectStore('download_history');
+                        for (const key of keys) objectStore.put(true, key);
+                    } else {
+                        // just create without the update process
+                        db.createObjectStore('download_history');
+                    }
+                }
+            };
         }
     });
 })();
@@ -71,7 +97,8 @@ browser.runtime.onMessage.addListener((request, _, sendResponse) => {
 });
 
 browser?.runtime?.onInstalled?.addListener?.((details) => {
-    updateHistoryDb().then(() => {
+    // updates it if needed
+    getHistoryDB().then(() => {
         if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
         else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
     });
@@ -549,38 +576,6 @@ async function migrateSettings(previousVersion) {
         else break;
     }
     for (let i = m.length - 1; i >= 0; --i) await m[i]();
-}
-
-function updateHistoryDb() {
-    return new Promise((resolve) => {
-        const idb = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
-        idb.addEventListener('upgradeneeded', async (event) => {
-            const db = event.target.result;
-            const transaction = event.target.transaction;
-
-            // remove unnecessary index
-            if (event.oldVersion <= 1) {
-                if (db.objectStoreNames.contains('download_history')) {
-                    // update to new version
-                    const keys = [];
-                    await new Promise((resolve) => {
-                        transaction.objectStore('download_history')
-                            .getAllKeys().addEventListener('success', (e) => {
-                            for (const saveId of e.target.result) keys.push(saveId);
-                            resolve();
-                        });
-                    });
-                    db.deleteObjectStore('download_history');
-                    const objectStore = db.createObjectStore('download_history');
-                    for (const key of keys) objectStore.put(true, key);
-                } else {
-                    // just create without the update process
-                    db.createObjectStore('download_history');
-                }
-            }
-        });
-        idb.addEventListener('success', resolve);
-    });
 }
 
 /**
