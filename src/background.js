@@ -660,11 +660,10 @@ function download_history_add_all(request, sendResponse, progressCallback) {
                 objectStore.put(true, saved_image);
                 if ((++progress % 250) === 0) progressCallback({progress});
             }
+            progressCallback({text: 'Finished importing, waiting...'});
         } else {
             for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
         }
-
-        progressCallback({text: 'Finished importing, waiting...'});
     });
 }
 
