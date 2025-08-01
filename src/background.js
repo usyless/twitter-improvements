@@ -91,11 +91,27 @@ const requestMap = {
     },
 
     set_icon: setIcon
+};
+
+const requestMapPorts = {
+    /** @type {function(browser.runtime.Port): void} */ download_history_add_all: (port) => {
+        port.onMessage.addListener((request) => {
+            download_history_add_all(request, () => {
+                port.disconnect();
+            }, (progress) => {
+                port.postMessage(progress);
+            });
+        });
+    }
 }
 
 browser.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
+});
+
+browser.runtime.onConnect.addListener((port) => {
+    requestMapPorts[port.name]?.(port);
 });
 
 browser?.runtime?.onInstalled?.addListener?.((details) => {
@@ -628,16 +644,24 @@ function download_history_clear(_, sendResponse) {
     })
 }
 
-function download_history_add_all(request, sendResponse) {
+function download_history_add_all(request, sendResponse, progressCallback) {
     getHistoryDB().then((db) => {
         const transaction = db.transaction('download_history', 'readwrite');
         const objectStore = transaction.objectStore('download_history');
 
-        for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
+        if (progressCallback) {
+            let progress = 0;
+            for (const saved_image of request.saved_images) {
+                objectStore.put(true, saved_image);
+                if ((++progress % 250) === 0) progressCallback(progress);
+            }
+        } else {
+            for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
+        }
 
         transaction.addEventListener('complete', () => {
             send_to_all_tabs({type: 'history_change'});
-            sendResponse(true);
+            sendResponse?.(true);
         });
     });
 }

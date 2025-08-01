@@ -32,11 +32,19 @@
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
 
         clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
-        download_history_add_all: (saved_images) => browser.runtime.sendMessage({type: 'download_history_add_all', saved_images}),
         download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
 
         set_icon: () => browser.runtime.sendMessage({type: 'set_icon'}),
     };
+
+    const BackgroundPorts = {
+        download_history_add_all: (saved_images, progressCallback) => new Promise((resolve) => {
+            const port = browser.runtime.connect({ name: 'download_history_add_all' });
+            port.onMessage.addListener(progressCallback);
+            port.onDisconnect.addListener(resolve);
+            port.postMessage({ saved_images });
+        })
+    }
 
     const makeScreenOverlay = (text) => {
         const full = document.createElement('div');
@@ -202,7 +210,7 @@
                             const removeOverlay = makeScreenOverlay("Importing, please wait...");
                             const onFinish = () => {
                                 removeOverlay();
-                                customPopup('Successfully imported!');
+                                void customPopup('Successfully imported!');
                             }
                             if (file.name.endsWith('.twitterimprovementsbin')) {
                                 file.arrayBuffer().then((buffer) => {
@@ -214,10 +222,10 @@
                                         ids.push(`${view.getBigUint64(offset, true)}-${view.getUint8(offset + 8)}`)
                                     }
 
-                                    return Background.download_history_add_all(ids);
+                                    return BackgroundPorts.download_history_add_all(ids, console.log);
                                 }).then(onFinish);
                             } else {
-                                file.text().then((r) => Background.download_history_add_all(r.split(' '))).then(onFinish);
+                                file.text().then((r) => BackgroundPorts.download_history_add_all(r.split(' '), console.log)).then(onFinish);
                             }
                         });
                         document.body.appendChild(i);
@@ -248,10 +256,10 @@
                                     if (validNums.has(+num)) saved_images.push(`${id}-${num}`);
                                 }
                             }
-                            Background.download_history_add_all(saved_images)
+                            BackgroundPorts.download_history_add_all(saved_images, console.log)
                                 .then(() => {
                                     removeOverlay();
-                                    customPopup(`Successfully imported ${saved_images.length} files!`);
+                                    void customPopup(`Successfully imported ${saved_images.length} files!`);
                                 });
                         });
                         document.body.appendChild(i);
