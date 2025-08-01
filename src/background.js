@@ -659,7 +659,7 @@ function download_history_get_all(_, sendResponse) {
 // icon changing
 function setIcon(_, sendResponse) {
     Settings.getSettings().then(() => {
-        ((chromeMode) ? browser.action : browser.browserAction).setIcon((Settings.extension_icon.custom)
+        void ((chromeMode) ? browser.action : browser.browserAction).setIcon((Settings.extension_icon.custom)
             ? ((chromeMode) ? {
                 path: {
                     "16": "/icons/alt/icon-16.png",
