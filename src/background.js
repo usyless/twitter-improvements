@@ -12,20 +12,32 @@ const getHistoryDB = (() => {
     let download_history_db;
     let db_opening = false;
     const pending_db_promises = [];
-    return () => new Promise((resolve) => {
+    return () => new Promise((resolve, reject) => {
         if (download_history_db != null) resolve(download_history_db);
-        else if (db_opening) pending_db_promises.push(resolve);
+        else if (db_opening) pending_db_promises.push({ resolve, reject });
         else {
             db_opening = true;
-            indexedDB.open('download_history', DOWNLOAD_DB_VERSION)
-                .addEventListener('success', (e) => {
-                    download_history_db = e.target.result;
-                    db_opening = false;
+            const request = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
 
-                    for (const promise of pending_db_promises) promise(download_history_db);
-                    resolve(download_history_db);
-                    pending_db_promises.length = 0;
-                });
+            request.onsuccess = (e) => {
+                download_history_db = e.target.result;
+                db_opening = false;
+
+                for (const { resolve } of pending_db_promises) resolve(download_history_db);
+                resolve(download_history_db);
+                pending_db_promises.length = 0;
+            };
+
+            request.onerror = (e) => {
+                const error = e.target.error;
+                console.error("Error opening downloads database: ", error);
+
+                db_opening = false;
+
+                for (const { reject } of pending_db_promises) reject(error);
+                reject(error);
+                pending_db_promises.length = 0;
+            };
         }
     });
 })();
