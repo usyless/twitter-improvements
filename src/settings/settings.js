@@ -131,6 +131,11 @@
                     description: 'Show download buttons within tweet bottom panel',
                 },
                 {
+                    name: 'save_image',
+                    category: 'contextmenu',
+                    description: 'Show image download button in right click context menu'
+                },
+                {
                     type: 'break'
                 },
                 {

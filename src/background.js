@@ -124,19 +124,34 @@ browser?.runtime?.onInstalled?.addListener?.((details) => {
 
 browser?.runtime?.onStartup?.addListener?.(setIcon);
 
-browser?.contextMenus?.create?.(
-    {
-        id: "save-image",
-        title: "Save Image",
-        contexts: ["image", "link"],
-        documentUrlPatterns: ['https://x.com/*'],
-        targetUrlPatterns: ['https://pbs.twimg.com/*']
+// context menus
+const setupContextMenus = (() => {
+    const contextMenusListener = (info) => {
+        if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
     }
-);
 
-browser?.contextMenus?.onClicked?.addListener?.((info) => {
-    if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
-});
+    return () => Settings.getSettings().then(() => {
+        if (Settings.contextmenu.save_image) {
+            if (browser?.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
+                browser?.contextMenus?.onClicked?.addListener?.(contextMenusListener);
+            }
+
+            browser?.contextMenus?.create?.(
+                {
+                    id: "save-image",
+                    title: "Save Image",
+                    contexts: ["image", "link"],
+                    documentUrlPatterns: ['https://x.com/*'],
+                    targetUrlPatterns: ['https://pbs.twimg.com/*']
+                }
+            );
+        } else {
+            // this is fine for now as theres just one
+            void browser?.contextMenus?.removeAll();
+        }
+    });
+})();
+void setupContextMenus();
 
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
 browser?.downloads?.onChanged?.addListener?.(({error, state, id}) => {
@@ -160,6 +175,10 @@ const defaultSettings = {
 
     listeners: {
         vx_copy_shortcut: true
+    },
+
+    contextmenu: {
+        save_image: true
     },
 
     vx_preferences: {
@@ -286,7 +305,10 @@ function get_default_settings(_, sendResponse) {
 
 browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-        Settings.loadSettings().then(() => send_to_all_tabs({type: 'settings_update', changes}));
+        Settings.loadSettings().then(() => {
+            send_to_all_tabs({type: 'settings_update', changes});
+            if (changes.hasOwnProperty('contextmenu')) void setupContextMenus();
+        });
     }
 });
 

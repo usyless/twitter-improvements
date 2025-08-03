@@ -32,13 +32,13 @@ Rearrange the buttons on tweets (like, reply, retweet, etc.)
 
 Display bookmark button on enlarged image/video view
 
+Save Image Context Menu
+- A right click context menu for all images on Twitter to save them, just like with the button
+
 **All of the above and more are toggleable with the extensions settings**
 
 Saved Image/Video Reversing
 - Allows you to upload any image or video saved by this extension and retrieve the original tweet it was saved from.
-
-Save Image Context Menu
-- A right click context menu for all images on Twitter to save them, just like with the button
 
 # Installation
 
