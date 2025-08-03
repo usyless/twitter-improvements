@@ -6,163 +6,6 @@ if (typeof this.browser === 'undefined') {
     chromeMode = true;
 }
 
-const DOWNLOAD_DB_VERSION = 2;
-
-const getHistoryDB = (() => {
-    let download_history_db;
-    let db_opening = false;
-    const pending_db_promises = [];
-    return () => new Promise((resolve, reject) => {
-        if (download_history_db != null) resolve(download_history_db);
-        else if (db_opening) pending_db_promises.push({ resolve, reject });
-        else {
-            db_opening = true;
-            const request = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
-
-            request.onsuccess = (e) => {
-                download_history_db = e.target.result;
-                db_opening = false;
-
-                for (const { resolve } of pending_db_promises) resolve(download_history_db);
-                resolve(download_history_db);
-                pending_db_promises.length = 0;
-            };
-
-            request.onerror = (e) => {
-                const error = e.target.error;
-                console.error("Error opening downloads database: ", error);
-
-                db_opening = false;
-
-                for (const { reject } of pending_db_promises) reject(error);
-                reject(error);
-                pending_db_promises.length = 0;
-            };
-
-            request.onupgradeneeded = async (event) => {
-                const db = event.target.result;
-                const transaction = event.target.transaction;
-
-                // remove unnecessary index
-                if (event.oldVersion <= 1) {
-                    if (db.objectStoreNames.contains('download_history')) {
-                        // update to new version
-                        const keys = [];
-                        await new Promise((resolve) => {
-                            transaction.objectStore('download_history')
-                                .getAllKeys().addEventListener('success', (e) => {
-                                for (const saveId of e.target.result) keys.push(saveId);
-                                resolve();
-                            });
-                        });
-                        db.deleteObjectStore('download_history');
-                        const objectStore = db.createObjectStore('download_history');
-                        for (const key of keys) objectStore.put(true, key);
-                    } else {
-                        // just create without the update process
-                        db.createObjectStore('download_history');
-                    }
-                }
-            };
-        }
-    });
-})();
-
-const requestMap = {
-    save_media: download_media,
-    download_history_has: download_history_has,
-    download_history_remove: download_history_remove,
-    download_history_clear: download_history_clear,
-    download_history_add: ({id}, sendResponse) => {
-        download_history_add(id).then(() => {
-            sendResponse(true);
-        });
-    },
-    download_history_add_all: download_history_add_all,
-    download_history_get_all: download_history_get_all,
-
-    get_settings: get_settings,
-    get_default_settings: get_default_settings,
-
-    open_tab: ({url}, sendResponse) => {
-        browser.tabs.create({url}).then(() => {
-            sendResponse(true);
-        });
-    }
-};
-
-const requestMapPorts = {
-    /** @type {function(browser.runtime.Port): void} */ download_history_add_all: (port) => {
-        port.onMessage.addListener((request) => {
-            download_history_add_all(request, () => {
-                port.disconnect();
-            }, (message) => {
-                port.postMessage(message);
-            });
-        });
-    }
-}
-
-browser.runtime.onMessage.addListener((request, _, sendResponse) => {
-    requestMap[request.type]?.(request, sendResponse);
-    return true;
-});
-
-browser.runtime.onConnect.addListener((port) => {
-    requestMapPorts[port.name]?.(port);
-});
-
-browser?.runtime?.onInstalled?.addListener?.((details) => {
-    // updates it if needed
-    getHistoryDB().then(() => {
-        if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
-        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
-    });
-});
-
-browser?.runtime?.onStartup?.addListener?.(setIcon);
-
-// context menus
-const setupContextMenus = (() => {
-    const contextMenusListener = (info) => {
-        if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
-    }
-
-    return () => Settings.getSettings().then(() => {
-        if (Settings.contextmenu.save_image) {
-            if (browser?.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
-                browser?.contextMenus?.onClicked?.addListener?.(contextMenusListener);
-            }
-
-            browser?.contextMenus?.create?.(
-                {
-                    id: "save-image",
-                    title: "Save Image",
-                    contexts: ["image", "link"],
-                    documentUrlPatterns: ['https://x.com/*'],
-                    targetUrlPatterns: ['https://pbs.twimg.com/*']
-                }
-            );
-        } else {
-            // this is fine for now as theres just one
-            void browser?.contextMenus?.removeAll();
-        }
-    });
-})();
-void setupContextMenus();
-
-const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
-browser?.downloads?.onChanged?.addListener?.(({error, state, id}) => {
-    if (DOWNLOAD_MAP.has(id)) {
-        if (state?.current === 'complete') {
-            DOWNLOAD_MAP.delete(id);
-        } else if (error?.current) {
-            DOWNLOAD_MAP.get(id)(error.current);
-            DOWNLOAD_MAP.delete(id);
-        }
-    }
-});
-
 const defaultSettings = {
     setting: {
         vx_button: true,
@@ -289,17 +132,170 @@ const Settings = { // Setting handling
 
 /** @typedef {Settings & { loadSettings: *, loadDefaults: * }} LoadedSettings */
 
-function get_settings(_, sendResponse) {
-    Settings.getSettings().then(() => {
-        const data = {};
-        for (const setting in defaultSettings) data[setting] = Settings[setting];
-        sendResponse(data);
+const DOWNLOAD_DB_VERSION = 2;
+
+const getHistoryDB = (() => {
+    let download_history_db;
+    let db_opening = false;
+    const pending_db_promises = [];
+    return () => new Promise((resolve, reject) => {
+        if (download_history_db != null) resolve(download_history_db);
+        else if (db_opening) pending_db_promises.push({ resolve, reject });
+        else {
+            db_opening = true;
+            const request = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
+
+            request.onsuccess = (e) => {
+                download_history_db = e.target.result;
+                db_opening = false;
+
+                for (const { resolve } of pending_db_promises) resolve(download_history_db);
+                resolve(download_history_db);
+                pending_db_promises.length = 0;
+            };
+
+            request.onerror = (e) => {
+                const error = e.target.error;
+                console.error("Error opening downloads database: ", error);
+
+                db_opening = false;
+
+                for (const { reject } of pending_db_promises) reject(error);
+                reject(error);
+                pending_db_promises.length = 0;
+            };
+
+            request.onupgradeneeded = async (event) => {
+                const db = event.target.result;
+                const transaction = event.target.transaction;
+
+                // remove unnecessary index
+                if (event.oldVersion <= 1) {
+                    if (db.objectStoreNames.contains('download_history')) {
+                        // update to new version
+                        const keys = [];
+                        await new Promise((resolve) => {
+                            transaction.objectStore('download_history')
+                                .getAllKeys().addEventListener('success', (e) => {
+                                for (const saveId of e.target.result) keys.push(saveId);
+                                resolve();
+                            });
+                        });
+                        db.deleteObjectStore('download_history');
+                        const objectStore = db.createObjectStore('download_history');
+                        for (const key of keys) objectStore.put(true, key);
+                    } else {
+                        // just create without the update process
+                        db.createObjectStore('download_history');
+                    }
+                }
+            };
+        }
     });
+})();
+
+const requestMap = {
+    save_media: download_media,
+    download_history_has: download_history_has,
+    download_history_remove: download_history_remove,
+    download_history_clear: download_history_clear,
+    download_history_add: ({id}, sendResponse) => {
+        download_history_add(id).then(() => {
+            sendResponse(true);
+        });
+    },
+    download_history_add_all: download_history_add_all,
+    download_history_get_all: download_history_get_all,
+
+    get_settings: (_, sendResponse) => {
+        Settings.getSettings().then(() => {
+            const data = {};
+            for (const setting in defaultSettings) data[setting] = Settings[setting];
+            sendResponse(data);
+        });
+    },
+    get_default_settings: (_, sendResponse) => {
+        sendResponse(defaultSettings);
+    },
+
+    open_tab: ({url}, sendResponse) => {
+        browser.tabs.create({url}).then(() => {
+            sendResponse(true);
+        });
+    }
+};
+
+const requestMapPorts = {
+    /** @type {function(browser.runtime.Port): void} */ download_history_add_all: (port) => {
+        port.onMessage.addListener((request) => {
+            download_history_add_all(request, () => {
+                port.disconnect();
+            }, (message) => {
+                port.postMessage(message);
+            });
+        });
+    }
 }
 
-function get_default_settings(_, sendResponse) {
-    sendResponse(defaultSettings);
-}
+browser.runtime.onMessage.addListener((request, _, sendResponse) => {
+    requestMap[request.type]?.(request, sendResponse);
+    return true;
+});
+
+browser.runtime.onConnect.addListener((port) => {
+    requestMapPorts[port.name]?.(port);
+});
+
+browser?.runtime?.onInstalled?.addListener?.((details) => {
+    // updates it if needed
+    getHistoryDB().then(() => {
+        if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
+        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
+    });
+});
+
+browser?.runtime?.onStartup?.addListener?.(setIcon);
+
+// context menus
+const setupContextMenus = (() => {
+    const contextMenusListener = (info) => {
+        if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
+    }
+
+    return () => Settings.getSettings().then(() => {
+        if (Settings.contextmenu.save_image) {
+            if (browser?.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
+                browser?.contextMenus?.onClicked?.addListener?.(contextMenusListener);
+            }
+
+            browser?.contextMenus?.create?.(
+                {
+                    id: "save-image",
+                    title: "Save Image",
+                    contexts: ["image", "link"],
+                    documentUrlPatterns: ['https://x.com/*'],
+                    targetUrlPatterns: ['https://pbs.twimg.com/*']
+                }
+            );
+        } else {
+            // this is fine for now as theres just one
+            void browser?.contextMenus?.removeAll();
+        }
+    });
+})();
+void setupContextMenus();
+
+const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
+browser?.downloads?.onChanged?.addListener?.(({error, state, id}) => {
+    if (DOWNLOAD_MAP.has(id)) {
+        if (state?.current === 'complete') {
+            DOWNLOAD_MAP.delete(id);
+        } else if (error?.current) {
+            DOWNLOAD_MAP.get(id)(error.current);
+            DOWNLOAD_MAP.delete(id);
+        }
+    }
+});
 
 browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
