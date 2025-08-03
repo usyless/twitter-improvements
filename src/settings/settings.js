@@ -33,8 +33,6 @@
 
         clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
         download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
-
-        set_icon: () => browser.runtime.sendMessage({type: 'set_icon'}),
     };
 
     const BackgroundPorts = {
@@ -926,7 +924,6 @@
                 setStorage({extension_icon: {custom: !altSet}});
                 altSet = !altSet;
                 setIcon();
-                setTimeout(Background.set_icon, 500);
             }
         });
     });

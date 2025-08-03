@@ -88,9 +88,7 @@ const requestMap = {
         browser.tabs.create({url}).then(() => {
             sendResponse(true);
         });
-    },
-
-    set_icon: setIcon
+    }
 };
 
 const requestMapPorts = {
@@ -308,6 +306,7 @@ browser.storage.onChanged.addListener((changes, namespace) => {
         Settings.loadSettings().then(() => {
             send_to_all_tabs({type: 'settings_update', changes});
             if (changes.hasOwnProperty('contextmenu')) void setupContextMenus();
+            if (changes.hasOwnProperty('extension_icon')) setIcon();
         });
     }
 });
@@ -706,7 +705,7 @@ function download_history_get_all(_, sendResponse) {
 }
 
 // icon changing
-function setIcon(_, sendResponse) {
+function setIcon() {
     Settings.getSettings().then(() => {
         void ((chromeMode) ? browser.action : browser.browserAction).setIcon((Settings.extension_icon.custom)
             ? ((chromeMode) ? {
@@ -728,7 +727,6 @@ function setIcon(_, sendResponse) {
                 }
             } : { path: "/icons/icon.svg" }) // firefox
         );
-        sendResponse?.(true);
     });
 }
 setIcon();
