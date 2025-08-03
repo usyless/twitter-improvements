@@ -250,7 +250,7 @@ browser.runtime.onConnect.addListener((port) => {
     requestMapPorts[port.name]?.(port);
 });
 
-browser?.runtime?.onInstalled?.addListener?.((details) => {
+browser.runtime.onInstalled?.addListener((details) => {
     // updates it if needed
     getHistoryDB().then(() => {
         if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
@@ -258,7 +258,7 @@ browser?.runtime?.onInstalled?.addListener?.((details) => {
     });
 });
 
-browser?.runtime?.onStartup?.addListener?.(setIcon);
+browser.runtime.onStartup?.addListener(setIcon);
 
 // context menus
 const setupContextMenus = (() => {
@@ -268,13 +268,13 @@ const setupContextMenus = (() => {
         if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
     }
 
-    return () => Settings.getSettings().then(() => {
-        if (Settings.contextmenu.save_image) {
-            if (browser?.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
-                browser?.contextMenus?.onClicked?.addListener?.(contextMenusListener);
-            }
+    const setContextMenus = () => {
+        if (browser.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
+            browser.contextMenus?.onClicked?.addListener?.(contextMenusListener);
+        }
 
-            browser?.contextMenus?.create?.(
+        try {
+            browser.contextMenus?.create?.(
                 {
                     id: "save-image",
                     title: "Save Image",
@@ -283,16 +283,25 @@ const setupContextMenus = (() => {
                     targetUrlPatterns: ['https://pbs.twimg.com/*']
                 }
             );
+        } catch {} // already added
+    }
+
+    // do initial setup incase of delays
+    setContextMenus();
+
+    return () => Settings.getSettings().then(() => {
+        if (Settings.contextmenu.save_image) {
+            setContextMenus();
         } else {
             // this is fine for now as theres just one
-            void browser?.contextMenus?.removeAll();
+            void browser.contextMenus?.removeAll?.();
         }
     });
 })();
 void setupContextMenus();
 
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
-browser?.downloads?.onChanged?.addListener?.(({error, state, id}) => {
+browser.downloads?.onChanged?.addListener?.(({error, state, id}) => {
     if (DOWNLOAD_MAP.has(id)) {
         if (state?.current === 'complete') {
             DOWNLOAD_MAP.delete(id);
