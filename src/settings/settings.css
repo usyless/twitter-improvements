@@ -445,7 +445,8 @@ button {
 body.mobile {
     div:has(> div > [id^="save_directory"]),
     div:has(> #bookmark_on_photo_page),
-    div:has(> #hover_thumbnail_timeout) {
+    div:has(> #hover_thumbnail_timeout),
+    div:has(> #save_image) {
         display: none !important;
     }
 }
