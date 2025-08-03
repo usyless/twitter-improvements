@@ -10,10 +10,6 @@
 
     document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
 
-    if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent)) {
-        document.body.classList.add('mobile');
-    }
-
     const Defaults = {
         loadDefaults: async () => {
             const r = await Background.get_default_settings();
@@ -33,7 +29,14 @@
 
         clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
         download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
+        get_android: () => browser.runtime.sendMessage({type: 'get_android'}),
     };
+
+    Background.get_android().then((r) => {
+        if (r) {
+            document.body.classList.add('mobile');
+        }
+    });
 
     const BackgroundPorts = {
         download_history_add_all: (saved_images, progressCallback) => new Promise((resolve) => {

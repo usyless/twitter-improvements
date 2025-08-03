@@ -56,9 +56,8 @@
             for (const setting in r) Settings[setting] = r[setting];
         },
     };
-    const About = {
-        android: /Android/i.test(navigator.userAgent)
-    };
+    let isAndroid;
+    const loadAndroid = () => Background.get_android().then((r) => {isAndroid = r});
 
     const Background = {
         /** @param {saveId} id */
@@ -79,6 +78,8 @@
         get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
         /** @returns {Promise<Settings>} */
         get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
+        /** @returns {Promise<boolean>} */
+        get_android: () => browser.runtime.sendMessage({type: 'get_android'}),
 
         /** @param {string} url */
         open_tab: (url) => browser.runtime.sendMessage({type: 'open_tab', url}),
@@ -121,7 +122,7 @@
             }
             if (media.length > 0) {
                 Background.save_media(url, media, modifiers);
-                Notification.create(`Downloading media${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
+                Notification.create(`Downloading media${isAndroid ? '\n(This may take a second on android)' : ''}`, 'save_media');
             } else {
                 Notification.create('No media to save', 'error');
             }
@@ -559,7 +560,7 @@
         /** @param {HTMLElement} button */
         addThumbnailSupport: (button) => {
             const timeout = Settings.download_preferences.hover_thumbnail_timeout;
-            if (!(About.android) && (timeout >= 0)) {
+            if (!(isAndroid) && (timeout >= 0)) {
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
                     const [id, index] = id_specific.split('-');
@@ -1358,7 +1359,7 @@
         Listeners.start();
     }
 
-    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()]).then(start);
+    Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
 
     browser.runtime.onMessage.addListener((message) => {
         switch (message.type) {
@@ -1397,7 +1398,7 @@
                 break;
             }
             case 'image_saved': {
-                Notification.create(`Saving Image${About.android ? '\n(This may take a second on android)' : ''}`, 'save_media');
+                Notification.create(`Saving Image${isAndroid ? '\n(This may take a second on android)' : ''}`, 'save_media');
                 break;
             }
             case 'download': {

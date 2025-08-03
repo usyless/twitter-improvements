@@ -6,9 +6,7 @@ if (typeof this.browser === 'undefined') {
     chromeMode = true;
 }
 
-const About = {
-    android: /Android/i.test(navigator.userAgent)
-};
+const isAndroid = /Android/i.test(navigator.userAgent);
 
 const defaultSettings = {
     setting: {
@@ -222,6 +220,10 @@ const requestMap = {
         sendResponse(defaultSettings);
     },
 
+    get_android: (_, sendResponse) => {
+        sendResponse(isAndroid);
+    },
+
     open_tab: ({url}, sendResponse) => {
         browser.tabs.create({url}).then(() => {
             sendResponse(true);
@@ -262,7 +264,7 @@ browser.runtime.onStartup?.addListener(setIcon);
 
 // context menus
 const setupContextMenus = (() => {
-    if (About.android) return async () => {};
+    if (isAndroid) return async () => {};
 
     const contextMenusListener = (info) => {
         if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
@@ -331,23 +333,25 @@ browser.storage.onChanged.addListener((changes, namespace) => {
  */
 function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) {
     return new Promise((resolve, reject) => {
-        /Android/i.test(navigator.userAgent)
-            ? resolve(sendToTab({ type: 'download', url, filename, tweetURL, save_id }) || -1)
-            : Settings.getSettings().then(() => {
-            const {
-                save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl, save_as_prompt_alt,
-                save_directory, save_directory_shift, save_directory_ctrl, save_directory_alt
-            } = Settings.download_preferences;
+        if (isAndroid) {
+            resolve(sendToTab({ type: 'download', url, filename, tweetURL, save_id }) || -1)
+        } else {
+            Settings.getSettings().then(() => {
+                const {
+                    save_as_prompt, save_as_prompt_shift, save_as_prompt_ctrl, save_as_prompt_alt,
+                    save_directory, save_directory_shift, save_directory_ctrl, save_directory_alt
+                } = Settings.download_preferences;
 
-            const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
-                : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
-                    : (alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
+                const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
+                    : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
+                        : (alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
 
-            browser.downloads.download({
-                url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
-                filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename
+                return browser.downloads.download({
+                    url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
+                    filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename
+                });
             }).then(resolve, reject);
-        });
+        }
     });
 }
 
