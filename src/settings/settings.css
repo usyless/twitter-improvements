@@ -468,7 +468,7 @@ body.chrome {
 
 /*Dynamic settings hiding*/
 div:has(> * > #vx_button:not(:checked)) > *:nth-child(n+3),
-div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+4),
+div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+5),
 div:has(> * > #download_history_enabled:not(:checked)) > *:nth-child(n+3) {
     display: none !important;
 }
