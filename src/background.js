@@ -6,6 +6,10 @@ if (typeof this.browser === 'undefined') {
     chromeMode = true;
 }
 
+const About = {
+    android: /Android/i.test(navigator.userAgent)
+};
+
 const defaultSettings = {
     setting: {
         vx_button: true,
@@ -258,6 +262,8 @@ browser?.runtime?.onStartup?.addListener?.(setIcon);
 
 // context menus
 const setupContextMenus = (() => {
+    if (About.android) return async () => {};
+
     const contextMenusListener = (info) => {
         if (info.menuItemId === "save-image") saveImage(info.linkUrl ?? info.pageUrl, info.srcUrl);
     }
