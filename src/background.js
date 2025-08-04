@@ -445,7 +445,7 @@ function download_media({url, media, modifiers}, sendResponse) {
             const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media with error ${error}\nClick here to see the tweet.`, url}));
             download(sourceURL, formatFilename(parts, save_format), modifiers, {tweetURL: url, save_id}).then((downloadId) => {
                 if (downloadId === undefined) onError("Failed to start download");
-                else if (downloadId === -1) void 0 // android, ignore it
+                else if (downloadId === -1) void 0; // android, ignore it
                 else DOWNLOAD_MAP.set(downloadId, onError);
             }, onError);
         }
