@@ -148,7 +148,7 @@ body {
 
             &:not(:disabled):checked {
                 background-color: var(--accent);
-                background-image: url("/shared/Checkbox check.svg");
+                background-image: url("/shared/Checkbox_check.svg");
             }
 
             @media (hover: hover) {
