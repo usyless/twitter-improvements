@@ -3,13 +3,13 @@
 
     let chromeMode = false;
     // set browser to chrome if not in firefox
-    const browser = window.browser ?? (() => {
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
         chromeMode = true;
         return chrome;
     })();
 
     /** @returns {Promise<Settings>} */
-    const loadSettings = () => browser.runtime.sendMessage({type: 'get_settings'});
+    const loadSettings = () => extension.runtime.sendMessage({type: 'get_settings'});
 
     const HideType = {
         DISPLAY: '{display:none!important;}',
@@ -119,7 +119,7 @@
 
     void start();
 
-    browser.runtime.onMessage.addListener((message) => {
+    extension.runtime.onMessage.addListener((message) => {
         if (message.type === 'settings_update' && message.changes.hasOwnProperty('style')) void start();
     });
 })();

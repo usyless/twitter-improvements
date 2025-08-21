@@ -3,7 +3,7 @@
 
     let chromeMode = false;
     // set browser to chrome if not in firefox
-    const browser = window.browser ?? (() => {
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
         chromeMode = true;
         return chrome;
     })();
@@ -12,7 +12,7 @@
         document.body.classList.add('chrome');
     }
 
-    document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;
+    document.getElementById('versionDisplay').textContent += extension?.runtime?.getManifest?.()?.version;
 
     const Defaults = {
         loadDefaults: async () => {
@@ -28,12 +28,12 @@
     };
 
     const Background = {
-        get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
-        get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
+        get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
+        get_default_settings: () => extension.runtime.sendMessage({type: 'get_default_settings'}),
 
-        clear_download_history: () => browser.runtime.sendMessage({type: 'download_history_clear'}),
-        download_history_get_all: () => browser.runtime.sendMessage({type: 'download_history_get_all'}),
-        get_android: () => browser.runtime.sendMessage({type: 'get_android'}),
+        clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
+        download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
+        get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
     };
 
     Background.get_android().then((r) => {
@@ -44,7 +44,7 @@
 
     const BackgroundPorts = {
         download_history_add_all: (saved_images, progressCallback) => new Promise((resolve) => {
-            const port = browser.runtime.connect({ name: 'download_history_add_all' });
+            const port = extension.runtime.connect({ name: 'download_history_add_all' });
             port.onMessage.addListener(progressCallback);
             port.onDisconnect.addListener(resolve);
             port.postMessage({ saved_images });
@@ -1102,15 +1102,15 @@
     }
 
     function setStorage(data) {
-        return browser.storage.local.set(data); // potentially add little saved message with .then
+        return extension.storage.local.set(data); // potentially add little saved message with .then
     }
 
     function clearStorage() {
-        return browser.storage.local.clear();
+        return extension.storage.local.clear();
     }
 
     function getStorage(data) {
-        return browser.storage.local.get(data);
+        return extension.storage.local.get(data);
     }
 
     function download(url, filename) {

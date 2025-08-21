@@ -3,7 +3,7 @@
 
     let chromeMode = false;
     // set browser to chrome if not in firefox
-    const browser = window.browser ?? (() => {
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
         chromeMode = true;
         return chrome;
     })();
@@ -47,7 +47,7 @@
                 const id = longestIntegerSubstring(item.getAsFile().name);
                 // Should be fine for any new tweet id's, no images likely being saved before 2009
                 if (id.length > 10) {
-                    browser.tabs.create({url: `https://x.com/hello/status/${id}`});
+                    extension.tabs.create({url: `https://x.com/hello/status/${id}`});
                 } else {
                     alert(`Error parsing file name for ${item.getAsFile().name}, are you sure this file has a tweet id in the name?`);
                 }

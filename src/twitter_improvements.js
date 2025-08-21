@@ -3,7 +3,7 @@
 
     let chromeMode = false;
     // set browser to chrome if not in firefox
-    const browser = window.browser ?? (() => {
+    const extension = typeof browser !== 'undefined' ? browser : (() => {
         chromeMode = true;
         return chrome;
     })();
@@ -64,28 +64,28 @@
 
     const Background = {
         /** @param {saveId} id */
-        download_history_has: (id) => browser.runtime.sendMessage({type: 'download_history_has', id}),
+        download_history_has: (id) => extension.runtime.sendMessage({type: 'download_history_has', id}),
         /** @param {saveId} id */
-        download_history_remove: (id) => browser.runtime.sendMessage({type: 'download_history_remove', id}),
+        download_history_remove: (id) => extension.runtime.sendMessage({type: 'download_history_remove', id}),
         /** @param {saveId} id */
-        download_history_add: (id) => browser.runtime.sendMessage({type: 'download_history_add', id}),
+        download_history_add: (id) => extension.runtime.sendMessage({type: 'download_history_add', id}),
 
         /**
          * @param {string} url
          * @param {MediaItem[]} media
          * @param {EventModifiers} modifiers
          */
-        save_media: (url, media, modifiers) => browser.runtime.sendMessage({ type: 'save_media', url, media, modifiers }),
+        save_media: (url, media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', url, media, modifiers }),
 
         /** @returns {Promise<Settings>} */
-        get_settings: () => browser.runtime.sendMessage({type: 'get_settings'}),
+        get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
         /** @returns {Promise<Settings>} */
-        get_default_settings: () => browser.runtime.sendMessage({type: 'get_default_settings'}),
+        get_default_settings: () => extension.runtime.sendMessage({type: 'get_default_settings'}),
         /** @returns {Promise<boolean>} */
-        get_android: () => browser.runtime.sendMessage({type: 'get_android'}),
+        get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
 
         /** @param {string} url */
-        open_tab: (url) => browser.runtime.sendMessage({type: 'open_tab', url}),
+        open_tab: (url) => extension.runtime.sendMessage({type: 'open_tab', url}),
     };
 
     const Downloaders = {
@@ -1364,7 +1364,7 @@
 
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
 
-    browser.runtime.onMessage.addListener((message) => {
+    extension.runtime.onMessage.addListener((message) => {
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);

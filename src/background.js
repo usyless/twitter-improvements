@@ -2,7 +2,7 @@
 
 let chromeMode = false;
 // set browser to chrome if not in firefox
-const browser = window.browser ?? (() => {
+const extension = typeof browser !== 'undefined' ? browser : (() => {
     chromeMode = true;
     return chrome;
 })();
@@ -124,7 +124,7 @@ const Settings = { // Setting handling
     })(),
 
     loadSettings: () => new Promise(resolve => {
-        browser.storage.local.get().then((s) => {
+        extension.storage.local.get().then((s) => {
             for (const setting in defaultSettings) Settings[setting] = {...defaultSettings[setting], ...s[setting]};
             resolve();
         });
@@ -226,14 +226,14 @@ const requestMap = {
     },
 
     open_tab: ({url}, sendResponse) => {
-        browser.tabs.create({url}).then(() => {
+        extension.tabs.create({url}).then(() => {
             sendResponse(true);
         });
     }
 };
 
 const requestMapPorts = {
-    /** @type {function(browser.runtime.Port): void} */ download_history_add_all: (port) => {
+    /** @type {function(extension.runtime.Port): void} */ download_history_add_all: (port) => {
         port.onMessage.addListener((request) => {
             download_history_add_all(request, () => {
                 port.disconnect();
@@ -244,24 +244,24 @@ const requestMapPorts = {
     }
 }
 
-browser.runtime.onMessage.addListener((request, _, sendResponse) => {
+extension.runtime.onMessage.addListener((request, _, sendResponse) => {
     requestMap[request.type]?.(request, sendResponse);
     return true;
 });
 
-browser.runtime.onConnect.addListener((port) => {
+extension.runtime.onConnect.addListener((port) => {
     requestMapPorts[port.name]?.(port);
 });
 
-browser.runtime.onInstalled?.addListener((details) => {
+extension.runtime.onInstalled?.addListener((details) => {
     // updates it if needed
     getHistoryDB().then(() => {
-        if (details.reason === 'install') void browser.tabs.create({url: browser.runtime.getURL('/settings/settings.html?installed=true')});
+        if (details.reason === 'install') void extension.tabs.create({url: extension.runtime.getURL('/settings/settings.html?installed=true')});
         else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
     });
 });
 
-browser.runtime.onStartup?.addListener(setIcon);
+extension.runtime.onStartup?.addListener(setIcon);
 
 // context menus
 const setupContextMenus = (() => {
@@ -272,12 +272,12 @@ const setupContextMenus = (() => {
     }
 
     const setContextMenus = () => {
-        if (browser.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
-            browser.contextMenus?.onClicked?.addListener?.(contextMenusListener);
+        if (extension.contextMenus?.onClicked?.hasListener?.(contextMenusListener) === false) {
+            extension.contextMenus?.onClicked?.addListener?.(contextMenusListener);
         }
 
         try {
-            browser.contextMenus?.create?.(
+            extension.contextMenus?.create?.(
                 {
                     id: "save-image",
                     title: "Save Image",
@@ -297,14 +297,14 @@ const setupContextMenus = (() => {
             setContextMenus();
         } else {
             // this is fine for now as theres just one
-            void browser.contextMenus?.removeAll?.();
+            void extension.contextMenus?.removeAll?.();
         }
     });
 })();
 void setupContextMenus();
 
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
-browser.downloads?.onChanged?.addListener?.(({error, state, id}) => {
+extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
     if (DOWNLOAD_MAP.has(id)) {
         if (state?.current === 'complete') {
             DOWNLOAD_MAP.delete(id);
@@ -315,7 +315,7 @@ browser.downloads?.onChanged?.addListener?.(({error, state, id}) => {
     }
 });
 
-browser.storage.onChanged.addListener((changes, namespace) => {
+extension.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
         Settings.loadSettings().then(() => {
             send_to_all_tabs({type: 'settings_update', changes});
@@ -347,7 +347,7 @@ function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) 
                 : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
                     : (alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
 
-            return browser.downloads.download({
+            return extension.downloads.download({
                 url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
                 filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename
             });
@@ -357,15 +357,15 @@ function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) 
 
 const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function sendToTab(message) {
-    browser.tabs.query(singleTabQuery).then((tabs) => {
-        void browser.tabs.sendMessage(tabs[0].id, message);
+    extension.tabs.query(singleTabQuery).then((tabs) => {
+        void extension.tabs.sendMessage(tabs[0].id, message);
     });
 }
 
 const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
 function send_to_all_tabs(message) {
-    browser.tabs.query(tabQuery).then((tabs) => {
-        for (const tab of tabs) void browser.tabs.sendMessage(tab.id, message);
+    extension.tabs.query(tabQuery).then((tabs) => {
+        for (const tab of tabs) void extension.tabs.sendMessage(tab.id, message);
     });
 }
 
@@ -475,7 +475,7 @@ function saveImage(url, sourceURL) {
 async function migrateSettings(previousVersion) {
     const migrations = [
         ['1.4', () => new Promise((resolve) => {
-            browser.storage.local.get().then(async (/** @type {Settings} */s) => {
+            extension.storage.local.get().then(async (/** @type {Settings} */s) => {
                 const setting = s?.setting;
                 if (setting != null) {
                     if (setting.image_button != null) {
@@ -537,22 +537,22 @@ async function migrateSettings(previousVersion) {
                     }
                 }
 
-                await browser.storage.local.set(s);
+                await extension.storage.local.set(s);
 
                 resolve();
             });
         })],
         ['1.1.1.4', () => new Promise((resolve) => {
-            browser.storage.local.get(['download_history']).then((r) => {
+            extension.storage.local.get(['download_history']).then((r) => {
                 const history = r.download_history ?? {};
                 Promise.all([
                     new Promise((res) => download_history_add_all({saved_images: Object.keys(history)}, res)),
-                    browser.storage.local.remove('download_history')
+                    extension.storage.local.remove('download_history')
                 ]).then(resolve);
             });
         })],
         ['1.1.1.1', () => new Promise((resolve) => {
-            browser.storage.local.get().then(async (s) => {
+            extension.storage.local.get().then(async (s) => {
                 const {
                     // styles
                     hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
@@ -566,7 +566,7 @@ async function migrateSettings(previousVersion) {
                     download_history_prevent_download, download_history,
                 } = s;
 
-                await browser.storage.local.clear();
+                await extension.storage.local.clear();
                 const newSettings = {style: {}, setting: {}, vx_preferences: {}, image_preferences: {}};
 
                 if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
@@ -607,7 +607,7 @@ async function migrateSettings(previousVersion) {
 
                 if (download_history != null) newSettings.download_history = download_history;
 
-                await browser.storage.local.set(newSettings);
+                await extension.storage.local.set(newSettings);
 
                 resolve();
             });
@@ -723,7 +723,7 @@ function download_history_get_all(_, sendResponse) {
 // icon changing
 function setIcon() {
     Settings.getSettings().then(() => {
-        void ((chromeMode) ? browser.action : browser.browserAction).setIcon((Settings.extension_icon.custom)
+        void ((chromeMode) ? extension.action : extension.browserAction).setIcon((Settings.extension_icon.custom)
             ? ((chromeMode) ? {
                 path: {
                     "16": "/icons/alt/icon-16.png",
@@ -748,6 +748,6 @@ function setIcon() {
 setIcon();
 
 // opening settings page
-((chromeMode) ? browser.action : browser.browserAction)?.onClicked?.addListener(() => {
-    void browser.runtime.openOptionsPage();
+((chromeMode) ? extension.action : extension.browserAction)?.onClicked?.addListener(() => {
+    void extension.runtime.openOptionsPage();
 });
