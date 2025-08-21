@@ -502,9 +502,10 @@
         /**
          * @param {HTMLElement} element
          * @param {MediaItem} media
-         * @param {HTMLElement} [eventTarget]
+         * @param {Element} [eventTarget]
+         * @param {string} [customSearch]
          */
-        showThumbnail: (element, media, eventTarget) => {
+        showThumbnail: (element, media, {eventTarget, customSearch} = {}) => {
             const fullscreen = document.createElement('div');
             fullscreen.classList.add('usyNotificationOuter');
             const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
@@ -559,8 +560,9 @@
             window.addEventListener('scroll', closeThumb, { capture: true });
 
             if (media.type === 'Image') {
-                thumb.src = (document.querySelector(`[src^="${media.url.split('?')[0]}"]`)?.src)
-                    ?? (media.url.replaceAll('&name=orig', '&name=360x360'));
+                let baseUrl = media.url.split('?')[0];
+                thumb.src = (document.querySelector(`[src^="${baseUrl}"]`)?.src)
+                    ?? ((customSearch) ? (baseUrl + customSearch) : (media.url.replaceAll('&name=orig', '&name=360x360')));
             } else {
                 thumb.src = media.url_lowres ?? media.url;
             }
@@ -953,11 +955,21 @@
             { // thumbnails
                 let lastIndex;
                 let index = 0;
+                let customSearch;
+                for (const m of choices) {
+                    if (m.type === 'Image') {
+                        const url = document.querySelector(`[src^="${m.url.split('?')[0]}"]`)?.src;
+                        if (url) {
+                            customSearch = '?' + url.split('?')[1];
+                        }
+                        break;
+                    }
+                }
                 for (const button of popup.querySelectorAll('.usyThumbnailDiv')) {
                     const choice = choices[index];
                     const showThumbnail = () => {
                         if (index !== lastIndex) {
-                            Image.showThumbnail(popup, choice, button);
+                            Image.showThumbnail(popup, choice, {eventTarget: button, customSearch});
                         }
                         lastIndex = index;
                     }
