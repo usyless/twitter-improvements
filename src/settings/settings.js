@@ -368,6 +368,11 @@
                     description: 'Show download picker for multi-media tweets in the media page'
                 },
                 {
+                    name: 'hide_bottom_bar_completely',
+                    category: 'setting',
+                    description: 'Hide navigation bar completely when scrolling down'
+                },
+                {
                     name: 'hover_thumbnail_timeout',
                     category: 'download_preferences',
                     description: 'Hover over download button duration to show thumbnail (negative for disabled)',

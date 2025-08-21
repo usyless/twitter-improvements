@@ -16,6 +16,7 @@ const defaultSettings = {
         media_download_button: true,
         inline_download_button: false,
         bookmark_on_photo_page: false,
+        hide_bottom_bar_completely: false
     },
 
     listeners: {

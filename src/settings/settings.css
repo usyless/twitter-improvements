@@ -453,7 +453,8 @@ body.mobile {
 
 /*Desktop settings hiding*/
 body:not(.mobile) {
-    div:has(> #use_download_progress) {
+    div:has(> #use_download_progress),
+    div:has(> #hide_bottom_bar_completely) {
         display: none !important;
     }
 }

@@ -1114,6 +1114,16 @@
         }
     };
 
+    const Extras = {
+        /**
+         * @param {HTMLElement} bar
+         */
+        hideBottomBar: (bar) => {
+            const style = bar.getAttribute('style');
+            if (style && !(style.includes('opacity: 1'))) bar.style.opacity = '0';
+        }
+    };
+
     const Helpers = {
         /**
          * @param {string} url
@@ -1240,7 +1250,8 @@
                 img[src^="https://pbs.twimg.com/amplify_video_thumb/"]:not([usy-media]),
                 img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media])`, Image.addImageButton],
                 ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
-                ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]]
+                ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]],
+            hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]]
         },
 
         start: () => {
