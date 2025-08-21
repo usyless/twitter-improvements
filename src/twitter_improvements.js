@@ -952,30 +952,29 @@
 
             { // thumbnails
                 let lastIndex;
-                const showThumbnail = (e, currentTarget) => {
-                    let index = e.target.closest('.usyDownloadChoiceButton')?.dataset?.index;
-                    if (index != null) {
-                        index -= 1;
+                let index = 0;
+                for (const button of popup.querySelectorAll('.usyThumbnailDiv')) {
+                    const choice = choices[index];
+                    const showThumbnail = () => {
                         if (index !== lastIndex) {
-                            Image.showThumbnail(popup, choices[index], e.currentTarget ?? currentTarget);
+                            Image.showThumbnail(popup, choice, button);
                         }
                         lastIndex = index;
                     }
-                }
-                const pointerEvent = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    lastIndex = null;
-                    showThumbnail(e, e.currentTarget);
-                }
-                for (const button of popup.querySelectorAll('.usyThumbnailDiv')) {
+                    const pointerEvent = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        lastIndex = null;
+                        showThumbnail();
+                    }
                     button.addEventListener('pointerdown', pointerEvent);
                     button.addEventListener('click', pointerEvent);
                     button.addEventListener('pointermove', showThumbnail);
                     button.addEventListener('pointerleave', () => {
                         lastIndex = null;
                     });
+                    ++index;
                 }
             }
 
