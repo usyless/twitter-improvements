@@ -3,6 +3,7 @@
 
     let chromeMode = false;
     // set browser to chrome if not in firefox
+    /** @type {typeof browser} */
     const extension = typeof browser !== 'undefined' ? browser : (() => {
         chromeMode = true;
         return chrome;
