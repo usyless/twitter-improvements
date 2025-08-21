@@ -2,10 +2,11 @@
     'use strict';
 
     let chromeMode = false;
-    if (typeof this.browser === 'undefined') {
+    // set browser to chrome if not in firefox
+    if (typeof browser === 'undefined') {
         chromeMode = true;
         document.body.classList.add('chrome');
-        this.browser = chrome;
+        var browser = chrome;
     }
 
     document.getElementById('versionDisplay').textContent += browser?.runtime?.getManifest?.()?.version;

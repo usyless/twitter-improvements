@@ -1,8 +1,9 @@
-'use strict';
-
 (() => {
-    if (typeof this.browser === 'undefined') {
-        this.browser = /** @suppress */ chrome;
+    'use strict';
+
+    // set browser to chrome if not in firefox
+    if (typeof browser === 'undefined') {
+        var browser = chrome;
     }
 
     const /** @type {Map<tweetId, [function(MediaItem[])]>}*/ URL_CACHE_PROMISES = new Map();

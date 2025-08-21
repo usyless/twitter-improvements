@@ -1,8 +1,9 @@
 (() => {
     'use strict';
 
-    if (typeof this.browser === 'undefined') {
-        this.browser = chrome;
+    // set browser to chrome if not in firefox
+    if (typeof browser === 'undefined') {
+        var browser = chrome;
     }
 
     document.getElementById('reverseFile').parentElement.addEventListener('click', (e) => {
