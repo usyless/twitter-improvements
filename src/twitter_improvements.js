@@ -502,8 +502,9 @@
         /**
          * @param {HTMLElement} element
          * @param {MediaItem} media
+         * @param {HTMLElement} [eventTarget]
          */
-        showThumbnail: (element, media) => {
+        showThumbnail: (element, media, eventTarget) => {
             const fullscreen = document.createElement('div');
             fullscreen.classList.add('usyNotificationOuter');
             const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
@@ -540,18 +541,22 @@
                 });
             }, { once: true });
 
+            const eventElem = eventTarget ?? element;
+
             const closeThumb = () => {
-                element.removeEventListener('pointerleave', closeThumb);
-                element.removeEventListener('pointerdown', closeThumb, { capture: true });
-                element.removeEventListener('click', closeThumb, { capture: true });
+                eventElem.removeEventListener('pointerleave', closeThumb);
+                eventElem.removeEventListener('pointerdown', closeThumb, { capture: true });
+                eventElem.removeEventListener('click', closeThumb, { capture: true });
                 window.removeEventListener('popstate', closeThumb, { capture: true });
+                window.removeEventListener('scroll', closeThumb, { capture: true });
                 fullscreen.remove();
             }
 
-            element.addEventListener('pointerleave', closeThumb);
-            element.addEventListener('click', closeThumb, { capture: true });
-            element.addEventListener('pointerdown', closeThumb, { capture: true });
+            eventElem.addEventListener('pointerleave', closeThumb);
+            eventElem.addEventListener('click', closeThumb, { capture: true });
+            eventElem.addEventListener('pointerdown', closeThumb, { capture: true });
             window.addEventListener('popstate', closeThumb, { capture: true });
+            window.addEventListener('scroll', closeThumb, { capture: true });
 
             if (media.type === 'Image') {
                 thumb.src = (document.querySelector(`[src^="${media.url.split('?')[0]}"]`)?.src)
@@ -947,91 +952,30 @@
 
             { // thumbnails
                 let lastIndex;
-                let lastPreview;
-                let imageSearch;
-                const onExit = () => {
-                    lastPreview?.remove();
-                    lastPreview = null;
-                }
-                const showThumbnail = (e) => {
+                const showThumbnail = (e, currentTarget) => {
                     let index = e.target.closest('.usyDownloadChoiceButton')?.dataset?.index;
                     if (index != null) {
                         index -= 1;
-                        const choice = choices[index];
-
-                        if (index !== lastIndex) onExit();
-
-                        if (!imageSearch) {
-                            for (const m of choices) {
-                                if (m.type === 'Image') {
-                                    const url = document.querySelector(`[src^="${m.url.split('?')[0]}"]`)?.src;
-                                    if (url) {
-                                        imageSearch = '?' + url.split('?')[1];
-                                    }
-                                    break;
-                                }
-                            }
+                        if (index !== lastIndex) {
+                            Image.showThumbnail(popup, choices[index], e.currentTarget ?? currentTarget);
                         }
-
-                        if (!lastPreview) {
-                            lastPreview = document.createElement((choice.type === 'Video') ? 'video' : 'img');
-                            lastPreview.classList.add('usyVideoPreview');
-                            if (choice.type === 'Video') {
-                                lastPreview.autoplay = true;
-                                lastPreview.muted = false;
-                                lastPreview.loop = true;
-                                lastPreview.controls = false;
-                            }
-
-                            lastPreview.style.display = 'none';
-
-                            fullscreen.appendChild(lastPreview);
-
-                            lastPreview.addEventListener((choice.type === 'Video') ? 'loadeddata' : 'load', () => {
-                                requestAnimationFrame(() => {
-                                    if (lastPreview?.isConnected) {
-                                        const {left: popupLeft, right: popupRight,
-                                            top: popupTop} = popup.getBoundingClientRect();
-                                        const rightDistance = window.innerWidth - popupRight;
-
-                                        if (popupLeft > rightDistance) { // show on left
-                                            lastPreview.style.right = `${window.innerWidth - popupLeft}px`;
-                                            lastPreview.style.setProperty('--usy-max-width', `${popupLeft}px`);
-                                        } else { // show on right
-                                            lastPreview.style.left = `${popupRight}px`;
-                                            lastPreview.style.setProperty('--usy-max-width', `${rightDistance}px`);
-                                        }
-                                        lastPreview.style.top = `${popupTop + (popupHeight / 2)}px`;
-                                        lastPreview.style.display = '';
-                                        Image.fixThumbnailPosition(lastPreview);
-                                    }
-                                });
-                            }, { once: true });
-
-                            if (choice.type === 'Image') {
-                                const base_url = choice.url.split('?')[0];
-                                lastPreview.src = (document.querySelector(`[src^="${base_url}"]`)?.src) ?? ((imageSearch)
-                                        ? (base_url + imageSearch)
-                                        : (choice.url.replaceAll('&name=orig', '&name=360x360')));
-                            } else {
-                                lastPreview.src = choice.url_lowres ?? choice.url;
-                            }
-                        }
-
                         lastIndex = index;
-                    } else {
-                        onExit();
                     }
                 }
+                const pointerEvent = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    lastIndex = null;
+                    showThumbnail(e, e.currentTarget);
+                }
                 for (const button of popup.querySelectorAll('.usyThumbnailDiv')) {
-                    button.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
-                        showThumbnail(e);
-                    });
+                    button.addEventListener('pointerdown', pointerEvent);
+                    button.addEventListener('click', pointerEvent);
                     button.addEventListener('pointermove', showThumbnail);
-                    button.addEventListener('pointerleave', onExit);
+                    button.addEventListener('pointerleave', () => {
+                        lastIndex = null;
+                    });
                 }
             }
 
