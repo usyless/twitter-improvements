@@ -752,7 +752,10 @@
                 shareButton.addEventListener('contextmenu', rightClickCallback);
                 shareButton.addEventListener('contextmenu', Button.stopAllEvents);
             }
-            if (customListeners) for (const {type, listener} of customListeners) shareButton.addEventListener(type, listener);
+            if (customListeners) for (const {type, listener, options} of customListeners) {
+                if (options) shareButton.addEventListener(type, listener, options);
+                else shareButton.addEventListener(type, listener);
+            }
             extra?.(shareButton);
             return shareButton;
         },
@@ -921,7 +924,10 @@
 
             let closeThumbnail;
             fullscreen.addEventListener('click', () => {
-                for (const {type, listener} of notificationEventListeners) window.removeEventListener(type, listener);
+                for (const {type, listener, options} of notificationEventListeners) {
+                    if (options) window.removeEventListener(type, listener, options);
+                    else window.removeEventListener(type, listener);
+                }
                 Notification.clearFullscreen();
                 closeThumbnail?.();
             });
@@ -1014,11 +1020,12 @@
                 }
 
                 popup.classList.add('animate');
-                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
+                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition, options: {passive: true}});
 
-                for (const {type, listener} of notificationEventListeners) {
+                for (const {type, listener, options} of notificationEventListeners) {
                     listener();
-                    window.addEventListener(type, listener);
+                    if (options) window.addEventListener(type, listener, options);
+                    else window.addEventListener(type, listener);
                 }
             });
         },

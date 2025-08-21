@@ -42,6 +42,7 @@
  * @typedef {Object} EventListeners
  * @property {string} type
  * @property {function} listener
+ * @property {AddEventListenerOptions} [options]
  */
 
 /**
