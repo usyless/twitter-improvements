@@ -1,6 +1,6 @@
-'use strict';
-
 (() => {
+    'use strict';
+
     let chromeMode = false;
     if (typeof this.browser === 'undefined') {
         chromeMode = true;

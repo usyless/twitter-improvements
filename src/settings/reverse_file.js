@@ -1,6 +1,6 @@
-'use strict';
-
 (() => {
+    'use strict';
+
     if (typeof this.browser === 'undefined') {
         this.browser = chrome;
     }
