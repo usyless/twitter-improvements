@@ -2,10 +2,10 @@
 
 let chromeMode = false;
 // set browser to chrome if not in firefox
-if (typeof browser === 'undefined') {
-    var browser = chrome;
+const browser = window.browser ?? (() => {
     chromeMode = true;
-}
+    return chrome;
+})();
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 

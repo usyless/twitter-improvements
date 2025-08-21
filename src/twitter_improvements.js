@@ -1,10 +1,12 @@
 (() => {
     'use strict';
 
+    let chromeMode = false;
     // set browser to chrome if not in firefox
-    if (typeof browser === 'undefined') {
-        var browser = chrome;
-    }
+    const browser = window.browser ?? (() => {
+        chromeMode = true;
+        return chrome;
+    })();
 
     const /** @type {Map<tweetId, [function(MediaItem[])]>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
