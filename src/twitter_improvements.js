@@ -566,6 +566,7 @@
             } else {
                 thumb.src = media.url_lowres ?? media.url;
             }
+            return closeThumb;
         },
 
         /** @param {HTMLElement} button */
@@ -918,9 +919,11 @@
 
             popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
 
+            let closeThumbnail;
             fullscreen.addEventListener('click', () => {
                 for (const {type, listener} of notificationEventListeners) window.removeEventListener(type, listener);
                 Notification.clearFullscreen();
+                closeThumbnail?.();
             });
 
             for (const {index, type, save_id} of choices) {
@@ -969,7 +972,7 @@
                     const choice = choices[index];
                     const showThumbnail = () => {
                         if (index !== lastIndex) {
-                            Image.showThumbnail(popup, choice, {eventTarget: button, customSearch});
+                            closeThumbnail = Image.showThumbnail(popup, choice, {eventTarget: button, customSearch});
                         }
                         lastIndex = index;
                     }
