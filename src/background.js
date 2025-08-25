@@ -356,6 +356,13 @@ const Settings = { // Setting handling
                 }
             }
 
+            for (const setting in storage || {}) {
+                if (!Object.hasOwn(defaultSettings, setting)) {
+                    updateStorage = true;
+                    delete storage[setting];
+                }
+            }
+
             if (updateStorage) await extension.storage.local.set(storage);
 
             resolve();
