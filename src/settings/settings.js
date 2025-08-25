@@ -156,7 +156,6 @@
                     category: 'image_preferences',
                     description: 'Media download button scale',
                     type: 'number',
-                    validate: (value) => value > 0,
                     attributes: {step: '0.1'}
                 },
                 {
@@ -167,7 +166,6 @@
                     category: 'image_preferences',
                     description: 'Media download button width (1 for default)',
                     type: 'number',
-                    validate: (value) => value > 0 && value <= 100,
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media width)')),
                     attributes: {step: '5'}
                 },
@@ -176,7 +174,6 @@
                     category: 'image_preferences',
                     description: 'Media download button height (1 for default)',
                     type: 'number',
-                    validate: (value) => value > 0 && value <= 100,
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'}
                 },
@@ -185,7 +182,6 @@
                     category: 'image_preferences',
                     description: 'Media download button height -> small images (1 for default)',
                     type: 'number',
-                    validate: (value) => value > 0 && value <= 100,
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'}
                 },
@@ -194,7 +190,6 @@
                     category: 'image_preferences',
                     description: 'Height threshold in pixels for media to be considered small',
                     type: 'number',
-                    validate: (value) => value > 0,
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
                     attributes: {step: '20'}
                 }
@@ -377,7 +372,6 @@
                     category: 'download_preferences',
                     description: 'Hover over download button duration to show thumbnail (negative for disabled)',
                     type: 'number',
-                    validate: (v) => v,
                     post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
                     attributes: {step: '0.1'}
                 },
@@ -860,8 +854,8 @@
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             e.valueProperty = 'value';
             input.addEventListener('change', (ev) => {
-                if (e.validate(input.value)) update_value(ev);
-                else input.value = Defaults[e.category][e.name];
+                if (Defaults[e.category][e.name].validate(input.value)) update_value(ev);
+                else input.value = Defaults[e.category][e.name].default;
             });
             return outer;
         },
@@ -1055,7 +1049,7 @@
 
                 d.addEventListener('click', () => {
                     const props = setting.properties;
-                    props.valueElement[props.valueProperty] = Defaults[props.category][props.name];
+                    props.valueElement[props.valueProperty] = Defaults[props.category][props.name].default;
                     props.element.dispatchEvent(valueLoadedEvent);
                     props.valueElement.dispatchEvent(changeEvent);
                     outer.click();
