@@ -339,8 +339,14 @@ const Settings = { // Setting handling
                 Settings[category] = defaultSettingToSetting(defaults);
                 const settingsCategory = Settings[category];
 
-                storage[category] ||= {};
-                if (typeof storage[category] !== 'object') storage[category] = {};
+                if (storage[category] == null) {
+                    continue;
+                } else if (typeof storage[category] !== 'object') {
+                    updateStorage = true;
+                    delete storage[category];
+                    continue;
+                }
+
                 const storageCategory = storage[category];
 
                 for (const setting in storageCategory) {
