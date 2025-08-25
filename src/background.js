@@ -336,27 +336,20 @@ const Settings = { // Setting handling
             for (const category in defaultSettings) {
                 const defaults = defaultSettings[category];
                 Settings[category] = defaultSettingToSetting(defaults);
+                const settingsCategory = Settings[category];
 
                 storage[category] ||= {};
                 if (typeof storage[category] !== 'object') storage[category] = {};
-                const settingCategory = storage[category];
+                const storageCategory = storage[category];
 
-                for (const setting in settingCategory) {
-                    if (Object.hasOwn(defaults, setting)) {
-                        if (defaults[setting].validate(settingCategory[setting])) {
-                            if (defaults[setting].default === settingCategory[setting]) {
-                                updateStorage = true;
-                                delete settingCategory[setting];
-                            } else {
-                                Settings[category][setting] = settingCategory[setting];
-                            }
-                        } else {
-                            updateStorage = true;
-                            delete settingCategory[setting];
-                        }
+                for (const setting in storageCategory) {
+                    if (Object.hasOwn(defaults, setting)
+                        && defaults[setting].validate(storageCategory[setting])
+                        && (defaults[setting].default !== storageCategory[setting])) {
+                        settingsCategory[setting] = storageCategory[setting];
                     } else {
                         updateStorage = true;
-                        delete settingCategory[setting];
+                        delete storageCategory[setting];
                     }
                 }
             }
