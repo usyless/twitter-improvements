@@ -362,7 +362,7 @@
         genericButton: (media, cb) => {
             const button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
             const {image_button_width_value, image_button_scale, image_button_position} = Settings.image_preferences;
-            button.style.width = (image_button_width_value === Defaults.image_preferences.image_button_width_value)
+            button.style.width = (image_button_width_value === Defaults.image_preferences.image_button_width_value.default)
                 ? 'fit-content' : `${+image_button_width_value / +image_button_scale}%`;
             button.classList.add(...(Image.buttonModes[image_button_position] ?? []));
             button.style.transform = `scale(${image_button_scale})`;
@@ -571,7 +571,7 @@
 
         /** @param {HTMLElement} button */
         addThumbnailSupport: (button) => {
-            const timeout = Settings.download_preferences.hover_thumbnail_timeout;
+            const timeout = +Settings.download_preferences.hover_thumbnail_timeout;
             if (!(isAndroid) && (timeout >= 0)) {
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
@@ -607,7 +607,7 @@
         setButtonHeight: (image, button) => {
             const {image_button_height_value: ibh,image_button_height_value_small: ibhs,
                     small_image_size_threshold, image_button_scale} = Settings.image_preferences,
-                {image_button_height_value: dibh, image_button_height_value_small: dibhs} = Defaults.image_preferences;
+                {image_button_height_value: {default: dibh}, image_button_height_value_small: {default: dibhs}} = Defaults.image_preferences;
 
             if (ibh === dibh && ibhs === dibhs) return;
 
