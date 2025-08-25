@@ -374,10 +374,14 @@ const Settings = { // Setting handling
             }
 
             if (updateStorage) {
+                extension.storage.onChanged.removeListener(onSettingsChangeListener);
                 Promise.allSettled([
                     extension.storage.local.remove(keysToDelete),
                     extension.storage.local.set(storage)
-                ]).then(resolve);
+                ]).then(() => {
+                    extension.storage.onChanged.addListener(onSettingsChangeListener);
+                    resolve();
+                });
             }
             else resolve();
         });
@@ -449,6 +453,17 @@ const getHistoryDB = (() => {
         }
     });
 })();
+
+const onSettingsChangeListener = (changes, namespace) => {
+    if (namespace === 'local') {
+        Settings.loadSettings().then(() => {
+            send_to_all_tabs({type: 'settings_update', changes});
+            if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
+            if (Object.hasOwn(changes, 'extension_icon')) setIcon();
+        });
+    }
+}
+extension.storage.onChanged.addListener(onSettingsChangeListener);
 
 const requestMap = {
     save_media: download_media,
@@ -567,16 +582,6 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
             DOWNLOAD_MAP.get(id)(error.current);
             DOWNLOAD_MAP.delete(id);
         }
-    }
-});
-
-extension.storage.onChanged.addListener((changes, namespace) => {
-    if (namespace === 'local') {
-        Settings.loadSettings().then(() => {
-            send_to_all_tabs({type: 'settings_update', changes});
-            if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
-            if (Object.hasOwn(changes, 'extension_icon')) setIcon();
-        });
     }
 });
 
