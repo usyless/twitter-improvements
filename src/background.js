@@ -12,7 +12,7 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 
 const CONSTRAINTS = {
     BOOLEAN: a => typeof a === 'boolean',
-    NUMBER: a => typeof a === 'number' && !Number.isNaN(a),
+    NUMBERLIKE: a => typeof a === 'string' && !Number.isNaN(+a),
     STRING: a => typeof a === 'string',
     VALUES: (...v) => a => v.includes(a),
     COMBINATOR: (...v) => a => v.every(f => f(a)),
@@ -78,23 +78,23 @@ const defaultSettings = {
         },
         image_button_scale: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0))
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
         },
         image_button_height_value: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         },
         image_button_height_value_small: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         },
         small_image_size_threshold: {
             default: '350',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0))
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
         },
         image_button_width_value: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         }
     },
 
@@ -161,8 +161,8 @@ const defaultSettings = {
             validate: CONSTRAINTS.BOOLEAN
         },
         hover_thumbnail_timeout: {
-            default: -1,
-            validate: CONSTRAINTS.NUMBER
+            default: "-1",
+            validate: CONSTRAINTS.NUMBERLIKE
         },
     },
 
