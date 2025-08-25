@@ -1074,7 +1074,22 @@
             inner.append(progressBar, textBox);
 
             if (!outer.isConnected) {
-                outer.appendChild(inner);
+                // create collapse element
+                const collapse = document.createElement('div');
+                collapse.classList.add('usyNotificationInner', 'usyDownloadNotificationInner');
+                const textBox = document.createElement('div');
+                textBox.classList.add('usyDownloadTextBox');
+                collapse.appendChild(textBox);
+                collapse.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    textBox.textContent = (outer.classList.toggle('usyNotificationOuterCollapsed')) ?
+                        'Show download queue' : 'Hide download queue';
+                });
+                collapse.click();
+
+                outer.append(inner, collapse);
                 document.body.appendChild(outer);
             } else {
                 outer.prepend(inner);
@@ -1087,7 +1102,7 @@
                     inner.style.cursor = 'pointer';
                     inner.addEventListener('click', () => {
                         resolve();
-                        if (outer.children.length === 1) outer.remove();
+                        if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     });
                 }),
@@ -1106,7 +1121,7 @@
                     inner.style.cursor = 'pointer';
                     inner.addEventListener('click', () => {
                         Background.open_tab(url);
-                        if (outer.children.length === 1) outer.remove();
+                        if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     });
                 }

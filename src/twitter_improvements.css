@@ -71,6 +71,15 @@ body {
     align-items: flex-end;
 }
 
+.usyDownloadNotificationOuter {
+    max-height: none;
+    overflow: hidden;
+}
+
+.usyNotificationOuterCollapsed > :not(:last-child) {
+    display: none !important;
+}
+
 .usyErrorNotificationInner, .usyDownloadNotificationInner {
     background-color: #911a1a;
     position: relative;
