@@ -301,7 +301,7 @@ const defaultSettings = {
     }
 }
 
-const defaultSettingToDefault = (set) => {
+const defaultSettingToSetting = (set) => {
     const out = {};
     for (const s in set) out[s] = set[s].default;
     return out;
@@ -335,7 +335,7 @@ const Settings = { // Setting handling
 
             for (const category in defaultSettings) {
                 const defaults = defaultSettings[category];
-                Settings[category] = defaultSettingToDefault(defaults);
+                Settings[category] = defaultSettingToSetting(defaults);
 
                 storage[category] ||= {};
                 if (typeof storage[category] !== 'object') storage[category] = {};
