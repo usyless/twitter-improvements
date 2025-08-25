@@ -307,6 +307,8 @@ const defaultSettingToSetting = (set) => {
     return out;
 }
 
+let IGNORE_NEXT_STORAGE_UPDATE = false;
+
 const Settings = { // Setting handling
     defaults: defaultSettings,
 
@@ -368,7 +370,10 @@ const Settings = { // Setting handling
                 }
             }
 
-            if (updateStorage) extension.storage.local.set(storage).then(resolve);
+            if (updateStorage) {
+                IGNORE_NEXT_STORAGE_UPDATE = true;
+                extension.storage.local.set(storage).then(resolve);
+            }
             else resolve();
         });
     }),
@@ -562,11 +567,15 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
 
 extension.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-        Settings.loadSettings().then(() => {
-            send_to_all_tabs({type: 'settings_update', changes});
-            if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
-            if (Object.hasOwn(changes, 'extension_icon')) setIcon();
-        });
+        if (IGNORE_NEXT_STORAGE_UPDATE) {
+            IGNORE_NEXT_STORAGE_UPDATE = false;
+        } else {
+            Settings.loadSettings().then(() => {
+                send_to_all_tabs({type: 'settings_update', changes});
+                if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
+                if (Object.hasOwn(changes, 'extension_icon')) setIcon();
+            });
+        }
     }
 });
 
