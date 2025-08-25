@@ -330,7 +330,7 @@ const Settings = { // Setting handling
     })(),
 
     loadSettings: () => new Promise(resolve => {
-        extension.storage.local.get().then(async (storage) => {
+        extension.storage.local.get().then((storage) => {
             let updateStorage = false;
             storage ||= {};
 
@@ -368,9 +368,8 @@ const Settings = { // Setting handling
                 }
             }
 
-            if (updateStorage) await extension.storage.local.set(storage);
-
-            resolve();
+            if (updateStorage) extension.storage.local.set(storage).then(resolve);
+            else resolve();
         });
     }),
 }
