@@ -332,6 +332,7 @@ const Settings = { // Setting handling
     loadSettings: () => new Promise(resolve => {
         extension.storage.local.get().then(async (storage) => {
             let updateStorage = false;
+            storage ||= {};
 
             for (const category in defaultSettings) {
                 const defaults = defaultSettings[category];
@@ -354,7 +355,7 @@ const Settings = { // Setting handling
                 }
             }
 
-            for (const setting in storage || {}) {
+            for (const setting in storage) {
                 if (!Object.hasOwn(defaultSettings, setting)) {
                     updateStorage = true;
                     delete storage[setting];
