@@ -61,7 +61,6 @@
  * @property {({ name: string, type: string })[]} [choices]
  * @property {('text' | 'choice' | 'button' | 'number' | 'quickPick' | 'break')} [type]
  * @property {[string, string][]} [quickPicks]
- * @property {function(number): boolean} [validate]
  * @property {function(HTMLElement): *} [post]
  * @property {Record<string, string>} [attributes]
  * @property {function(): *} [onclick]
