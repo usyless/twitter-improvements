@@ -215,7 +215,13 @@
                     button: 'Clear download history',
                     onclick: () => {
                         customPopup('Are you sure you want to clear your media download history?', true).then((result) => {
-                            if (result) Background.clear_download_history();
+                            if (result) {
+                                const {removeOverlay} = makeScreenOverlay('Deleting, please wait...');
+                                Background.clear_download_history().then(() => {
+                                    removeOverlay();
+                                    void customPopup('Successfully cleared media download history');
+                                });
+                            }
                         });
                     }
                 },
@@ -1096,6 +1102,9 @@
         return [outer, elem];
     }
 
+    /** @param {Event} ev
+     *  @param {HTMLInputElement} [currentTarget]
+     */
     function update_value(ev, currentTarget) {
         window.dispatchEvent(resizeEvent);
         const obj = (ev.currentTarget || currentTarget).closest('[data-setting]').properties;
