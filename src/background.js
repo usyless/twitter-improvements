@@ -344,7 +344,12 @@ const Settings = { // Setting handling
                 for (const setting in settingCategory) {
                     if (Object.hasOwn(defaults, setting)) {
                         if (defaults[setting].validate(settingCategory[setting])) {
-                            Settings[category][setting] = settingCategory[setting];
+                            if (defaults[setting].default === settingCategory[setting]) {
+                                updateStorage = true;
+                                delete settingCategory[setting];
+                            } else {
+                                Settings[category][setting] = settingCategory[setting];
+                            }
                         } else {
                             updateStorage = true;
                             delete settingCategory[setting];
