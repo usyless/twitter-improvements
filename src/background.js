@@ -10,97 +10,301 @@ const extension = typeof browser !== 'undefined' ? browser : (() => {
 
 const isAndroid = /Android/i.test(navigator.userAgent);
 
+const CONSTRAINTS = {
+    BOOLEAN: a => typeof a === 'boolean',
+    NUMBER: a => typeof a === 'number' && !Number.isNaN(a),
+    STRING: a => typeof a === 'string',
+    VALUES: (...v) => a => v.includes(a),
+    COMBINATOR: (...v) => a => v.every(f => f(a)),
+    GT: v => a => +a > v,
+    GTE: v => a => +a >= v,
+    LT: v => a => +a < v,
+    LTE: v => a => +a <= v,
+}
+
 const defaultSettings = {
     setting: {
-        vx_button: true,
-        media_download_button: true,
-        inline_download_button: false,
-        bookmark_on_photo_page: false,
-        hide_bottom_bar_completely: false
+        vx_button: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        media_download_button: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        inline_download_button: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        bookmark_on_photo_page: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_bottom_bar_completely: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        }
     },
 
     listeners: {
-        vx_copy_shortcut: true
+        vx_copy_shortcut: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        }
     },
 
     contextmenu: {
-        save_image: true
+        save_image: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        }
     },
 
     vx_preferences: {
-        url_prefix: 'fixvx.com',
-        custom_url: '',
+        url_prefix: {
+            default: 'fixvx.com',
+            validate: CONSTRAINTS.VALUES('fixvx.com', 'fixupx.com', 'x.com')
+        },
+        custom_url: {
+            default: '',
+            validate: CONSTRAINTS.STRING
+        },
     },
 
     image_preferences: {
-        image_button_position: '0',
-        image_button_scale: '1',
-        image_button_height_value: '1',
-        image_button_height_value_small: '1',
-        small_image_size_threshold: '350',
-        image_button_width_value: '1'
+        image_button_position: {
+            default: '0',
+            validate: CONSTRAINTS.VALUES('0', '1', '2', '3')
+        },
+        image_button_scale: {
+            default: '1',
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0))
+        },
+        image_button_height_value: {
+            default: '1',
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+        },
+        image_button_height_value_small: {
+            default: '1',
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+        },
+        small_image_size_threshold: {
+            default: '350',
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0))
+        },
+        image_button_width_value: {
+            default: '1',
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+        }
     },
 
     download_preferences: {
-        save_as_prompt: 'browser',
-        save_as_prompt_shift: 'browser',
-        save_as_prompt_ctrl: 'browser',
-        save_as_prompt_alt: 'browser',
-        save_directory: '',
-        save_directory_shift: '',
-        save_directory_ctrl: '',
-        save_directory_alt: '',
-        save_format: '[twitter] {username} - {tweetId} - {tweetNum}',
-        download_all_near_click: false,
-        download_all_override_saved: true,
-        download_history_enabled: true,
-        download_history_prevent_download: false,
+        save_as_prompt: {
+            default: 'browser',
+            validate: CONSTRAINTS.VALUES('browser', 'off', 'on')
+        },
+        save_as_prompt_shift: {
+            default: 'browser',
+            validate: CONSTRAINTS.VALUES('browser', 'off', 'on')
+        },
+        save_as_prompt_ctrl: {
+            default: 'browser',
+            validate: CONSTRAINTS.VALUES('browser', 'off', 'on')
+        },
+        save_as_prompt_alt: {
+            default: 'browser',
+            validate: CONSTRAINTS.VALUES('browser', 'off', 'on')
+        },
+        save_directory: {
+            default: '',
+            validate: CONSTRAINTS.STRING
+        },
+        save_directory_shift: {
+            default: '',
+            validate: CONSTRAINTS.STRING
+        },
+        save_directory_ctrl: {
+            default: '',
+            validate: CONSTRAINTS.STRING
+        },
+        save_directory_alt: {
+            default: '',
+            validate: CONSTRAINTS.STRING
+        },
+        save_format: {
+            default: '[twitter] {username} - {tweetId} - {tweetNum}',
+            validate: CONSTRAINTS.STRING
+        },
+        download_all_near_click: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        download_all_override_saved: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        download_history_enabled: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        download_history_prevent_download: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
 
-        use_download_progress: false,
-        download_picker_on_media_page: true,
-        hover_thumbnail_timeout: -1,
+        use_download_progress: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        download_picker_on_media_page: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hover_thumbnail_timeout: {
+            default: -1,
+            validate: CONSTRAINTS.NUMBER
+        },
     },
 
     style: {
-        hide_grok: false,
-        hide_premium: false,
-        hide_post_reply_sections: false,
-        hide_tweet_view_count: false,
-        hide_tweet_share_button: false,
-        hide_replies_button_tweet: false,
-        hide_retweet_button_tweet: false,
-        hide_like_button_tweet: false,
-        hide_bookmark_button_tweet: false,
-        hide_notifications: false,
-        hide_messages: false,
-        hide_jobs: false,
-        hide_lists: false,
-        hide_communities: false,
-        hide_create_your_space: false,
-        hide_post_button: false,
-        hide_follower_requests: false,
-        hide_verified_orgs: false,
-        hide_monetization: false,
-        hide_ads_button: false,
-        hide_whats_happening: false,
-        hide_who_to_follow: false,
-        hide_relevant_people: false,
-        hide_live_on_x: false,
-        hide_sidebar_footer: false,
+        hide_grok: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_premium: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_post_reply_sections: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_tweet_view_count: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_tweet_share_button: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_replies_button_tweet: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_retweet_button_tweet: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_like_button_tweet: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_bookmark_button_tweet: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_notifications: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_messages: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_jobs: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_lists: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_communities: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_create_your_space: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_post_button: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_follower_requests: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_verified_orgs: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_monetization: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_ads_button: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_whats_happening: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_who_to_follow: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_relevant_people: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_live_on_x: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        hide_sidebar_footer: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
 
-        tweet_button_positions: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}'
+        tweet_button_positions: {
+            default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
+            validate: CONSTRAINTS.STRING
+        }
     },
 
     hidden_extension_notifications: {
-        save_media: false,
-        save_media_duplicate: false,
-        history_remove: false,
-        copied_url: false,
+        save_media: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        save_media_duplicate: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        history_remove: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        copied_url: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
     },
 
     extension_icon: {
-        custom: false,
+        custom: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
     }
+}
+
+const defaultSettingToDefault = (set) => {
+    const out = {};
+    for (const s in set) out[s] = set[s].default;
+    return out;
 }
 
 const Settings = { // Setting handling
@@ -126,8 +330,34 @@ const Settings = { // Setting handling
     })(),
 
     loadSettings: () => new Promise(resolve => {
-        extension.storage.local.get().then((s) => {
-            for (const setting in defaultSettings) Settings[setting] = {...defaultSettings[setting], ...s[setting]};
+        extension.storage.local.get().then(async (storage) => {
+            let updateStorage = false;
+
+            for (const category in defaultSettings) {
+                const defaults = defaultSettings[category];
+                Settings[category] = defaultSettingToDefault(defaults);
+
+                storage[category] ||= {};
+                if (typeof storage[category] !== 'object') storage[category] = {};
+                const settingCategory = storage[category];
+
+                for (const setting in settingCategory) {
+                    if (Object.hasOwn(defaults, setting)) {
+                        if (defaults[setting].validate(settingCategory[setting])) {
+                            Settings[category][setting] = settingCategory[setting];
+                        } else {
+                            updateStorage = true;
+                            delete settingCategory[setting];
+                        }
+                    } else {
+                        updateStorage = true;
+                        delete settingCategory[setting];
+                    }
+                }
+            }
+
+            if (updateStorage) await extension.storage.local.set(storage);
+
             resolve();
         });
     }),
