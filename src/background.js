@@ -468,7 +468,9 @@ const requestMap = {
         extension.tabs.create({url}).then(() => {
             sendResponse(true);
         });
-    }
+    },
+
+    validate_setting: ({category, setting, value}, sendResponse) => sendResponse(!!(defaultSettings[category]?.[setting]?.validate(value)))
 };
 
 const requestMapPorts = {

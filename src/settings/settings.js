@@ -35,6 +35,7 @@
         clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
         download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
         get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
+        validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
     };
 
     Background.get_android().then((r) => {
@@ -856,8 +857,9 @@
             input.type = 'number';
             valuesToUpdate.push({obj: e, func: (v) => input.value = v});
             e.valueProperty = 'value';
-            input.addEventListener('change', (ev) => {
-                if (Defaults[e.category][e.name].validate(input.value)) update_value(ev);
+            input.addEventListener('change', async (ev) => {
+                const currentTarget = ev.currentTarget;
+                if (await Background.validate_setting(e.category, e.name, input.value)) update_value(ev, currentTarget);
                 else input.value = Defaults[e.category][e.name].default;
             });
             return outer;
@@ -1094,9 +1096,9 @@
         return [outer, elem];
     }
 
-    function update_value(ev) {
+    function update_value(ev, currentTarget) {
         window.dispatchEvent(resizeEvent);
-        const obj = ev.currentTarget.closest('[data-setting]').properties;
+        const obj = (ev.currentTarget || currentTarget).closest('[data-setting]').properties;
         getStorage([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = obj.valueElement[obj.valueProperty];
