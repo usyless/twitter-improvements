@@ -307,8 +307,6 @@ const defaultSettingToSetting = (set) => {
     return out;
 }
 
-let IGNORE_NEXT_STORAGE_UPDATE = false;
-
 const Settings = { // Setting handling
     defaults: defaultSettings,
 
@@ -335,6 +333,7 @@ const Settings = { // Setting handling
         extension.storage.local.get().then((storage) => {
             let updateStorage = false;
             storage ||= {};
+            const keysToDelete = [];
 
             for (const category in defaultSettings) {
                 const defaults = defaultSettings[category];
@@ -345,6 +344,7 @@ const Settings = { // Setting handling
                     continue;
                 } else if (typeof storage[category] !== 'object') {
                     updateStorage = true;
+                    keysToDelete.push(category);
                     delete storage[category];
                     continue;
                 }
@@ -364,15 +364,20 @@ const Settings = { // Setting handling
             }
 
             for (const setting in storage) {
-                if (!Object.hasOwn(defaultSettings, setting)) {
+                if ((!Object.hasOwn(defaultSettings, setting))
+                    || (typeof storage[setting] !== 'object')
+                    || ((typeof storage[setting] === 'object') && (Object.keys(storage[setting]).length <= 0))) {
                     updateStorage = true;
+                    keysToDelete.push(setting);
                     delete storage[setting];
                 }
             }
 
             if (updateStorage) {
-                IGNORE_NEXT_STORAGE_UPDATE = true;
-                extension.storage.local.set(storage).then(resolve);
+                Promise.allSettled([
+                    extension.storage.local.remove(keysToDelete),
+                    extension.storage.local.set(storage)
+                ]).then(resolve);
             }
             else resolve();
         });
@@ -567,15 +572,11 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
 
 extension.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
-        if (IGNORE_NEXT_STORAGE_UPDATE) {
-            IGNORE_NEXT_STORAGE_UPDATE = false;
-        } else {
-            Settings.loadSettings().then(() => {
-                send_to_all_tabs({type: 'settings_update', changes});
-                if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
-                if (Object.hasOwn(changes, 'extension_icon')) setIcon();
-            });
-        }
+        Settings.loadSettings().then(() => {
+            send_to_all_tabs({type: 'settings_update', changes});
+            if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
+            if (Object.hasOwn(changes, 'extension_icon')) setIcon();
+        });
     }
 });
 
