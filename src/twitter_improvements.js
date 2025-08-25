@@ -1364,11 +1364,11 @@
                 Settings.loadSettings().then(() => {
                     const changes = message.changes;
                     // only need to reload for vx setting change
-                    if (changes.hasOwnProperty('setting')) Observer.start();
+                    if (Object.hasOwn(changes, 'setting')) Observer.start();
                     // update on image pref or download pref change
-                    else if (changes.hasOwnProperty('image_preferences') || changes.hasOwnProperty('download_preferences')) Image.resetAll();
+                    else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
 
-                    if (changes.hasOwnProperty('listeners')) Listeners.start();
+                    if (Object.hasOwn(changes, 'listeners')) Listeners.start();
                 });
                 break;
             }

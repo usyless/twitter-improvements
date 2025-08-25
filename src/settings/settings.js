@@ -987,7 +987,7 @@
 
         const hashchangeHandler = (_, instant) => {
             const hash = decodeURIComponent(window.location.hash.substring(1));
-            if (options.hasOwnProperty(hash)) {
+            if (Object.hasOwn(options, hash)) {
                 lastPane = hash;
                 header.querySelector('.selected')?.classList.remove('selected');
                 header.querySelector(`div[data-pane="${hash}"]`).classList.add('selected');

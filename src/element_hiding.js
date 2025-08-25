@@ -121,6 +121,6 @@
     void start();
 
     extension.runtime.onMessage.addListener((message) => {
-        if (message.type === 'settings_update' && message.changes.hasOwnProperty('style')) void start();
+        if (message.type === 'settings_update' && Object.hasOwn(message.changes, 'style')) void start();
     });
 })();

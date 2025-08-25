@@ -551,8 +551,8 @@ extension.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
         Settings.loadSettings().then(() => {
             send_to_all_tabs({type: 'settings_update', changes});
-            if (changes.hasOwnProperty('contextmenu')) void setupContextMenus();
-            if (changes.hasOwnProperty('extension_icon')) setIcon();
+            if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
+            if (Object.hasOwn(changes, 'extension_icon')) setIcon();
         });
     }
 });
