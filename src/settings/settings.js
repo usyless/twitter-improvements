@@ -231,13 +231,14 @@
                         i.id = 'download_history_input';
                         i.hidden = true;
                         i.accept = '.twitterimprovements,.twitterimprovementsbin';
-                        i.addEventListener('change', (e) => {
-                            const file = e.target.files[0];
+                        i.addEventListener('change', () => {
+                            const file = i.files[0];
                             if (!file) return;
 
                             const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const onFinish = () => {
                                 removeOverlay();
+                                i.value = ''; // fix for double identical file inputs
                                 void customPopup('Successfully imported!');
                             }
                             if (file.name.endsWith('.twitterimprovementsbin')) {
@@ -283,10 +284,10 @@
                         i.multiple = true;
                         i.accept = 'image/*, video/*';
                         const validNums = new Set([1, 2, 3, 4]);
-                        i.addEventListener('change', (e) => {
+                        i.addEventListener('change', () => {
                             const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const saved_images = [];
-                            for (const {name} of e.target.files) {
+                            for (const {name} of i.files) {
                                 const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
                                 if (id.length > 10) {
                                     const num = name.slice(name.indexOf(id) + id.length).match(/\d+/);
@@ -298,6 +299,7 @@
                                 progressCallback(progress, length, text);
                             }).then(() => {
                                 removeOverlay();
+                                i.value = ''; // fix for double identical file inputs
                                 void customPopup(`Successfully imported ${saved_images.length} files!`);
                             });
                         });
@@ -416,11 +418,12 @@
                         i.hidden = true;
                         i.multiple = false;
                         i.accept = 'application/json';
-                        i.addEventListener('change', (e) => {
-                            const file = e.target.files[0];
+                        i.addEventListener('change', () => {
+                            const file = i.files[0];
                             if (!file) return;
                             file.text()
                                 .then(async (r) => {
+                                    i.value = ''; // fix for double identical file inputs
                                     const j = JSON.parse(r);
                                     // order important here
                                     await clearStorage();
