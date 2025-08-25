@@ -812,10 +812,10 @@
                     // buttons implicitly adjusted
                     if (r === true) {
                         Notification.create(`Removing ${type} from saved`, 'history_remove');
-                        Background.download_history_remove(save_id);
+                        void Background.download_history_remove(save_id);
                     } else {
                         Notification.create(`Adding ${type} to saved`, 'history_add');
-                        Background.download_history_add(save_id);
+                        void Background.download_history_add(save_id);
                     }
                 });
             }
@@ -873,7 +873,7 @@
             inner.textContent = text;
             inner.style.cursor = 'pointer';
             inner.addEventListener('click', () => {
-                Background.open_tab(url);
+                void Background.open_tab(url);
                 if (outer.children.length === 2) outer.remove();
                 else inner.remove();
             });
@@ -1120,7 +1120,7 @@
                     progressBar.classList.add('usyDownloadError');
                     inner.style.cursor = 'pointer';
                     inner.addEventListener('click', () => {
-                        Background.open_tab(url);
+                        void Background.open_tab(url);
                         if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     });
@@ -1206,7 +1206,7 @@
                     await downloadFinished(filename);
                     Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
                 } catch {
-                    Background.download_history_remove(save_id);
+                    void Background.download_history_remove(save_id);
                     downloadError(filename, tweetURL);
                 }
             } else {
@@ -1218,7 +1218,7 @@
                         throw new Error(`HTTP error! status: ${r.status}`);
                     }
                 } catch {
-                    Background.download_history_remove(save_id);
+                    void Background.download_history_remove(save_id);
                     Notification.persistentError(`Error downloading file: ${filename}\nClick here to see the tweet`, tweetURL);
                 }
             }
