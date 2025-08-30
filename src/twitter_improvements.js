@@ -522,9 +522,11 @@
 
             document.body.appendChild(fullscreen);
 
+            const controller = new AbortController();
+
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
                 requestAnimationFrame(() => {
-                    if (thumb.isConnected) {
+                    if (thumb.isConnected && !controller.signal.aborted) {
                         const {left, width, top, bottom} = element.getBoundingClientRect();
                         const bottomDistance = window.innerHeight - bottom;
 
@@ -540,7 +542,7 @@
                         Image.fixThumbnailPosition(thumb);
                     }
                 });
-            }, { once: true });
+            }, { once: true, signal: controller.signal });
 
             const eventElem = eventTarget ?? element;
 
@@ -551,6 +553,7 @@
                 window.removeEventListener('popstate', closeThumb, { capture: true });
                 window.removeEventListener('scroll', closeThumb, { capture: true });
                 fullscreen.remove();
+                controller.abort();
             }
 
             eventElem.addEventListener('pointerleave', closeThumb);
