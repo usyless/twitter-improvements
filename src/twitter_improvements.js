@@ -1138,7 +1138,23 @@
          */
         hideBottomBar: (bar) => {
             const style = bar.getAttribute('style');
-            if (style && !(style.includes('opacity: 1'))) bar.style.opacity = '0';
+            if (style) {
+                const notifs = bar.parentElement?.parentElement?.previousElementSibling;
+                const par = notifs?.parentElement;
+                if (par && !(par.style.transition)) par.style.transition = 'transform 300ms ease-in-out, opacity 300ms ease-in-out';
+                if (style.includes('opacity: 1')) {
+                    if (par) {
+                        par.style.transform = '';
+                        par.style.opacity = '';
+                    }
+                } else {
+                    if (notifs && par) {
+                        const match = notifs.style.transform.match(/translateY\((.*)\)/);
+                        if (match) par.style.transform = `translateY(calc(-1 * ${match[1]}))`;
+                        else par.style.opacity = '0';
+                    }
+                }
+            }
         }
     };
 
