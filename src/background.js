@@ -21,6 +21,8 @@ const CONSTRAINTS = {
     GTE: v => a => +a >= v,
     LT: v => a => +a < v,
     LTE: v => a => +a <= v,
+    MOBILE: () => isAndroid,
+    DESKTOP: () => !isAndroid
 }
 
 const defaultSettings = {
@@ -43,7 +45,7 @@ const defaultSettings = {
         },
         hide_bottom_bar_completely: {
             default: false,
-            validate: CONSTRAINTS.BOOLEAN
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         }
     },
 
@@ -57,7 +59,7 @@ const defaultSettings = {
     contextmenu: {
         save_image: {
             default: true,
-            validate: CONSTRAINTS.BOOLEAN
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.DESKTOP)
         }
     },
 
@@ -155,7 +157,7 @@ const defaultSettings = {
 
         use_download_progress: {
             default: false,
-            validate: CONSTRAINTS.BOOLEAN
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         },
         download_picker_on_media_page: {
             default: true,
