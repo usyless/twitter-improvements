@@ -8,7 +8,8 @@ const extension = typeof browser !== 'undefined' ? browser : (() => {
     return chrome;
 })();
 
-const isAndroid = /Android/i.test(navigator.userAgent);
+const isAndroid = /Android/.test(navigator.userAgent);
+const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
 const CONSTRAINTS = {
     BOOLEAN: a => typeof a === 'boolean',
@@ -593,7 +594,7 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {saveId} [save_id]
  */
 function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) {
-    if (isAndroid) {
+    if (isAndroid && !isEdgeAndroid) {
         sendToTab({ type: 'download', url, filename, tweetURL, save_id });
         return Promise.resolve(-1);
     } else {
