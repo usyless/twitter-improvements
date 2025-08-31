@@ -926,7 +926,9 @@
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings()])
         .then(() => {
         for (const {obj, func} of valuesToUpdate) {
-            func(Settings[obj.category][obj.name]);
+            const value = Settings[obj.category][obj.name];
+            if (value == null) void customPopup(`Warning: Value is ${value} for ${obj.name} in ${obj.category}`);
+            func(value);
             obj.element?.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
