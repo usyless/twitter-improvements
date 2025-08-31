@@ -274,6 +274,10 @@ const defaultSettings = {
         tweet_button_positions: {
             default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
             validate: CONSTRAINTS.STRING
+        },
+        more_media_icon_visible: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 
