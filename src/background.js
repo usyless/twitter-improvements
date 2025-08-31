@@ -182,6 +182,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_subscribe_buttons: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_tweet_view_count: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
@@ -291,6 +295,10 @@ const defaultSettings = {
             validate: CONSTRAINTS.BOOLEAN
         },
         history_remove: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        history_add: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
