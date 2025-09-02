@@ -254,6 +254,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_todays_news: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_whats_happening: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
@@ -834,6 +838,7 @@ async function migrateSettings(previousVersion) {
                     hide_premium, hide_verified_orgs, hide_monetization, hide_ads_button, hide_whats_happening,
                     hide_who_to_follow, hide_relevant_people, hide_create_your_space, hide_post_button,
                     hide_follower_requests, hide_live_on_x, hide_post_reply_sections, hide_sidebar_footer,
+                    hide_todays_news,
                     // settings
                     vx_button, video_button, image_button, show_hidden,
                     // preferences
@@ -854,6 +859,7 @@ async function migrateSettings(previousVersion) {
                 if (hide_verified_orgs != null) newSettings.style.hide_verified_orgs = hide_verified_orgs;
                 if (hide_monetization != null) newSettings.style.hide_monetization = hide_monetization;
                 if (hide_ads_button != null) newSettings.style.hide_ads_button = hide_ads_button;
+                if (hide_todays_news != null) newSettings.style.hide_todays_news = hide_todays_news;
                 if (hide_whats_happening != null) newSettings.style.hide_whats_happening = hide_whats_happening;
                 if (hide_who_to_follow != null) newSettings.style.hide_who_to_follow = hide_who_to_follow;
                 if (hide_relevant_people != null) newSettings.style.hide_relevant_people = hide_relevant_people;
