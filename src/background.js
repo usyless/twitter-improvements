@@ -254,6 +254,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_todays_news: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_whats_happening: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN

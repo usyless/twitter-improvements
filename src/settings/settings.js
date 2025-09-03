@@ -595,6 +595,11 @@
             ],
             'Right Sidebar': [
                 {
+                    name: 'hide_todays_news',
+                    category: 'style',
+                    description: "Today's News tab"
+                },
+                {
                     name: 'hide_whats_happening',
                     category: 'style',
                     description: "What's Happening tab",
