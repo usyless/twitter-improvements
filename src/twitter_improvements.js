@@ -1425,8 +1425,6 @@
 
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
 
-    Notification.persistentError("hello whisdiidfihjklfsdsdf", "test", {}, {});
-
     extension.runtime.onMessage.addListener((message) => {
         switch (message.type) {
             case 'history_change_add': {
