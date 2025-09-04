@@ -1140,7 +1140,7 @@
                     textBox.textContent = `Downloaded: ${receivedBytes} / ${totalBytes ? totalBytes : 'Unknown'} Bytes`;
                 },
 
-                downloadError: (filename, url, media, modifiers) => {
+                downloadError: (text, url, media, modifiers) => {
                     inner.classList.add('usyErrorNotificationInner');
                     inner.classList.remove('usyDownloadNotificationInner');
                     inner.style.cursor = 'pointer';
@@ -1151,7 +1151,7 @@
                     const viewChoice = document.createElement('div');
                     const cancelChoice = document.createElement('div');
 
-                    innerText.textContent = `Error Downloading: ${filename}`;
+                    innerText.textContent = text;
                     innerChoices.style.cursor = 'pointer';
 
                     retryChoice.textContent = 'Retry';
@@ -1276,7 +1276,7 @@
                     Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
                 } catch {
                     void Background.download_history_remove(save_id);
-                    downloadError(filename, tweetURL, media, modifiers);
+                    downloadError(`Error downloading: ${filename}`, tweetURL, media, modifiers);
                 }
             } else {
                 try {
@@ -1288,7 +1288,7 @@
                     }
                 } catch {
                     void Background.download_history_remove(save_id);
-                    Notification.persistentError(`Error downloading file: ${filename}`, tweetURL, media, modifiers);
+                    Notification.persistentError(`Error downloading: ${filename}`, tweetURL, media, modifiers);
                 }
             }
         },
