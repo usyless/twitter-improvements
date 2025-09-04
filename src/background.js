@@ -610,10 +610,11 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {EventModifiers} [modifiers]
  * @param {string} [tweetURL]
  * @param {saveId} [save_id]
+ * @param {MediaItem} [media]
  */
-function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id}={}) {
+function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id, media}={}) {
     if (isAndroid && !isEdgeAndroid) {
-        sendToTab({ type: 'download', url, filename, tweetURL, save_id });
+        sendToTab({ type: 'download', url, filename, tweetURL, save_id, media, modifiers: {shift, ctrl, alt} });
         return Promise.resolve(-1);
     } else {
         return Settings.getSettings().then(() => {
@@ -718,17 +719,19 @@ function formatFilename(parts, save_format) {
 function download_media({url, media, modifiers}, sendResponse) {
     Settings.getSettings().then(() => {
         const {save_format, download_history_enabled} = Settings.download_preferences;
+        let i = 0;
         for (const {type, url: sourceURL, index, save_id} of media) {
             const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
             parts.tweetNum = index;
             if (download_history_enabled) void download_history_add(save_id);
-            const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download media with error ${error}\nClick here to see the tweet.`, url}));
-            download(sourceURL, formatFilename(parts, save_format), modifiers, {tweetURL: url, save_id})
+            const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download error ${error}`, url, media: media[i], modifiers}));
+            download(sourceURL, formatFilename(parts, save_format), modifiers, {tweetURL: url, save_id, media: media[i]})
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
                     else if (downloadId === -1) void 0; // android, ignore it
                     else DOWNLOAD_MAP.set(downloadId, onError);
                 }, onError);
+            ++i;
         }
         sendResponse({status: 'success'});
     });

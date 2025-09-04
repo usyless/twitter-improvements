@@ -85,6 +85,20 @@ body {
     position: relative;
     bottom: 1em;
     right: 1em;
+    display: flex;
+    flex-direction: column;
+
+    > div:nth-child(2) {
+        display: flex;
+        justify-content: space-evenly;
+        gap: 3px;
+
+        > * {
+            border-radius: 6px;
+            padding: 5px 7px;
+            background-color: #700d0d;
+        }
+    }
 }
 
 .usyDownloadNotificationInner {

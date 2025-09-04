@@ -866,20 +866,43 @@
         /**
          * @param {string} text
          * @param {string} url
+         * @param {MediaItem} media
+         * @param {EventModifiers} modifiers
          */
-        persistentError: (text, url) => {
+        persistentError: (text, url, media, modifiers) => {
             const outer = document.querySelector('.usyErrorNotificationOuter')
                 || document.createElement('div');
             const inner = document.createElement('div');
             outer.classList.add('usyNotificationOuter', 'usyErrorNotificationOuter');
             inner.classList.add('usyNotificationInner', 'usyErrorNotificationInner');
-            inner.textContent = text;
-            inner.style.cursor = 'pointer';
-            inner.addEventListener('click', () => {
+            const innerText = document.createElement('div');
+            const innerChoices = document.createElement('div');
+            const retryChoice = document.createElement('div');
+            const viewChoice = document.createElement('div');
+            const cancelChoice = document.createElement('div');
+
+            innerText.textContent = text;
+            innerChoices.style.cursor = 'pointer';
+
+            retryChoice.textContent = 'Retry';
+            viewChoice.textContent = 'View Tweet';
+            cancelChoice.textContent = 'Cancel';
+
+            retryChoice.addEventListener('click', () => {
+                void Downloaders.download_all(url, media, modifiers);
+            });
+
+            viewChoice.addEventListener('click', () => {
                 void Background.open_tab(url);
+            });
+
+            inner.addEventListener('click', () => {
                 if (outer.children.length === 2) outer.remove();
                 else inner.remove();
             });
+
+            innerChoices.append(retryChoice, viewChoice, cancelChoice);
+            inner.append(innerText, innerChoices);
 
             if (!outer.isConnected) {
                 const clear = document.createElement('div');
@@ -1062,7 +1085,7 @@
         getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]'),
 
         /**
-         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number), downloadError: function(string, string)}}
+         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number), downloadError: function(string, string, MediaItem, EventModifiers)}}
          */
         createMobileDownloadPopup: () => {
             const outer = document.querySelector('.usyDownloadNotificationOuter')
@@ -1117,16 +1140,41 @@
                     textBox.textContent = `Downloaded: ${receivedBytes} / ${totalBytes ? totalBytes : 'Unknown'} Bytes`;
                 },
 
-                downloadError: (filename, url) => {
-                    textBox.textContent = `Error Downloading: ${filename}\nClick here to see the tweet`;
-                    progressBar.style.width = '100%';
-                    progressBar.classList.add('usyDownloadError');
+                downloadError: (filename, url, media, modifiers) => {
+                    inner.classList.add('usyErrorNotificationInner');
+                    inner.classList.remove('usyDownloadNotificationInner');
                     inner.style.cursor = 'pointer';
-                    inner.addEventListener('click', () => {
+
+                    const innerText = document.createElement('div');
+                    const innerChoices = document.createElement('div');
+                    const retryChoice = document.createElement('div');
+                    const viewChoice = document.createElement('div');
+                    const cancelChoice = document.createElement('div');
+
+                    innerText.textContent = `Error Downloading: ${filename}`;
+                    innerChoices.style.cursor = 'pointer';
+
+                    retryChoice.textContent = 'Retry';
+                    viewChoice.textContent = 'View Tweet';
+                    cancelChoice.textContent = 'Cancel';
+
+                    retryChoice.addEventListener('click', () => {
+                        void Downloaders.download_all(url, media, modifiers);
+                    });
+
+                    viewChoice.addEventListener('click', () => {
                         void Background.open_tab(url);
+                    });
+
+                    inner.addEventListener('click', () => {
                         if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     });
+
+                    innerChoices.append(retryChoice, viewChoice, cancelChoice);
+                    textBox.remove();
+                    progressBar.remove();
+                    inner.append(innerText, innerChoices);
                 }
             }
         }
@@ -1215,8 +1263,10 @@
          * @param {string} filename
          * @param {string} tweetURL
          * @param {saveId} save_id
+         * @param {MediaItem} media
+         * @param {EventModifiers} modifiers
          */
-        download: async (url, filename, tweetURL, save_id) => {
+        download: async (url, filename, tweetURL, save_id, media, modifiers) => {
             if (Settings.download_preferences.use_download_progress) {
                 const { downloadFinished, onProgress, downloadError } = Notification.createMobileDownloadPopup();
                 onProgress(null, 0);
@@ -1226,7 +1276,7 @@
                     Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
                 } catch {
                     void Background.download_history_remove(save_id);
-                    downloadError(filename, tweetURL);
+                    downloadError(filename, tweetURL, media, modifiers);
                 }
             } else {
                 try {
@@ -1238,7 +1288,7 @@
                     }
                 } catch {
                     void Background.download_history_remove(save_id);
-                    Notification.persistentError(`Error downloading file: ${filename}\nClick here to see the tweet`, tweetURL);
+                    Notification.persistentError(`Error downloading file: ${filename}`, tweetURL, media, modifiers);
                 }
             }
         },
@@ -1375,6 +1425,8 @@
 
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
 
+    Notification.persistentError("hello whisdiidfihjklfsdsdf", "test", {}, {});
+
     extension.runtime.onMessage.addListener((message) => {
         switch (message.type) {
             case 'history_change_add': {
@@ -1416,11 +1468,11 @@
                 break;
             }
             case 'download': {
-                void Helpers.download(message.url, message.filename, message.tweetURL, message.save_id);
+                void Helpers.download(message.url, message.filename, message.tweetURL, message.save_id, message.media, message.modifiers);
                 break;
             }
             case 'error': {
-                Notification.persistentError(message.message, message.url);
+                Notification.persistentError(message.message, message.url, message.media, message.modifiers);
                 break;
             }
         }
