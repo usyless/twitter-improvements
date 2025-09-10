@@ -47,3 +47,11 @@ Saved Image/Video Reversing
 
 **Chrome or other chromium based browsers**
 1. Install extension through the [Chrome web store](https://chromewebstore.google.com/detail/improvements-for-twitter/joficcmkfcceifjloncilgpnljofjfdc)
+
+**Edge Mobile Canary**
+1. Download the latest release from the releases tab
+2. Within the `src` directory, delete manifest.bat, and rename `manifest_chrome.bat` to `manifest.bat`
+3. Open a desktop chromium browser, navigate to `chrome://extensions`, click on `Pack extension`
+4. Choose the `src` directory as the root, then click pack to get a `.crx` file
+5. Transfer this file to your phone, then within edge canary go to Settings > Developer Options > Extension install by crx
+6. Select the `.crx` file, and your extension is installed! Though this will require manual updating...
