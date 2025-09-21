@@ -13,21 +13,21 @@
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
 
     /** @type {(saveId) => Promise<MediaItem[]>} */
-    const URLCacheGet = (id) => new Promise((resolve) => {
+    const URLCacheGet = (id) => {
         const result = URL_CACHE.get(id);
-        if (result) {
-            resolve(result);
-            return;
-        }
+        if (result) return Promise.resolve(result);
+        if (id.includes('-') || Number.isNaN(+id)) return Promise.reject("Invalid ID provided");
 
-        let promisesArr = URL_CACHE_PROMISES.get(id);
-        if (promisesArr == null) {
-            promisesArr = [];
-            URL_CACHE_PROMISES.set(id, promisesArr);
-        }
+        return new Promise((resolve) => {
+            let promisesArr = URL_CACHE_PROMISES.get(id);
+            if (promisesArr == null) {
+                promisesArr = [];
+                URL_CACHE_PROMISES.set(id, promisesArr);
+            }
 
-        promisesArr.push(resolve);
-    });
+            promisesArr.push(resolve);
+        });
+    };
 
     window.addEventListener("message", (e) => {
         if (e.source !== window || e.origin !== "https://x.com") return;
