@@ -420,7 +420,6 @@
                     const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
                     const [id_tweet, indexExtraOne] = id.split('-');
                     URLCacheGet(id_tweet).then((media) => {
-                        console.log(media);
                         const mark_button = () => {
                             button.setAttribute('ti-id', id);
                             if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -509,8 +508,11 @@
          * @param {string} [customSearch]
          */
         showThumbnail: (element, media, {eventTarget, customSearch} = {}) => {
+            for (const e of document.querySelectorAll('.usyNotificationOuter[data-usythumb]')) e.usyCloseThumb?.();
+
             const fullscreen = document.createElement('div');
             fullscreen.classList.add('usyNotificationOuter');
+            fullscreen.dataset.usythumb = '';
             const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
             fullscreen.appendChild(thumb);
 
@@ -539,9 +541,16 @@
                 controller.abort();
             }
 
+            fullscreen.usyCloseThumb = closeThumb;
+
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
                 requestAnimationFrame(() => {
-                    if ((thumb.isConnected) && !(controller.signal.aborted) && (!isAndroid && Array.from(Helpers.allHoveringElements()).includes(eventElem))) {
+                    if ((thumb.isConnected) && !(controller.signal.aborted)) {
+                        if (!isAndroid && !Array.from(Helpers.allHoveringElements()).includes(eventElem)) {
+                            closeThumb();
+                            return;
+                        }
+
                         const {left, width, top, bottom} = element.getBoundingClientRect();
                         const bottomDistance = window.innerHeight - bottom;
 
@@ -1016,6 +1025,7 @@
                     const pointerEvent = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
                         lastIndex = null;
                         showThumbnail();
                     }
