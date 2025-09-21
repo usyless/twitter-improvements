@@ -116,7 +116,10 @@
          */
         download_all: async (url, media, modifiers, {override=false, softOverride=false}={}) => {
             if (!media) {
-                media = await URLCacheGet(Helpers.id(url));
+                try {
+                    media = await URLCacheGet(Helpers.id(url));
+                } catch {}
+
                 if (!media) {
                     Notification.create('Error downloading, please try again in a second', 'error');
                     return;
@@ -219,6 +222,8 @@
                     const id = Helpers.id(url);
                     URLCacheGet(id).then((media) => {
                         finishButton(media, article, url, id);
+                    }).catch(() => {
+                        article.removeAttribute('usy-download');
                     });
                 } catch {
                     article.removeAttribute('usy-download');
