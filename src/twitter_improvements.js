@@ -9,7 +9,7 @@
         return chrome;
     })();
 
-    const /** @type {Map<tweetId, [function(MediaItem[])]>}*/ URL_CACHE_PROMISES = new Map();
+    const /** @type {Map<tweetId, [{resolve: function(MediaItem[]), reject: function(String)}]>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
 
     /** @type {(saveId) => Promise<MediaItem[]>} */
@@ -18,14 +18,28 @@
         if (result) return Promise.resolve(result);
         if (id.includes('-') || Number.isNaN(+id)) return Promise.reject("Invalid ID provided");
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             let promisesArr = URL_CACHE_PROMISES.get(id);
+            let timer;
             if (promisesArr == null) {
                 promisesArr = [];
                 URL_CACHE_PROMISES.set(id, promisesArr);
+
+                // set 10 second timeout on this array
+                timer = setTimeout(() => {
+                    promisesArr = URL_CACHE_PROMISES.get(id);
+                    if (promisesArr) {
+                        const rejectReason = `Failed to get media for ${id}`;
+                        for (const {reject} of promisesArr) reject(rejectReason);
+                    }
+                    URL_CACHE_PROMISES.delete(id);
+                }, 10000);
             }
 
-            promisesArr.push(resolve);
+            promisesArr.push({resolve: (media) => {
+                clearTimeout(timer);
+                resolve(media);
+            }, reject});
         });
     };
 
@@ -37,7 +51,7 @@
             URL_CACHE.set(id, media);
             const promises = URL_CACHE_PROMISES.get(id);
             if (promises) {
-                for (const resolve of promises) resolve(media);
+                for (const {resolve} of promises) resolve(media);
                 URL_CACHE_PROMISES.delete(id);
             }
         }
