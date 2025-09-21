@@ -524,9 +524,21 @@
 
             const controller = new AbortController();
 
+            const eventElem = eventTarget ?? element;
+
+            const closeThumb = () => {
+                eventElem.removeEventListener('pointerleave', closeThumb);
+                eventElem.removeEventListener('pointerdown', closeThumb, { capture: true });
+                eventElem.removeEventListener('click', closeThumb, { capture: true });
+                window.removeEventListener('popstate', closeThumb, { capture: true });
+                window.removeEventListener('scroll', closeThumb, { capture: true });
+                fullscreen.remove();
+                controller.abort();
+            }
+
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
                 requestAnimationFrame(() => {
-                    if ((thumb.isConnected) && !(controller.signal.aborted)) {
+                    if ((thumb.isConnected) && !(controller.signal.aborted) && (!isAndroid && Array.from(Helpers.allHoveringElements()).includes(eventElem))) {
                         const {left, width, top, bottom} = element.getBoundingClientRect();
                         const bottomDistance = window.innerHeight - bottom;
 
@@ -544,17 +556,7 @@
                 });
             }, { once: true, signal: controller.signal });
 
-            const eventElem = eventTarget ?? element;
-
-            const closeThumb = () => {
-                eventElem.removeEventListener('pointerleave', closeThumb);
-                eventElem.removeEventListener('pointerdown', closeThumb, { capture: true });
-                eventElem.removeEventListener('click', closeThumb, { capture: true });
-                window.removeEventListener('popstate', closeThumb, { capture: true });
-                window.removeEventListener('scroll', closeThumb, { capture: true });
-                fullscreen.remove();
-                controller.abort();
-            }
+            thumb.addEventListener('error', closeThumb);
 
             eventElem.addEventListener('pointerleave', closeThumb);
             eventElem.addEventListener('click', closeThumb, { capture: true });
@@ -1318,7 +1320,9 @@
          * @param {MouseEvent} e
          * @returns {EventModifiers}
          */
-        eventModifiers: ({shiftKey: shift, ctrlKey: ctrl, altKey: alt}) => ({shift, ctrl, alt})
+        eventModifiers: ({shiftKey: shift, ctrlKey: ctrl, altKey: alt}) => ({shift, ctrl, alt}),
+
+        allHoveringElements: () => document.querySelectorAll(':hover')
     };
 
     const Observer = {
