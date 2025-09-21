@@ -16,7 +16,7 @@
     const URLCacheGet = (id) => {
         const result = URL_CACHE.get(id);
         if (result) return Promise.resolve(result);
-        if (id.includes('-') || Number.isNaN(+id)) return Promise.reject("Invalid ID provided");
+        if (Number.isNaN(+id) || +id === 0) return Promise.reject("Invalid ID provided");
 
         return new Promise((resolve, reject) => {
             let promisesArr = URL_CACHE_PROMISES.get(id);
