@@ -526,7 +526,7 @@
 
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
                 requestAnimationFrame(() => {
-                    if (thumb.isConnected && !controller.signal.aborted) {
+                    if ((thumb.isConnected) && !(controller.signal.aborted)) {
                         const {left, width, top, bottom} = element.getBoundingClientRect();
                         const bottomDistance = window.innerHeight - bottom;
 
