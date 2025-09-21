@@ -12,6 +12,7 @@
     const /** @type {Map<tweetId, [function(MediaItem[])]>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
 
+    /** @type {(saveId) => Promise<MediaItem[]>} */
     const URLCacheGet = (id) => new Promise((resolve) => {
         const result = URL_CACHE.get(id);
         if (result) {
@@ -417,57 +418,59 @@
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
                     const url = Tweet.url(article);
                     const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
-                    const mark_button = () => {
-                        button.setAttribute('ti-id', id);
-                        if (Settings.download_preferences.download_history_enabled) { // mark image
-                            Background.download_history_has(id).then((response) => {
-                                if (response === true) Button.mark(button);
-                            });
+                    const [id_tweet, indexExtraOne] = id.split('-');
+                    URLCacheGet(id_tweet).then((media) => {
+                        console.log(media);
+                        const mark_button = () => {
+                            button.setAttribute('ti-id', id);
+                            if (Settings.download_preferences.download_history_enabled) { // mark image
+                                Background.download_history_has(id).then((response) => {
+                                    if (response === true) Button.mark(button);
+                                });
+                            }
                         }
-                    }
 
-                    const cb =  Image.downloadButtonCallback.bind(null, url);
-                    if (video.textContent.includes('GIF')) { // gif
-                        button = Image.genericButton(video, cb);
-                        mark_button();
-                        Image.addThumbnailSupport(button);
-                    } else { // video player
-                        const observerSettings = { childList: true, subtree: true };
-                        const observer = new MutationObserver((_, observer) => {
-                            const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
-                            if (share && !video.querySelector('[usy-media]')) {
-                                button = Button.newButton(share.cloneNode(true), download_button_path, cb,
-                                    "usy-media", cb, null,
-                                    (btn) => {
-                                        btn.firstElementChild.firstElementChild.style.color = '#ffffff';
-                                        btn.classList.add('usy-inline');
-                                    });
-                                observer.disconnect();
-                                share.previousElementSibling.previousElementSibling.before(button);
-                                observer.observe(video, observerSettings);
-                                mark_button();
-                            }
-                        });
-                        observer.observe(video, observerSettings);
+                        const cb =  Image.downloadButtonCallback.bind(null, url);
 
-                        const interval = setInterval(() => {
-                            if (!video.isConnected) {
-                                observer.disconnect();
-                                clearInterval(interval);
-                            }
-                        }, 1000);
-                    }
+                        if (media[indexExtraOne - 1].isGif === true) {
+                            button = Image.genericButton(video, cb);
+                            mark_button();
+                            Image.addThumbnailSupport(button);
+                        } else {
+                            const observerSettings = { childList: true, subtree: true };
+                            const observer = new MutationObserver((_, observer) => {
+                                const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
+                                if (share && !video.querySelector('[usy-media]')) {
+                                    button = Button.newButton(share.cloneNode(true), download_button_path, cb,
+                                        "usy-media", cb, null,
+                                        (btn) => {
+                                            btn.firstElementChild.firstElementChild.style.color = '#ffffff';
+                                            btn.classList.add('usy-inline');
+                                        });
+                                    observer.disconnect();
+                                    share.previousElementSibling.previousElementSibling.before(button);
+                                    observer.observe(video, observerSettings);
+                                    mark_button();
+                                }
+                            });
+                            observer.observe(video, observerSettings);
+
+                            const interval = setInterval(() => {
+                                if (!video.isConnected) {
+                                    observer.disconnect();
+                                    clearInterval(interval);
+                                }
+                            }, 1000);
+                        }
+                    }).catch(() => {
+                        video.removeAttribute('usy-media');
+                        button?.remove();
+                    });
                 }
             } catch {
                 video.removeAttribute('usy-media');
                 button?.remove();
             }
-        },
-
-        /** @param {HTMLElement} video */
-        addVideoButtonTimeout: (video) => {
-            video.setAttribute('usy-media', '');
-            setTimeout(Image.addVideoButton, 1000, video);
         },
 
         /** @param {HTMLElement} thumb */
@@ -1336,8 +1339,8 @@
                 img[src^="https://pbs.twimg.com/ext_tw_video_thumb/"]:not([usy-media]),
                 img[src^="https://pbs.twimg.com/amplify_video_thumb/"]:not([usy-media]),
                 img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media])`, Image.addImageButton],
-                ['div[data-testid="videoComponent"]:not([usy-media])', Image.addVideoButtonTimeout],
-                ['img[alt="Embedded video"]:not([usy-media])', Image.addVideoButton]],
+                [`div[data-testid="videoComponent"]:not([usy-media]), 
+                img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]]
         },
 
