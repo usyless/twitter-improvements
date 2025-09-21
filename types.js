@@ -5,6 +5,7 @@
  * @property {string} url
  * @property {string} [url_lowres]
  * @property {('Image' | 'Video')} type
+ * @property {boolean} [isGif]
  */
 
 // could have stuff like likes and retweets but not needed for now
