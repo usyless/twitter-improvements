@@ -1013,7 +1013,6 @@
                     const pointerEvent = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        e.stopImmediatePropagation();
                         lastIndex = null;
                         showThumbnail();
                     }
