@@ -438,7 +438,7 @@
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
                     const url = Tweet.url(article);
                     const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
-                    const [id_tweet, indexExtraOne] = id.split('-');
+                    const [id_tweet, index] = id.split('-');
                     URLCacheGet(id_tweet).then((media) => {
                         const mark_button = () => {
                             button.setAttribute('ti-id', id);
@@ -451,7 +451,7 @@
 
                         const cb =  Image.downloadButtonCallback.bind(null, url);
 
-                        if (media[indexExtraOne - 1].isGif === true) {
+                        if (media[(+index) - 1].isGif === true) {
                             button = Image.genericButton(video, cb);
                             mark_button();
                             Image.addThumbnailSupport(button);
