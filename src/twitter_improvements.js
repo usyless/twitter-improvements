@@ -20,26 +20,27 @@
 
         return new Promise((resolve, reject) => {
             let promisesArr = URL_CACHE_PROMISES.get(id);
-            let timer;
             if (promisesArr == null) {
                 promisesArr = [];
                 URL_CACHE_PROMISES.set(id, promisesArr);
 
                 // set 10 second timeout on this array
-                timer = setTimeout(() => {
-                    promisesArr = URL_CACHE_PROMISES.get(id);
+                const timer = setTimeout(() => {
+                    const promisesArr = URL_CACHE_PROMISES.get(id);
                     if (promisesArr) {
                         const rejectReason = `Failed to get media for ${id}`;
                         for (const {reject} of promisesArr) reject(rejectReason);
                     }
                     URL_CACHE_PROMISES.delete(id);
                 }, 10000);
-            }
 
-            promisesArr.push({resolve: (media) => {
-                clearTimeout(timer);
-                resolve(media);
-            }, reject});
+                promisesArr.push({resolve: (media) => {
+                    clearTimeout(timer);
+                    resolve(media);
+                }, reject});
+            } else {
+                promisesArr.push({resolve, reject});
+            }
         });
     };
 
