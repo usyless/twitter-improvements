@@ -9,7 +9,7 @@
         return chrome;
     })();
 
-    const /** @type {Map<tweetId, [{resolve: function(MediaItem[]), reject: function(String)}]>}*/ URL_CACHE_PROMISES = new Map();
+    const /** @type {Map<tweetId, {promises: [{resolve: function(MediaItem[]), reject: function(String)}], timer: Number}>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
 
     /** @type {(saveId) => Promise<MediaItem[]>} */
@@ -19,27 +19,21 @@
         if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID provided");
 
         return new Promise((resolve, reject) => {
-            let promisesArr = URL_CACHE_PROMISES.get(id);
-            if (promisesArr == null) {
-                promisesArr = [];
-                URL_CACHE_PROMISES.set(id, promisesArr);
+            // undefined if id doesnt exist, otherwise a number
+            const success = URL_CACHE_PROMISES.get(id)?.promises.push({resolve, reject});
 
+            if (success == null) {
                 // set 10 second timeout on this array
                 const timer = setTimeout(() => {
-                    const promisesArr = URL_CACHE_PROMISES.get(id);
-                    if (promisesArr) {
+                    const promises = URL_CACHE_PROMISES.get(id);
+                    if (promises) {
                         const rejectReason = `Failed to get media for ${id}`;
-                        for (const {reject} of promisesArr) reject(rejectReason);
+                        for (const {reject} of promises.promises) reject(rejectReason);
                     }
                     URL_CACHE_PROMISES.delete(id);
                 }, 10000);
 
-                promisesArr.push({resolve: (media) => {
-                    clearTimeout(timer);
-                    resolve(media);
-                }, reject});
-            } else {
-                promisesArr.push({resolve, reject});
+                URL_CACHE_PROMISES.set(id, {promises: [{resolve, reject}], timer});
             }
         });
     };
@@ -52,7 +46,8 @@
             URL_CACHE.set(id, media);
             const promises = URL_CACHE_PROMISES.get(id);
             if (promises) {
-                for (const {resolve} of promises) resolve(media);
+                clearTimeout(promises.timer);
+                for (const {resolve} of promises.promises) resolve(media);
                 URL_CACHE_PROMISES.delete(id);
             }
         }
