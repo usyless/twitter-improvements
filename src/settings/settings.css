@@ -59,11 +59,22 @@ body {
             @media (hover: hover) {
                 &:hover {
                     background-color: var(--background-dark);
+                    padding-left: 20px;
+                    padding-right: 20px;
                 }
             }
 
             &:active {
                 background-color: var(--accent);
+            }
+        }
+
+        @media (hover: hover) {
+            &:has(div:hover) {
+                div:not(:hover) {
+                    padding-left: calc(10px - (10px / 3));
+                    padding-right: calc(10px - (10px / 3));
+                }
             }
         }
     }
@@ -250,8 +261,10 @@ body {
     border-radius: 15px 15px 0 0;
 }
 
-#reverseFile:hover + * {
-    transform: translateY(10px);
+@media (hover: hover) {
+    #reverseFile:hover + * {
+        transform: translateY(10px);
+    }
 }
 
 #reverseFileInput {
