@@ -34,6 +34,7 @@
     const SelectorMap = {
         hide_notifications: {s: ['a[href="/notifications"]'], st: HideType.DISPLAY},
         hide_messages: {s: ['a[href="/messages"]'], st: HideType.DISPLAY},
+        hide_chat: {s: ['a[href="/i/chat"]'], st: HideType.DISPLAY},
         hide_grok: {s: [
             'a[href="/i/grok"]',
             'button[aria-label="Grok actions"]',

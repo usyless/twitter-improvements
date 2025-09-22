@@ -548,6 +548,11 @@
                     description: '"Messages" button',
                 },
                 {
+                    name: 'hide_chat',
+                    category: 'style',
+                    description: '"Chat" button'
+                },
+                {
                     name: 'hide_jobs',
                     category: 'style',
                     description: '"Jobs" button',

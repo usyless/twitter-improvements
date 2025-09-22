@@ -218,6 +218,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_chat: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_jobs: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
