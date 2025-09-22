@@ -435,7 +435,7 @@
                     const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
                     const [id_tweet, index] = id.split('-');
                     URLCacheGet(id_tweet).then((media) => {
-                        const mark_button = () => {
+                        const mark_button = (button) => {
                             button.setAttribute('ti-id', id);
                             if (Settings.download_preferences.download_history_enabled) { // mark image
                                 Background.download_history_has(id).then((response) => {
@@ -448,7 +448,7 @@
 
                         if (media[(+index) - 1].isGif === true) {
                             button = Image.genericButton(video, cb);
-                            mark_button();
+                            mark_button(button);
                             Image.addThumbnailSupport(button);
                         } else {
                             let onVideoButton;
@@ -463,8 +463,7 @@
                                             btn.firstElementChild.firstElementChild.style.color = '#ffffff';
                                             btn.classList.add('usy-inline');
                                         });
-                                        button = b;
-                                        mark_button();
+                                        mark_button(b);
                                         return b;
                                     })();
                                     button = onVideoButton;
