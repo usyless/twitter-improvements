@@ -54,6 +54,13 @@ body {
 
             &:not(.selected) {
                 border-bottom-color: gray;
+                padding-left: calc(10px - (10px / 3));
+                padding-right: calc(10px - (10px / 3));
+            }
+
+            &.selected {
+                padding-left: 20px;
+                padding-right: 20px;
             }
 
             @media (hover: hover) {
