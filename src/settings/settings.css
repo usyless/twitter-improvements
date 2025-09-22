@@ -72,7 +72,8 @@ body {
             }
 
             &:active {
-                background-color: var(--accent);
+                padding-left: 23px;
+                padding-right: 23px;
             }
         }
 
@@ -82,6 +83,13 @@ body {
                     padding-left: calc(10px - (10px / 3));
                     padding-right: calc(10px - (10px / 3));
                 }
+            }
+        }
+
+        &:has(div:active) {
+            div:not(:active) {
+                padding-left: calc(10px - (13px / 3));
+                padding-right: calc(10px - (13px / 3));
             }
         }
     }
