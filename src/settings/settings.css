@@ -262,8 +262,9 @@ body {
 }
 
 @media (hover: hover) {
-    #reverseFile:hover + * {
-        transform: translateY(10px);
+    #reverseFile:hover {
+        padding-top: 20px;
+        padding-bottom: 20px;
     }
 }
 
