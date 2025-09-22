@@ -69,5 +69,12 @@
   },
   "web_accessible_resources": [
     "/fetch-intercept.js"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
 }
