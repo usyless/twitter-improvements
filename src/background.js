@@ -22,7 +22,8 @@ const CONSTRAINTS = {
     LT: v => a => +a < v,
     LTE: v => a => +a <= v,
     MOBILE: () => isAndroid,
-    DESKTOP: () => !isAndroid
+    DESKTOP: () => !isAndroid,
+    MUST_INCLUDE: (...v) => a => v.every(i => a.includes(i))
 }
 
 const defaultSettings = {
@@ -285,7 +286,9 @@ const defaultSettings = {
 
         tweet_button_positions: {
             default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
-            validate: CONSTRAINTS.STRING
+            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.MUST_INCLUDE(
+                '{replies}', '{retweets}', '{likes}', '{views}', '{bookmark}', '{share}', '{download}', '{copy}'
+            ))
         },
         more_media_icon_visible: {
             default: true,
