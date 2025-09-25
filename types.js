@@ -4,6 +4,7 @@
  * @property {saveId} save_id
  * @property {string} url
  * @property {string} [url_lowres]
+ * @property {string} tweetURL
  * @property {('Image' | 'Video')} type
  * @property {boolean} [isGif]
  */
