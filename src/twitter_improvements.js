@@ -83,11 +83,10 @@
         download_history_add: (id) => extension.runtime.sendMessage({type: 'download_history_add', id}),
 
         /**
-         * @param {string} url
          * @param {MediaItem[]} media
          * @param {EventModifiers} modifiers
          */
-        save_media: (url, media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', url, media, modifiers }),
+        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers }),
 
         /** @returns {Promise<Settings>} */
         get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
@@ -102,23 +101,16 @@
 
     const Downloaders = {
         /**
-         * @param {string} url
          * @param {MediaItem[] | MediaItem} media
          * @param {EventModifiers} modifiers
          * @param {boolean} [override]
          * @param {boolean} [softOverride]
          * @returns {void}
          */
-        download_all: async (url, media, modifiers, {override=false, softOverride=false}={}) => {
+        download_all: async (media, modifiers, {override=false, softOverride=false}={}) => {
             if (!media) {
-                try {
-                    media = await URLCacheGet(Helpers.id(url));
-                } catch {}
-
-                if (!media) {
-                    Notification.create('Error downloading, please try again in a second', 'error');
-                    return;
-                }
+                Notification.create('Error downloading, please try again in a second', 'error');
+                return;
             }
             if (!Array.isArray(media)) media = [media];
             if (!override && Helpers.shouldPreventDuplicate()) {
@@ -132,14 +124,14 @@
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
                         notif.style.cursor = 'pointer';
-                        notif.addEventListener('click', Downloaders.download_all.bind(null, url, media, modifiers, {override: true}));
+                        notif.addEventListener('click', Downloaders.download_all.bind(null, media, modifiers, {override: true}));
                     }
                     return;
                 }
                 if (newMedia) media = newMedia;
             }
             if (media.length > 0) {
-                void Background.save_media(url, media, modifiers);
+                void Background.save_media(media, modifiers);
                 Notification.create(`Downloading media${isAndroid ? '\n(This may take a second on android)' : ''}`, 'save_media');
             } else {
                 Notification.create('No media to save', 'error');
@@ -169,11 +161,11 @@
          * @param {HTMLElement} article
          */
         addDownloadButton: (() => {
-            const finishButton = (media, article, url, id) => {
+            const finishButton = (media, article, id) => {
                 try {
                     if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
                         const a = Tweet.defaultAnchor(article);
-                        const cb = Tweet.mediaDownloadCallback.bind(null, media, url);
+                        const cb = Tweet.mediaDownloadCallback.bind(null, media);
                         const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
                         const id_specific = `${id}-1`;
                         if (media.length === 1) {
@@ -213,10 +205,9 @@
             return (article) => {
                 try {
                     article.setAttribute('usy-download', '');
-                    const url = Tweet.url(article);
-                    const id = Helpers.id(url);
+                    const id = Helpers.id(Tweet.url(article));
                     URLCacheGet(id).then((media) => {
-                        finishButton(media, article, url, id);
+                        finishButton(media, article, id);
                     }).catch(() => {
                         article.removeAttribute('usy-download');
                     });
@@ -336,13 +327,12 @@
 
         /**
          * @param {MediaItem[]} media
-         * @param {string} url
          * @param {MouseEvent} ev
          */
-        mediaDownloadCallback: (media, url, ev) => {
+        mediaDownloadCallback: (media, ev) => {
             if (ev.type === 'click') {
-                if (media.length === 1) Downloaders.download_all(url, media, Helpers.eventModifiers(ev));
-                else Notification.createDownloadChoices(url, media, ev);
+                if (media.length === 1) Downloaders.download_all(media, Helpers.eventModifiers(ev));
+                else Notification.createDownloadChoices(media, ev);
             } else {
                 if (media.length === 1) Button.handleClick(null, media[0].save_id, null);
                 else Notification.create('Multi-media tweet\nClick download button first to modify history', 'error');
@@ -394,8 +384,8 @@
             let button;
             try {
                 image.setAttribute('usy-media', '');
-                const url = Image.respectiveURL(image), id = Helpers.idWithNumber(url);
-                button = Image.genericButton(image, Image.downloadButtonCallback.bind(null, url));
+                const id = Helpers.idWithNumber(Image.respectiveURL(image));
+                button = Image.genericButton(image, Image.downloadButtonCallback);
 
                 button.setAttribute('ti-id', id);
                 if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -431,8 +421,7 @@
                 const article = Tweet.nearestTweet(video);
                 // no way to get id from inside quote tweet i think
                 if (!(article.querySelector('div[id] > div[id]')?.contains(video))) {
-                    const url = Tweet.url(article);
-                    const id = Helpers.idWithNumber(url, Image.videoRespectiveIndex(video, article));
+                    const id = Helpers.idWithNumber(Tweet.url(article), Image.videoRespectiveIndex(video, article));
                     const [id_tweet, index] = id.split('-');
                     URLCacheGet(id_tweet).then((media) => {
                         const mark_button = (button) => {
@@ -444,10 +433,8 @@
                             }
                         }
 
-                        const cb =  Image.downloadButtonCallback.bind(null, url);
-
                         if (media[(+index) - 1].isGif === true) {
-                            button = Image.genericButton(video, cb);
+                            button = Image.genericButton(video, Image.downloadButtonCallback);
                             mark_button(button);
                             Image.addThumbnailSupport(button);
                         } else {
@@ -457,8 +444,8 @@
                                 const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
                                 if (share && !video.querySelector('[usy-media]')) {
                                     onVideoButton ??= (() => {
-                                        const b = Button.newButton(share.cloneNode(true), download_button_path, cb,
-                                        "usy-media", cb, null,
+                                        const b = Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
+                                        "usy-media", Image.downloadButtonCallback, null,
                                         (btn) => {
                                             btn.firstElementChild.firstElementChild.style.color = '#ffffff';
                                             btn.classList.add('usy-inline');
@@ -717,10 +704,9 @@
         },
 
         /**
-         * @param {string} url
          * @param {MouseEvent} ev
          */
-        downloadButtonCallback: (url, ev) => {
+        downloadButtonCallback: (ev) => {
             const save_id = ev.currentTarget.getAttribute('ti-id')
                 ?? ev.currentTarget.getAttribute('ti-id-vague');
             const split = save_id.split('-');
@@ -729,12 +715,12 @@
             if (Settings.download_preferences.download_picker_on_media_page
                 && media?.length > 1 && location.pathname.endsWith('/media')) {
                 // if using ti-id-vague, this should always be true
-                Notification.createDownloadChoices(url, media, ev);
+                Notification.createDownloadChoices(media, ev);
             } else {
                 const /** @type {MediaItem} */ exactMedia = media?.[(+split[1]) - 1];
                 Button.handleClick(ev, save_id, () => {
                     if (exactMedia) {
-                        Downloaders.download_all(url, exactMedia, Helpers.eventModifiers(ev));
+                        Downloaders.download_all(exactMedia, Helpers.eventModifiers(ev));
                     } else {
                         Notification.create('Error saving, try again', 'error');
                     }
@@ -899,11 +885,10 @@
 
         /**
          * @param {string} text
-         * @param {string} url
          * @param {MediaItem} media
          * @param {EventModifiers} modifiers
          */
-        persistentError: (text, url, media, modifiers) => {
+        persistentError: (text, media, modifiers) => {
             const outer = document.querySelector('.usyErrorNotificationOuter')
                 || document.createElement('div');
             const inner = document.createElement('div');
@@ -923,11 +908,11 @@
             cancelChoice.textContent = 'Cancel';
 
             retryChoice.addEventListener('click', () => {
-                void Downloaders.download_all(url, media, modifiers);
+                void Downloaders.download_all(media, modifiers);
             });
 
             viewChoice.addEventListener('click', () => {
-                void Background.open_tab(url);
+                void Background.open_tab(media.tweetURL);
             });
 
             inner.addEventListener('click', () => {
@@ -960,11 +945,10 @@
         },
 
         /**
-         * @param {string} url
          * @param {MediaItem[]} choices
          * @param {Event} event
          */
-        createDownloadChoices: (url, choices, event) => {
+        createDownloadChoices: (choices, event) => {
             Notification.clearFullscreen();
             const /** @type {EventListeners[]} */ notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
@@ -1007,9 +991,9 @@
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
                 if (Number.isNaN(choice)) {
-                    Downloaders.download_all(url, choices, Helpers.eventModifiers(e),
+                    Downloaders.download_all(choices, Helpers.eventModifiers(e),
                         Settings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
-                } else Downloaders.download_all(url, choices[choice], Helpers.eventModifiers(e));
+                } else Downloaders.download_all(choices[choice], Helpers.eventModifiers(e));
             });
             popup.addEventListener('contextmenu', (e) => {
                 const btn = e.target.closest('.usyDownloadChoiceButton'), save_id = btn?.getAttribute('ti-id');
@@ -1119,7 +1103,7 @@
         getCurrentTwitterNotif: () => document.body.querySelector('[data-testid="toast"]'),
 
         /**
-         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number), downloadError: function(string, string, MediaItem, EventModifiers)}}
+         * @returns {{downloadFinished: (function(string): Promise<void>), onProgress: function(number | null, number), downloadError: function(string, MediaItem, EventModifiers)}}
          */
         createMobileDownloadPopup: () => {
             const outer = document.querySelector('.usyDownloadNotificationOuter')
@@ -1174,7 +1158,7 @@
                     textBox.textContent = `Downloaded: ${receivedBytes} / ${totalBytes ? totalBytes : 'Unknown'} Bytes`;
                 },
 
-                downloadError: (text, url, media, modifiers) => {
+                downloadError: (text, media, modifiers) => {
                     inner.classList.add('usyErrorNotificationInner');
                     inner.classList.remove('usyDownloadNotificationInner');
                     inner.style.cursor = 'pointer';
@@ -1193,11 +1177,11 @@
                     cancelChoice.textContent = 'Cancel';
 
                     retryChoice.addEventListener('click', () => {
-                        void Downloaders.download_all(url, media, modifiers);
+                        void Downloaders.download_all(media, modifiers);
                     });
 
                     viewChoice.addEventListener('click', () => {
-                        void Background.open_tab(url);
+                        void Background.open_tab(media.tweetURL);
                     });
 
                     inner.addEventListener('click', () => {
@@ -1295,12 +1279,10 @@
          * Basic download fallback for android where the downloads.download API isn't supported
          * @param {string} url
          * @param {string} filename
-         * @param {string} tweetURL
-         * @param {saveId} save_id
          * @param {MediaItem} media
          * @param {EventModifiers} modifiers
          */
-        download: async (url, filename, tweetURL, save_id, media, modifiers) => {
+        download: async (url, filename, media, modifiers) => {
             if (Settings.download_preferences.use_download_progress) {
                 const { downloadFinished, onProgress, downloadError } = Notification.createMobileDownloadPopup();
                 onProgress(null, 0);
@@ -1309,8 +1291,8 @@
                     await downloadFinished(filename);
                     Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
                 } catch {
-                    void Background.download_history_remove(save_id);
-                    downloadError(`Error downloading: ${filename}`, tweetURL, media, modifiers);
+                    void Background.download_history_remove(media.save_id);
+                    downloadError(`Error downloading: ${filename}`, media, modifiers);
                 }
             } else {
                 try {
@@ -1321,8 +1303,8 @@
                         throw new Error(`HTTP error! status: ${r.status}`);
                     }
                 } catch {
-                    void Background.download_history_remove(save_id);
-                    Notification.persistentError(`Error downloading: ${filename}`, tweetURL, media, modifiers);
+                    void Background.download_history_remove(media.save_id);
+                    Notification.persistentError(`Error downloading: ${filename}`, media, modifiers);
                 }
             }
         },
@@ -1502,11 +1484,11 @@
                 break;
             }
             case 'download': {
-                void Helpers.download(message.url, message.filename, message.tweetURL, message.save_id, message.media, message.modifiers);
+                void Helpers.download(message.url, message.filename, message.media, message.modifiers);
                 break;
             }
             case 'error': {
-                Notification.persistentError(message.message, message.url, message.media, message.modifiers);
+                Notification.persistentError(message.message, message.media, message.modifiers);
                 break;
             }
         }

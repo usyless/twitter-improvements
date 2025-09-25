@@ -615,13 +615,11 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {string} url
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
- * @param {string} [tweetURL]
- * @param {saveId} [save_id]
  * @param {MediaItem} [media]
  */
-function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id, media}={}) {
+function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media}={}) {
     if (isAndroid && !isEdgeAndroid) {
-        sendToTab({ type: 'download', url, filename, tweetURL, save_id, media, modifiers: {shift, ctrl, alt} });
+        sendToTab({ type: 'download', url, filename, media, modifiers });
         return Promise.resolve(-1);
     } else {
         return Settings.getSettings().then(() => {
@@ -630,9 +628,9 @@ function download(url, filename, {shift, ctrl, alt}={}, {tweetURL, save_id, medi
                 save_directory, save_directory_shift, save_directory_ctrl, save_directory_alt
             } = Settings.download_preferences;
 
-            const [directory, save_as] = (shift) ? [save_directory_shift, save_as_prompt_shift]
-                : (ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
-                    : (alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
+            const [directory, save_as] = (modifiers.shift) ? [save_directory_shift, save_as_prompt_shift]
+                : (modifiers.ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
+                    : (modifiers.alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
 
             return extension.downloads.download({
                 url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
@@ -718,27 +716,24 @@ function formatFilename(parts, save_format) {
 }
 
 /**
- * @param {string} url
  * @param {MediaItem[]} media
  * @param {EventModifiers} modifiers
  * @param {function(any)} sendResponse
  */
-function download_media({url, media, modifiers}, sendResponse) {
+function download_media({media, modifiers}, sendResponse) {
     Settings.getSettings().then(() => {
         const {save_format, download_history_enabled} = Settings.download_preferences;
-        let i = 0;
-        for (const {type, url: sourceURL, index, save_id} of media) {
-            const parts = ((type === 'Video') ? getNamePartsVideo : getNamePartsImage)(url, sourceURL);
-            parts.tweetNum = index;
-            if (download_history_enabled) void download_history_add(save_id);
-            const onError = (error) => download_history_remove({id: save_id}, () => sendToTab({type: 'error', message: `Failed to download error ${error}`, url, media: media[i], modifiers}));
-            download(sourceURL, formatFilename(parts, save_format), modifiers, {tweetURL: url, save_id, media: media[i]})
+        for (const m of media) {
+            const parts = ((m.type === 'Video') ? getNamePartsVideo : getNamePartsImage)(m.tweetURL, m.url);
+            parts.tweetNum = m.index;
+            if (download_history_enabled) void download_history_add(m.save_id);
+            const onError = (error) => download_history_remove({id: m.save_id}, () => sendToTab({type: 'error', message: `Failed to download error ${error}`, media: m, modifiers}));
+            download(m.url, formatFilename(parts, save_format), modifiers, {media: m})
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
                     else if (downloadId === -1) void 0; // android, ignore it
                     else DOWNLOAD_MAP.set(downloadId, onError);
                 }, onError);
-            ++i;
         }
         sendResponse({status: 'success'});
     });
@@ -751,10 +746,11 @@ function download_media({url, media, modifiers}, sendResponse) {
  */
 function saveImage(url, sourceURL) {
     const parts = getNamePartsImage(url, sourceURL);
-    download_media( {url, media: [{
+    download_media( {media: [{
             index: parts.tweetNum,
             save_id: formatPartsForStorage(parts),
             url: sourceURL.replace(/name=[^&]*/, "name=orig"),
+            tweetURL: url,
             type: 'Image'
         }], modifiers: {shift: false, ctrl: false, alt: false}}, () => sendToTab({type: 'image_saved'}))
 }
