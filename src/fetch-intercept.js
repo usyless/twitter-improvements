@@ -61,8 +61,8 @@
             // has media
             const /** @type {MediaItem[]} */ mediaInfo = [];
             for (let index = 1; index <= media.length; ++index) {
-                const {media_url_https, video_info, type, expanded_url} = media[index - 1],
-                    /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image', tweetURL: expanded_url};
+                const {media_url_https, video_info, type, expanded_url} = media[index - 1];
+                const /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image', tweetURL: expanded_url};
                 switch (type) {
                     case 'photo': {
                         const lastDot = media_url_https?.lastIndexOf('.');
