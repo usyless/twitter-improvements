@@ -131,6 +131,13 @@
                 if (newMedia) media = newMedia;
             }
             if (media.length > 0) {
+                for (const m of media) {
+                    if (!(m.tweetURL)) {
+                        Notification.create('Error downloading, no tweet url.\nPlease report to the extension developer!', 'error');
+                        return;
+                    }
+                }
+
                 void Background.save_media(media, modifiers);
                 Notification.create(`Downloading media${isAndroid ? '\n(This may take a second on android)' : ''}`, 'save_media');
             } else {
