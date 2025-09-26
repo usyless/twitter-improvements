@@ -16,6 +16,13 @@
     "default_icon": "/icons/icon.svg",
     "default_title": "Settings"
   },
+  "browser_specific_settings": {
+    "gecko": {
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
   "permissions": [
     "contextMenus",
     "downloads",
@@ -69,12 +76,5 @@
   },
   "web_accessible_resources": [
     "/fetch-intercept.js"
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "data_collection_permissions": {
-        "required": ["none"]
-      }
-    }
-  }
+  ]
 }
