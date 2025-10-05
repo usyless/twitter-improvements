@@ -11,6 +11,7 @@
 
     const /** @type {Map<tweetId, {promises: [{resolve: function(MediaItem[]), reject: function(String)}], timer: Number}>}*/ URL_CACHE_PROMISES = new Map();
     const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
+    const /** @type {Map<tweetId, tweetId>} */ QUOTED_TWEETS_CACHE = new Map();
 
     /** @type {(saveId) => Promise<MediaItem[]>} */
     const URLCacheGet = (id) => {
@@ -42,7 +43,11 @@
         if (e.source !== window || e.origin !== "https://x.com") return;
 
         const data = e?.data;
-        if (data?.source === "ift" && data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media) {
+
+        // Skip events clearly not addressed by or for the extension
+        if (data?.source !== "ift") return;
+
+        if (data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media) {
             URL_CACHE.set(id, media);
             const promises = URL_CACHE_PROMISES.get(id);
             if (promises) {
@@ -50,6 +55,10 @@
                 for (const {resolve} of promises.promises) resolve(media);
                 URL_CACHE_PROMISES.delete(id);
             }
+        }
+
+        if (data?.type === 'quoted-tweets') for (const [parentId, quotedId] of data.quotedTweets.entries()) {
+            QUOTED_TWEETS_CACHE.set(parentId, quotedId);
         }
     });
 
