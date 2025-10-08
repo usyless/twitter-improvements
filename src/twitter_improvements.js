@@ -33,7 +33,8 @@
          * @returns {Promise<T>}
          */
         get(id) {
-            if (this.#cache.has(id)) return Promise.resolve(this.#cache.get(id));
+            const result = this.#cache.get(id);
+            if (result) return Promise.resolve(result);
             if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID");
 
             return new Promise((resolve, reject) => {
