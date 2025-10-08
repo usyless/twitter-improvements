@@ -9,56 +9,88 @@
         return chrome;
     })();
 
-    const /** @type {Map<tweetId, {promises: [{resolve: function(MediaItem[]), reject: function(String)}], timer: Number}>}*/ URL_CACHE_PROMISES = new Map();
-    const /** @type {Map<tweetId, MediaItem[]>}*/ URL_CACHE = new Map();
-    const /** @type {Map<tweetId, tweetId>} */ QUOTED_TWEETS_CACHE = new Map();
+    /** @template T */
+    class Cache {
+        /** @type {Map<string, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
+        #pending = new Map();
+        /** @type {Map<string, T>} */
+        #cache = new Map();
 
-    /** @type {(saveId) => Promise<MediaItem[]>} */
-    const URLCacheGet = (id) => {
-        const result = URL_CACHE.get(id);
-        if (result) return Promise.resolve(result);
-        if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID provided");
+        #type;
+        #timeout;
 
-        return new Promise((resolve, reject) => {
-            // undefined if id doesnt exist, otherwise a number
-            const success = URL_CACHE_PROMISES.get(id)?.promises.push({resolve, reject});
+        /**
+         * @param {string} type
+         * @param {number} [timeout]
+         */
+        constructor(type, timeout = 10000) {
+            this.#type = type;
+            this.#timeout = timeout;
+        }
 
-            if (success == null) {
-                // set 10 second timeout on this array
-                const timer = setTimeout(() => {
-                    const promises = URL_CACHE_PROMISES.get(id);
-                    if (promises) {
-                        const rejectReason = `Failed to get media for ${id}`;
-                        for (const {reject} of promises.promises) reject(rejectReason);
-                    }
-                    URL_CACHE_PROMISES.delete(id);
-                }, 10000);
+        /**
+         * @param {string} id
+         * @returns {Promise<T>}
+         */
+        get(id) {
+            if (this.#cache.has(id)) return Promise.resolve(this.#cache.get(id));
+            if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID");
 
-                URL_CACHE_PROMISES.set(id, {promises: [{resolve, reject}], timer});
+            return new Promise((resolve, reject) => {
+                const success = this.#pending.get(id)?.promises.push({resolve, reject});
+
+                if (success == null) {
+                    const timer = setTimeout(() => {
+                        const queued = this.#pending.get(id);
+                        if (queued) {
+                            const rejection = `Failed to get ${this.#type} for ID ${id}`;
+                            for (const {reject} of queued.promises) reject(rejection);
+                            this.#pending.delete(id);
+                        }
+                    }, this.#timeout);
+
+                    this.#pending.set(id, {promises: [{resolve, reject}], timer});
+                }
+            });
+        }
+
+        /**
+         * @param {string} id
+         * @param {T} value
+         */
+        set(id, value) {
+            this.#cache.set(id, value);
+            const entry = this.#pending.get(id);
+            if (entry) {
+                clearTimeout(entry.timer);
+                for (const {resolve} of entry.promises) resolve(value);
+                this.#pending.delete(id);
             }
-        });
-    };
+        }
 
-    window.addEventListener("message", (e) => {
-        if (e.source !== window || e.origin !== "https://x.com") return;
+        /**
+         * @returns {Map<string, T>}
+         */
+        get cache() {
+            return this.#cache;
+        }
+    }
 
-        const data = e?.data;
+    const /** @type {Cache<MediaItem[]>} */ MediaCache = new Cache("media");
+    const /** @type {Cache<tweetId>} */ QuotesCache = new Cache("quoted tweet");
+
+    window.addEventListener("message", ({source, origin, data}) => {
+        if (source !== window || origin !== "https://x.com") return;
 
         // Skip events clearly not addressed by or for the extension
         if (data?.source !== "ift") return;
 
         if (data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media) {
-            URL_CACHE.set(id, media);
-            const promises = URL_CACHE_PROMISES.get(id);
-            if (promises) {
-                clearTimeout(promises.timer);
-                for (const {resolve} of promises.promises) resolve(media);
-                URL_CACHE_PROMISES.delete(id);
-            }
+            MediaCache.set(id, media);
         }
 
         if (data?.type === 'quoted-tweets') for (const [parentId, quotedId] of data.quotedTweets.entries()) {
-            QUOTED_TWEETS_CACHE.set(parentId, quotedId);
+            QuotesCache.set(parentId, quotedId);
         }
     });
 
@@ -222,7 +254,7 @@
                 try {
                     article.setAttribute('usy-download', '');
                     const id = Helpers.id(Tweet.url(article));
-                    URLCacheGet(id).then((media) => {
+                    MediaCache.get(id).then((media) => {
                         finishButton(media, article, id);
                     }).catch(() => {
                         article.removeAttribute('usy-download');
@@ -411,7 +443,7 @@
                         button.removeAttribute('ti-id');
                         const id_vague = id.split('-')[0];
                         button.setAttribute('ti-id-vague', id_vague);
-                        URLCacheGet(id_vague).then((media) => {
+                        MediaCache.get(id_vague).then((media) => {
                             void Tweet.downloadUpdateMarked(media, [button]);
                         });
                     } else {
@@ -447,7 +479,7 @@
                 // tweet IDs to the quoted tweet IDs, which are intercepted alongside the media URLs.
                 if (quotedTweetContainer?.contains(video)) {
                     const parentTweetId = Helpers.id(tweetUrl);
-                    const quotedTweetId = QUOTED_TWEETS_CACHE.get(parentTweetId);
+                    const quotedTweetId = QuotesCache.get(parentTweetId);
 
                     if (!quotedTweetId) {
                         return;
@@ -458,7 +490,7 @@
                     saveId = [tweetId, mediaIndex].join('-');
                 }
 
-                URLCacheGet(tweetId).then((media) => {
+                MediaCache.get(tweetId).then((media) => {
                     const mark_button = (button) => {
                         button.setAttribute('ti-id', saveId);
                         if (Settings.download_preferences.download_history_enabled) { // mark image
@@ -634,7 +666,7 @@
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
                     const [id, index] = id_specific.split('-');
-                    URLCacheGet(id).then(/** @param {MediaItem[]} media*/(media) => {
+                    MediaCache.get(id).then(/** @param {MediaItem[]} media*/(media) => {
                         let hoverTimeout;
                         button.addEventListener('pointerenter', () => {
                             if (timeout === 0) {
@@ -745,7 +777,7 @@
                 ?? ev.currentTarget.getAttribute('ti-id-vague');
             const split = save_id.split('-');
             // - 1 is because indexes are 1-4
-            const /** @type {MediaItem[]} */ media = URL_CACHE.get(split[0]);
+            const media = MediaCache.cache.get(split[0]);
             if (Settings.download_preferences.download_picker_on_media_page
                 && media?.length > 1 && location.pathname.endsWith('/media')) {
                 // if using ti-id-vague, this should always be true
@@ -1485,7 +1517,7 @@
                 const id = message.id.split('-')[0];
                 const multi_media_buttons = /** @type {NodeListOf<HTMLElement>} */ document.querySelectorAll(`[ti-id-vague="${id}"]`);
                 if (multi_media_buttons.length > 0) {
-                    URLCacheGet(id).then((media) => {
+                    MediaCache.get(id).then((media) => {
                         void Tweet.downloadUpdateMarked(media, multi_media_buttons);
                     });
                 }
