@@ -11,6 +11,11 @@
         window.postMessage({ source: "ift", type: "media-urls", media }, "https://x.com");
     }
 
+    /** @param {Map<tweetId, tweetId>} quotedTweets */
+    const postQuotedTweets = quotedTweets => {
+        window.postMessage({ source: "ift", type: "quoted-tweets", quotedTweets }, 'https://x.com');
+    }
+
     const originalSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function (body) {
         const xhr = this;
@@ -22,11 +27,18 @@
                 && xhr.getResponseHeader("Content-Type")?.includes('application/json')
             ) {
                 const /** @type {MediaTransfer[]} */ media = [];
-                for (const m of findTweets(JSON.parse(xhr.responseText))) {
-                    const r = getMediaFromTweetResult(m);
-                    r && media.push(/** @type {MediaTransfer} */ r);
+                const interceptedTweets = findTweets(JSON.parse(xhr.responseText));
+
+                for (const tweetResult of interceptedTweets.mediaTweets) {
+                    const maybeMediaTransfer = getMediaFromTweetResult(tweetResult);
+                    maybeMediaTransfer && media.push(maybeMediaTransfer);
                 }
+
                 if (media.length > 0) postMedia(media);
+
+                if (interceptedTweets.quotesMap.size) {
+                    postQuotedTweets(interceptedTweets.quotesMap);
+                }
             }
         });
         return originalSend.call(this, body);
@@ -85,12 +97,45 @@
         }
     }
 
-    function findTweets(obj, parent = null, result = []) {
+    /**
+     * Searching result object containing the data captured in intercepted request.
+     */
+    class InterceptedTweets {
+        /**
+         * List of tweets containing pieces of media.
+         * @type {object[]}
+         */
+        mediaTweets = [];
+        /**
+         * Map of tweet IDs to the quoted tweet IDs.
+         * @type {Map<tweetId, tweetId>}
+         */
+        quotesMap = new Map();
+    }
+
+    /**
+     * Walk over the intercepted object and find all tweets mentioned in it. This function walks over the object
+     * recursively.
+     *
+     * @param {object} obj Object to walk over.
+     * @param {string|null} parent Parent object key.
+     * @param {InterceptedTweets} [result] Reference to the result object.
+     *
+     * @returns {InterceptedTweets} Final result of all intercepted tweets.
+     */
+    function findTweets(obj, parent = null, result = new InterceptedTweets()) {
         if (obj && typeof obj === 'object') {
             if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
                 || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)
                 || (parent !== 'legacy' && obj.extended_entities?.media)) {
-                result.push(obj);
+                result.mediaTweets.push(obj);
+            }
+
+            if (obj.__typename === 'Tweet' && obj?.rest_id && obj?.quoted_status_result?.result?.rest_id) {
+                result.quotesMap.set(
+                    obj.rest_id,
+                    obj.quoted_status_result.result.rest_id,
+                );
             }
 
             for (const key in obj) {
