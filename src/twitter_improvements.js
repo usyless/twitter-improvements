@@ -465,6 +465,12 @@
         /** @param {HTMLElement} video */
         addVideoButton: (video) => {
             let button;
+
+            const onError = () => {
+                video.removeAttribute('usy-media');
+                button?.remove();
+            }
+
             try {
                 video.setAttribute('usy-media', '');
 
@@ -474,75 +480,70 @@
                 let saveId = Helpers.idWithNumber(tweetUrl, Image.videoRespectiveIndex(video, article));
                 let [tweetId, mediaIndex] = saveId.split('-');
 
-                const quotedTweetContainer = article.querySelector('div[id] > div[id]');
+                const applyButton = () => {
+                    MediaCache.get(tweetId).then((media) => {
+                        const mark_button = (button) => {
+                            button.setAttribute('ti-id', saveId);
+                            if (Settings.download_preferences.download_history_enabled) { // mark image
+                                Background.download_history_has(saveId).then((response) => {
+                                    if (response === true) Button.mark(button);
+                                });
+                            }
+                        }
 
+                        if (media[(+mediaIndex) - 1].isGif === true) {
+                            button = Image.genericButton(video, Image.downloadButtonCallback);
+                            mark_button(button);
+                            Image.addThumbnailSupport(button);
+                        } else {
+                            let onVideoButton;
+                            const observerSettings = {childList: true, subtree: true};
+                            const observer = new MutationObserver((_, observer) => {
+                                const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
+                                if (share && !video.querySelector('[usy-media]')) {
+                                    onVideoButton ??= (() => {
+                                        const b = Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
+                                            "usy-media", Image.downloadButtonCallback, null,
+                                            (btn) => {
+                                                btn.firstElementChild.firstElementChild.style.color = '#ffffff';
+                                                btn.classList.add('usy-inline');
+                                            });
+                                        mark_button(b);
+                                        return b;
+                                    })();
+                                    button = onVideoButton;
+                                    observer.disconnect();
+                                    share.previousElementSibling.previousElementSibling.before(button);
+                                    observer.observe(video, observerSettings);
+                                }
+                            });
+                            observer.observe(video, observerSettings);
+
+                            const interval = setInterval(() => {
+                                if (!video.isConnected) {
+                                    observer.disconnect();
+                                    clearInterval(interval);
+                                }
+                            }, 1000);
+                        }
+                    }).catch(onError);
+                }
+
+                const quotedTweetContainer = article.querySelector('div[id] > div[id]');
                 // Check if this video is inside the quoted tweet. In this case, we have to rely on the mapping of
                 // tweet IDs to the quoted tweet IDs, which are intercepted alongside the media URLs.
                 if (quotedTweetContainer?.contains(video)) {
-                    const parentTweetId = Helpers.id(tweetUrl);
-                    const quotedTweetId = QuotesCache.get(parentTweetId);
-
-                    if (!quotedTweetId) {
-                        return;
-                    }
-
-                    tweetId = quotedTweetId;
-                    mediaIndex = Image.videoRespectiveIndex(video, quotedTweetContainer);
-                    saveId = [tweetId, mediaIndex].join('-');
+                    QuotesCache.get(tweetId).then((quotedTweetId) => {
+                        tweetId = quotedTweetId;
+                        mediaIndex = Image.videoRespectiveIndex(video, quotedTweetContainer);
+                        saveId = [tweetId, mediaIndex].join('-');
+                        applyButton();
+                    }).catch(onError);
+                } else {
+                    applyButton();
                 }
-
-                MediaCache.get(tweetId).then((media) => {
-                    const mark_button = (button) => {
-                        button.setAttribute('ti-id', saveId);
-                        if (Settings.download_preferences.download_history_enabled) { // mark image
-                            Background.download_history_has(saveId).then((response) => {
-                                if (response === true) Button.mark(button);
-                            });
-                        }
-                    }
-
-                    if (media[(+mediaIndex) - 1].isGif === true) {
-                        button = Image.genericButton(video, Image.downloadButtonCallback);
-                        mark_button(button);
-                        Image.addThumbnailSupport(button);
-                    } else {
-                        let onVideoButton;
-                        const observerSettings = {childList: true, subtree: true};
-                        const observer = new MutationObserver((_, observer) => {
-                            const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
-                            if (share && !video.querySelector('[usy-media]')) {
-                                onVideoButton ??= (() => {
-                                    const b = Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
-                                        "usy-media", Image.downloadButtonCallback, null,
-                                        (btn) => {
-                                            btn.firstElementChild.firstElementChild.style.color = '#ffffff';
-                                            btn.classList.add('usy-inline');
-                                        });
-                                    mark_button(b);
-                                    return b;
-                                })();
-                                button = onVideoButton;
-                                observer.disconnect();
-                                share.previousElementSibling.previousElementSibling.before(button);
-                                observer.observe(video, observerSettings);
-                            }
-                        });
-                        observer.observe(video, observerSettings);
-
-                        const interval = setInterval(() => {
-                            if (!video.isConnected) {
-                                observer.disconnect();
-                                clearInterval(interval);
-                            }
-                        }, 1000);
-                    }
-                }).catch(() => {
-                    video.removeAttribute('usy-media');
-                    button?.remove();
-                });
             } catch {
-                video.removeAttribute('usy-media');
-                button?.remove();
+                onError();
             }
         },
 
