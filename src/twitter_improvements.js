@@ -11,9 +11,9 @@
 
     /** @template T */
     class Cache {
-        /** @type {Map<string, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
+        /** @type {Map<tweetId, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
         #pending = new Map();
-        /** @type {Map<string, T>} */
+        /** @type {Map<tweetId, T>} */
         #cache = new Map();
 
         #type;
@@ -29,7 +29,7 @@
         }
 
         /**
-         * @param {string} id
+         * @param {tweetId} id
          * @returns {Promise<T>}
          */
         get(id) {
@@ -56,7 +56,7 @@
         }
 
         /**
-         * @param {string} id
+         * @param {tweetId} id
          * @param {T} value
          */
         set(id, value) {
@@ -70,7 +70,7 @@
         }
 
         /**
-         * @returns {Map<string, T>}
+         * @returns {Map<tweetId, T>}
          */
         get cache() {
             return this.#cache;
