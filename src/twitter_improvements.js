@@ -90,7 +90,7 @@
             MediaCache.set(id, media);
         }
 
-        if (data?.type === 'quoted-tweets') for (const [parentId, quotedId] of data.quotedTweets.entries()) {
+        if (data?.type === 'quoted-tweets') for (const [parentId, quotedId] of data.quotedTweets) {
             QuotesCache.set(parentId, quotedId);
         }
     });

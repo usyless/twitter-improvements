@@ -13,7 +13,7 @@
 
     /** @param {Map<tweetId, tweetId>} quotedTweets */
     const postQuotedTweets = quotedTweets => {
-        window.postMessage({ source: "ift", type: "quoted-tweets", quotedTweets }, 'https://x.com');
+        window.postMessage({ source: "ift", type: "quoted-tweets", quotedTweets: Array.from(quotedTweets.entries()) }, 'https://x.com');
     }
 
     const originalSend = XMLHttpRequest.prototype.send;
