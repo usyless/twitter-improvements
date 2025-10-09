@@ -487,6 +487,7 @@
                             if (Settings.download_preferences.download_history_enabled) { // mark image
                                 Background.download_history_has(saveId).then((response) => {
                                     if (response === true) Button.mark(button);
+                                    else Button.unmark(button);
                                 });
                             }
                         }
@@ -496,22 +497,18 @@
                             mark_button(button);
                             Image.addThumbnailSupport(button);
                         } else {
-                            let onVideoButton;
                             const observerSettings = {childList: true, subtree: true};
                             const observer = new MutationObserver((_, observer) => {
                                 const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
                                 if (share && !video.querySelector('[usy-media]')) {
-                                    onVideoButton ??= (() => {
-                                        const b = Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
-                                            "usy-media", Image.downloadButtonCallback, null,
-                                            (btn) => {
-                                                btn.firstElementChild.firstElementChild.style.color = '#ffffff';
-                                                btn.classList.add('usy-inline');
-                                            });
-                                        mark_button(b);
-                                        return b;
-                                    })();
-                                    button = onVideoButton;
+                                    button ??= Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
+                                        "usy-media", Image.downloadButtonCallback, null,
+                                        (btn) => {
+                                            btn.firstElementChild.firstElementChild.style.color = '#ffffff';
+                                            btn.classList.add('usy-inline');
+                                        });
+                                    // mark each time it comes into view to refresh state
+                                    mark_button(button);
                                     observer.disconnect();
                                     share.previousElementSibling.previousElementSibling.before(button);
                                     observer.observe(video, observerSettings);
