@@ -79,7 +79,7 @@
         if (id && media) {
             const username = user_name ?? USER_CACHE.get(user_id);
             const usernameReplaceStr = `/${username}/status`;
-            if (!username) console.warn("No username found for id: ", id);
+            if (!username) console.warn("No username found for user_id: ", user_id, " Tweet id: ", id);
             // has media
             const /** @type {MediaItem[]} */ mediaInfo = [];
             for (let index = 1; index <= media.length; ++index) {
