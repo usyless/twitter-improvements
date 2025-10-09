@@ -1,4 +1,7 @@
 (() =>  {
+    /** @type {Map<string, string>} */
+    const USER_CACHE = new Map();
+
     const getQualities = (variants) => {
         if (variants) {
             variants = variants.filter(v => v.content_type === "video/mp4");
@@ -50,31 +53,38 @@
      */
     function getMediaFromTweetResult(tweet) {
         if (tweet.extended_entities) { // this would be the notification timeline ones, idk where else
-            return mediaFromTweet(tweet.id_str, tweet.extended_entities.media);
+            return mediaFromTweet(tweet.id_str, tweet.extended_entities.media,
+                tweet.user?.id_str ?? tweet.user_id_str, tweet.user?.screen_name);
         } else { // most other tweets
             tweet = tweet.tweet ?? tweet;
             if (tweet) {
                 let id = tweet.rest_id;
                 tweet = tweet.legacy;
+                let user_id = tweet.user_id_str;
                 let retweet = tweet?.retweeted_status_result?.result;
                 if (retweet) {
                     retweet = retweet.tweet ?? retweet;
                     id = retweet?.rest_id;
+                    user_id = retweet?.legacy?.user_id_str;
                 }
                 tweet = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
 
-                return mediaFromTweet(id, tweet);
+                return mediaFromTweet(id, tweet, user_id);
             }
         }
     }
 
-    function mediaFromTweet(id, media) {
+    const usernameReplaceRegex = /\/[^\/]+\/status/;
+    function mediaFromTweet(id, media, user_id, user_name) {
         if (id && media) {
+            const username = user_name ?? USER_CACHE.get(user_id);
+            const usernameReplaceStr = `/${username}/status`;
             // has media
             const /** @type {MediaItem[]} */ mediaInfo = [];
             for (let index = 1; index <= media.length; ++index) {
                 const {media_url_https, video_info, type, expanded_url} = media[index - 1];
-                const /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image', tweetURL: expanded_url};
+                const /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image',
+                    tweetURL: (username) ? expanded_url.replace(usernameReplaceRegex, usernameReplaceStr) : expanded_url};
                 switch (type) {
                     case 'photo': {
                         const lastDot = media_url_https?.lastIndexOf('.');
@@ -116,6 +126,7 @@
     /**
      * Walk over the intercepted object and find all tweets mentioned in it. This function walks over the object
      * recursively.
+     * Has a side effect of caching user id's to usernames
      *
      * @param {object} obj Object to walk over.
      * @param {string|null} parent Parent object key.
@@ -125,6 +136,14 @@
      */
     function findTweets(obj, parent = null, result = new InterceptedTweets()) {
         if (obj && typeof obj === 'object') {
+            if (obj.__typename === 'User' && obj.rest_id && obj.core?.screen_name && !(USER_CACHE.has(obj.rest_id))) {
+                USER_CACHE.set(obj.rest_id, obj.core.screen_name);
+            }
+
+            if (obj.screen_name && obj.id_str && !(USER_CACHE.has(obj.rest_id))) {
+                USER_CACHE.set(obj.id_str, obj.screen_name);
+            }
+
             if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
                 || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)
                 || (parent !== 'legacy' && obj.extended_entities?.media)) {
