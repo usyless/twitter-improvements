@@ -97,7 +97,7 @@
                         info.url = qualities?.[0];
                         info.url_lowres = qualities?.[qualities.length - 1];
                         info.type = 'Video';
-                        if (type === 'animated_gif') info.isGif = true;
+                        info.isGif = (type === 'animated_gif');
                         break;
                     }
                 }
