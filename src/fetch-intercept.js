@@ -150,7 +150,7 @@
                 result.mediaTweets.push(obj);
             }
 
-            if (obj.__typename === 'Tweet' && obj?.rest_id && obj?.quoted_status_result?.result?.rest_id) {
+            if (obj.__typename === 'Tweet' && obj.rest_id && obj.quoted_status_result?.result?.rest_id) {
                 result.quotesMap.set(
                     obj.rest_id,
                     obj.quoted_status_result.result.rest_id,
