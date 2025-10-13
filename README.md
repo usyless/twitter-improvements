@@ -1,8 +1,8 @@
 <h1 align="center"><a href="#"><img src="https://github.com/usyless/twitter-improvements/blob/main/src/icons/icon.svg?raw=true" width="160" height="160" alt="logo"></a><br>Improvements for Twitter</h1>
 
-| ![](https://github.com/usyless/twitter-improvements/blob/main/media/cover.png?raw=true)     | ![](https://github.com/usyless/twitter-improvements/blob/main/media/features.png?raw=true)  |
+| ![](https://github.com/usyless/twitter-improvements/blob/main/assets/cover.png?raw=true)     | ![](https://github.com/usyless/twitter-improvements/blob/main/assets/features.png?raw=true)  |
 |---------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| ![](https://github.com/usyless/twitter-improvements/blob/main/media/settings1.png?raw=true) | ![](https://github.com/usyless/twitter-improvements/blob/main/media/settings2.png?raw=true) |
+| ![](https://github.com/usyless/twitter-improvements/blob/main/assets/settings1.png?raw=true) | ![](https://github.com/usyless/twitter-improvements/blob/main/assets/settings2.png?raw=true) |
 
 A simple web extension which brings a few quality of life features to twitter/X. 
 
@@ -42,11 +42,11 @@ Saved Image/Video Reversing
 
 # Installation
 
-**Firefox Desktop/Mobile (or Fennec)**
-1. Install extension through the [Mozilla addons page](https://addons.mozilla.org/en-GB/firefox/addon/improvements-for-twitter/)
+<a href="https://addons.mozilla.org/en-GB/firefox/addon/improvements-for-twitter/"><img src="https://github.com/usyless/twitter-improvements/blob/main/assets/3rdparty/firefox-addons.webp?raw=true" alt="Firefox Addons Link"></a>
 
-**Chrome or other chromium based browsers**
-1. Install extension through the [Chrome web store](https://chromewebstore.google.com/detail/improvements-for-twitter/joficcmkfcceifjloncilgpnljofjfdc)
+
+<a href="https://chromewebstore.google.com/detail/improvements-for-twitter/joficcmkfcceifjloncilgpnljofjfdc"><img src="https://github.com/usyless/twitter-improvements/blob/main/assets/3rdparty/chrome-web-store.png?raw=true" alt="Chrome Web Store Link"></a>
+
 
 **Edge Mobile Canary**
 1. Download the latest release from the releases tab
