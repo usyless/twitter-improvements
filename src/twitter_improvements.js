@@ -218,11 +218,11 @@
         /** @param {PointerEvent} e */
         vxButtonCallback: (e) => {
             try {
-                navigator.clipboard.writeText(URLS.vxIfy(e.currentTarget.TI_RESPECTIVE_ARTICLE)).then(() => {
+                navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(e.currentTarget.TI_RESPECTIVE_ARTICLE))).then(() => {
                     Notification.create('Copied URL to clipboard', 'copied_url');
                 });
-            } catch {
-                Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements', 'error');
+            } catch (e) {
+                Notification.create(`Failed to copy url, please report the issue along with the current url to twitter improvements: ${e}`, 'error');
             }
         },
 
