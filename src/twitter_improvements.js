@@ -190,19 +190,39 @@
 
     const Tweet = { // Tweet functions
         /** @param {HTMLElement} article */
-        addVXButton: (article) => {
-            try {
-                article.setAttribute('usy', '');
-                const a = Tweet.defaultAnchor(article), cb = Tweet.vxButtonCallback.bind(null, article);
-                a.after(Button.newButton(a, vx_button_path, cb, 'usy-copy'));
+        addVXButton: (() => {
+            const createButton = (article, anchor) => {
+                const button = Button.newButton(anchor, vx_button_path, Tweet.vxButtonCallback, 'usy-copy');
+                button.TI_RESPECTIVE_ARTICLE = article;
 
-                const altAnchor = Tweet.secondaryAnchor(article);
-                if (altAnchor) {
-                    for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
-                    altAnchor.after(Button.newButton(altAnchor, vx_button_path, cb, 'usy-copy'));
+                anchor.after(button);
+            }
+
+            return (article) => {
+                try {
+                    article.setAttribute('usy', '');
+                    const a = Tweet.defaultAnchor(article);
+                    createButton(article, a);
+
+                    const altAnchor = Tweet.secondaryAnchor(article);
+                    if (altAnchor) {
+                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
+                        createButton(article, altAnchor);
+                    }
+                } catch {
+                    article.removeAttribute('usy');
                 }
+            }
+        })(),
+
+        /** @param {PointerEvent} e */
+        vxButtonCallback: (e) => {
+            try {
+                navigator.clipboard.writeText(URLS.vxIfy(e.currentTarget.TI_RESPECTIVE_ARTICLE)).then(() => {
+                    Notification.create('Copied URL to clipboard', 'copied_url');
+                });
             } catch {
-                article.removeAttribute('usy');
+                Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements', 'error');
             }
         },
 
@@ -360,17 +380,6 @@
                     if (anchor) return anchor;
                     elem = elem.parentElement;
                 }
-            }
-        },
-
-        /** @param {HTMLElement} article */
-        vxButtonCallback: (article) => {
-            try {
-                navigator.clipboard.writeText(URLS.vxIfy(Tweet.url(article))).then(() => {
-                    Notification.create('Copied URL to clipboard', 'copied_url');
-                });
-            } catch {
-                Notification.create('Failed to copy url, please report the issue along with the current url to twitter improvements', 'error');
             }
         },
 
