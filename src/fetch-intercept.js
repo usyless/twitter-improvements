@@ -158,6 +158,14 @@
                 );
             }
 
+            // fallback for quoted_status_result in legacy
+            if (obj.quoted_status_id_str && obj.id_str) {
+                result.quotesMap.set(
+                    obj.id_str,
+                    obj.quoted_status_id_str,
+                );
+            }
+
             for (const key in obj) {
                 findTweets(obj[key], key, result);
             }
