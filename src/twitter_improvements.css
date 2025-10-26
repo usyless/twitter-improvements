@@ -88,6 +88,11 @@ body {
     display: flex;
     flex-direction: column;
 
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
     > div:nth-child(2) {
         display: flex;
         justify-content: space-evenly;
