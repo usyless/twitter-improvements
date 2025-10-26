@@ -604,7 +604,7 @@ const setupContextMenus = (() => {
 })();
 void setupContextMenus();
 
-const CANCELED_BY_USER = "Download canceled by the user".toLowerCase();
+const CANCELED_BY_USER = "Error: Download canceled by the user".toLowerCase();
 
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
 extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
