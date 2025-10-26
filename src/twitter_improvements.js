@@ -971,7 +971,7 @@
             const innerText = document.createElement('div');
             const innerChoices = document.createElement('div');
             const retryChoice = document.createElement('div');
-            const viewChoice = document.createElement('div');
+            const viewChoice = document.createElement('a');
             const cancelChoice = document.createElement('div');
 
             innerText.textContent = text;
@@ -985,9 +985,8 @@
                 void Downloaders.download_all(media, modifiers);
             });
 
-            viewChoice.addEventListener('click', () => {
-                void Background.open_tab(media.tweetURL);
-            });
+            viewChoice.href = media.tweetURL;
+            viewChoice.target = '_blank';
 
             cancelChoice.addEventListener('click', () => {
                 if (outer.children.length === 2) outer.remove();
@@ -1240,7 +1239,7 @@
                     const innerText = document.createElement('div');
                     const innerChoices = document.createElement('div');
                     const retryChoice = document.createElement('div');
-                    const viewChoice = document.createElement('div');
+                    const viewChoice = document.createElement('a');
                     const cancelChoice = document.createElement('div');
 
                     innerText.textContent = text;
@@ -1254,9 +1253,8 @@
                         void Downloaders.download_all(media, modifiers);
                     });
 
-                    viewChoice.addEventListener('click', () => {
-                        void Background.open_tab(media.tweetURL);
-                    });
+                    viewChoice.href = media.tweetURL;
+                    viewChoice.target = '_blank';
 
                     cancelChoice.addEventListener('click', () => {
                         if (outer.children.length === 2) outer.remove();
