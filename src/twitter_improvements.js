@@ -587,8 +587,9 @@
          * @param {MediaItem} media
          * @param {Element} [eventTarget]
          * @param {string} [customSearch]
+         * @param {boolean} [full_thumb]
          */
-        showThumbnail: (element, media, {eventTarget, customSearch} = {}) => {
+        showThumbnail: (element, media, {eventTarget, customSearch, full_thumb} = {}) => {
             for (const e of document.querySelectorAll('.usyNotificationOuter[data-usythumb]')) e.usyCloseThumb?.();
 
             const fullscreen = document.createElement('div');
@@ -612,7 +613,18 @@
 
             const eventElem = eventTarget ?? element;
 
-            const closeThumb = () => {
+            /** @param {PointerEvent} [e] */
+            const closeThumb = (e) => {
+                if (e?.pointerType === 'mouse' && e.button === 1) { // middle click
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    closeThumb();
+                    returnObj.closeThumb = Image.showThumbnail(element, media,
+                        {eventTarget, customSearch, full_thumb: true})
+                        .closeThumb;
+                    return;
+                }
                 eventElem.removeEventListener('pointerleave', closeThumb);
                 eventElem.removeEventListener('pointerdown', closeThumb, { capture: true });
                 eventElem.removeEventListener('click', closeThumb, { capture: true });
@@ -621,6 +633,7 @@
                 fullscreen.remove();
                 controller.abort();
             }
+            const returnObj = {closeThumb};
 
             fullscreen.usyCloseThumb = closeThumb;
 
@@ -657,14 +670,18 @@
             window.addEventListener('popstate', closeThumb, { capture: true });
             window.addEventListener('scroll', closeThumb, { capture: true });
 
-            if (media.type === 'Image') {
-                let baseUrl = media.url.split('?')[0];
-                thumb.src = (document.querySelector(`[src^="${baseUrl}"]`)?.src)
-                    ?? ((customSearch) ? (baseUrl + customSearch) : (media.url.replaceAll('&name=orig', '&name=360x360')));
+            if (full_thumb) {
+                thumb.src = media.url;
             } else {
-                thumb.src = media.url_lowres ?? media.url;
+                if (media.type === 'Image') {
+                    let baseUrl = media.url.split('?')[0];
+                    thumb.src = (document.querySelector(`[src^="${baseUrl}"]`)?.src)
+                        ?? ((customSearch) ? (baseUrl + customSearch) : (media.url.replaceAll('&name=orig', '&name=360x360')));
+                } else {
+                    thumb.src = media.url_lowres ?? media.url;
+                }
             }
-            return closeThumb;
+            return returnObj;
         },
 
         /** @param {HTMLElement} button */
@@ -982,17 +999,21 @@
             viewChoice.textContent = 'View Tweet';
             cancelChoice.textContent = 'Cancel';
 
+            const removeElement = () => {
+                if (outer.children.length === 2) outer.remove();
+                else inner.remove();
+            }
+
             retryChoice.addEventListener('click', () => {
                 void Downloaders.download_all(media, modifiers);
+                removeElement();
             });
 
             viewChoice.href = media.tweetURL;
             viewChoice.target = '_blank';
 
-            cancelChoice.addEventListener('click', () => {
-                if (outer.children.length === 2) outer.remove();
-                else inner.remove();
-            });
+            viewChoice.addEventListener('click', removeElement);
+            cancelChoice.addEventListener('click', removeElement);
 
             innerChoices.append(retryChoice, viewChoice, cancelChoice);
             inner.append(innerText, innerChoices);
@@ -1047,7 +1068,7 @@
                     else window.removeEventListener(type, listener);
                 }
                 Notification.clearFullscreen();
-                closeThumbnail?.();
+                closeThumbnail?.closeThumb?.();
             });
 
             for (const {index, type, save_id} of choices) {
@@ -1250,17 +1271,21 @@
                     viewChoice.textContent = 'View Tweet';
                     cancelChoice.textContent = 'Cancel';
 
+                    const removeElement = () => {
+                        if (outer.children.length === 2) outer.remove();
+                        else inner.remove();
+                    }
+
                     retryChoice.addEventListener('click', () => {
                         void Downloaders.download_all(media, modifiers);
+                        removeElement();
                     });
 
                     viewChoice.href = media.tweetURL;
                     viewChoice.target = '_blank';
 
-                    cancelChoice.addEventListener('click', () => {
-                        if (outer.children.length === 2) outer.remove();
-                        else inner.remove();
-                    });
+                    viewChoice.addEventListener('click', removeElement);
+                    cancelChoice.addEventListener('click', removeElement);
 
                     innerChoices.append(retryChoice, viewChoice, cancelChoice);
                     textBox.remove();
