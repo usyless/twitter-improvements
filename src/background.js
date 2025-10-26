@@ -613,7 +613,7 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
             DOWNLOAD_MAP.delete(id);
         } else if (error?.current) {
             Settings.getSettings().then(() => {
-                if (error.current.toLowerCase() === CANCELED_BY_USER
+                if (error.current.toLowerCase().trim() === CANCELED_BY_USER
                     && Settings.download_preferences.disable_cancelled_download_notification) {
                     DOWNLOAD_MAP.delete(id);
                     return;
@@ -741,7 +741,7 @@ function download_media({media, modifiers}, sendResponse) {
             const parts = ((m.type === 'Video') ? getNamePartsVideo : getNamePartsImage)(m.tweetURL, m.url);
             parts.tweetNum = m.index;
             if (download_history_enabled) void download_history_add(m.save_id);
-            const onError = (error) => download_history_remove({id: m.save_id}, () => sendToTab({type: 'error', message: `Failed to download error ${error}`, media: m, modifiers}));
+            const onError = (error) => download_history_remove({id: m.save_id}, () => sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers}));
             download(m.url, formatFilename(parts, save_format), modifiers, {media: m})
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
