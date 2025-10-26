@@ -989,7 +989,7 @@
                 void Background.open_tab(media.tweetURL);
             });
 
-            inner.addEventListener('click', () => {
+            cancelChoice.addEventListener('click', () => {
                 if (outer.children.length === 2) outer.remove();
                 else inner.remove();
             });
@@ -1258,7 +1258,7 @@
                         void Background.open_tab(media.tweetURL);
                     });
 
-                    inner.addEventListener('click', () => {
+                    cancelChoice.addEventListener('click', () => {
                         if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     });
