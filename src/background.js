@@ -721,7 +721,7 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
-const USER_CANCELED_MESSAGE = "Download canceled by the user".toLowerCase();
+const USER_CANCELED = ["download canceled by the user", "user_canceled"];
 
 /**
  * @param {string} error
@@ -731,7 +731,7 @@ async function checkErrorAllowed(error) {
     await Settings.getSettings();
     error = error.message || error;
 
-    return !((error.toLowerCase().trim() === USER_CANCELED_MESSAGE)
+    return !((USER_CANCELED.includes(error?.toLowerCase()?.trim()))
         && Settings.download_preferences.disable_cancelled_download_notification);
 }
 
