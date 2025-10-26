@@ -676,13 +676,14 @@
                     const [id, index] = id_specific.split('-');
                     MediaCache.get(id).then(/** @param {MediaItem[]} media*/(media) => {
                         let hoverTimeout;
+                        const selected_media = media[(+index) - 1];
                         button.addEventListener('pointerenter', () => {
                             if (timeout === 0) {
-                                Image.showThumbnail(button, media[(+index) - 1]);
+                                Image.showThumbnail(button, selected_media);
                             } else {
                                 hoverTimeout = setTimeout(Image.showThumbnail,
                                     timeout * 1000,
-                                    button, media[(+index) - 1]);
+                                    button, selected_media);
                             }
                         });
                         const clearTimer = () => clearTimeout(hoverTimeout);
