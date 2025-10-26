@@ -604,23 +604,14 @@ const setupContextMenus = (() => {
 })();
 void setupContextMenus();
 
-const CANCELED_BY_USER = "Error: Download canceled by the user".toLowerCase();
-
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
 extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
     if (DOWNLOAD_MAP.has(id)) {
         if (state?.current === 'complete') {
             DOWNLOAD_MAP.delete(id);
         } else if (error?.current) {
-            Settings.getSettings().then(() => {
-                if (error.current.toLowerCase().trim() === CANCELED_BY_USER
-                    && Settings.download_preferences.disable_cancelled_download_notification) {
-                    DOWNLOAD_MAP.delete(id);
-                    return;
-                }
-                DOWNLOAD_MAP.get(id)(error.current);
-                DOWNLOAD_MAP.delete(id);
-            });
+            DOWNLOAD_MAP.get(id)(error.current);
+            DOWNLOAD_MAP.delete(id);
         }
     }
 });
@@ -630,6 +621,7 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
  * @param {MediaItem} [media]
+ * @return {Promise<number>}
  */
 function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media}={}) {
     if (isAndroid && !isEdgeAndroid) {
@@ -729,6 +721,20 @@ function formatFilename(parts, save_format) {
         (parts.extension ? `.${parts.extension}` : '');
 }
 
+const USER_CANCELED_MESSAGE = "Download canceled by the user".toLowerCase();
+
+/**
+ * @param {string} error
+ * @returns {Promise<boolean>}
+ */
+async function checkErrorAllowed(error) {
+    await Settings.getSettings();
+    error = error.message || error;
+
+    return !((error.toLowerCase().trim() === USER_CANCELED_MESSAGE)
+        && Settings.download_preferences.disable_cancelled_download_notification);
+}
+
 /**
  * @param {MediaItem[]} media
  * @param {EventModifiers} modifiers
@@ -741,7 +747,8 @@ function download_media({media, modifiers}, sendResponse) {
             const parts = ((m.type === 'Video') ? getNamePartsVideo : getNamePartsImage)(m.tweetURL, m.url);
             parts.tweetNum = m.index;
             if (download_history_enabled) void download_history_add(m.save_id);
-            const onError = (error) => download_history_remove({id: m.save_id}, () => sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers}));
+            const onError = (error) => download_history_remove({id: m.save_id},
+                () => checkErrorAllowed(error).then((r) => r && sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers})));
             download(m.url, formatFilename(parts, save_format), modifiers, {media: m})
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
