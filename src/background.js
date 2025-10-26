@@ -168,6 +168,11 @@ const defaultSettings = {
             default: "-1",
             validate: CONSTRAINTS.NUMBERLIKE
         },
+
+        disable_cancelled_download_notification: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        }
     },
 
     style: {

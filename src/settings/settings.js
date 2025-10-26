@@ -143,6 +143,14 @@
                     description: 'Show image download button in right click context menu'
                 },
                 {
+                    name: 'hover_thumbnail_timeout',
+                    category: 'download_preferences',
+                    description: 'Hover over download button duration to show thumbnail (negative for disabled)',
+                    type: 'number',
+                    post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
+                    attributes: {step: '0.1'}
+                },
+                {
                     type: 'break'
                 },
                 {
@@ -377,12 +385,7 @@
                     description: 'Hide navigation bar completely when scrolling down'
                 },
                 {
-                    name: 'hover_thumbnail_timeout',
-                    category: 'download_preferences',
-                    description: 'Hover over download button duration to show thumbnail (negative for disabled)',
-                    type: 'number',
-                    post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
-                    attributes: {step: '0.1'}
+                    type: 'break'
                 },
                 {
                     name: 'reset_all_settings',
@@ -825,6 +828,14 @@
                     name: 'copied_url',
                     category: 'hidden_extension_notifications',
                     description: 'URL Copy',
+                }
+            ],
+
+            'Hidden Download Error Notifications': [
+                {
+                    name: 'disable_cancelled_download_notification',
+                    category: 'download_preferences',
+                    description: 'Cancelled download from save as'
                 }
             ]
         },
