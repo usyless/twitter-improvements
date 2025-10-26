@@ -604,14 +604,23 @@ const setupContextMenus = (() => {
 })();
 void setupContextMenus();
 
+const CANCELED_BY_USER = "Download canceled by the user".toLowerCase();
+
 const /** @type {Map<number, (string) => *>} */ DOWNLOAD_MAP = new Map();
 extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
     if (DOWNLOAD_MAP.has(id)) {
         if (state?.current === 'complete') {
             DOWNLOAD_MAP.delete(id);
         } else if (error?.current) {
-            DOWNLOAD_MAP.get(id)(error.current);
-            DOWNLOAD_MAP.delete(id);
+            Settings.getSettings().then(() => {
+                if (error.current.toLowerCase() === CANCELED_BY_USER
+                    && Settings.download_preferences.disable_cancelled_download_notification) {
+                    DOWNLOAD_MAP.delete(id);
+                    return;
+                }
+                DOWNLOAD_MAP.get(id)(error.current);
+                DOWNLOAD_MAP.delete(id);
+            });
         }
     }
 });
