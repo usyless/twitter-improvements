@@ -613,21 +613,32 @@
 
             const eventElem = eventTarget ?? element;
 
-            /** @param {PointerEvent} [e] */
-            const closeThumb = (e) => {
-                if (e?.pointerType === 'mouse' && e.button === 1) { // middle click
+            let hiResShown = false;
+            /** @type {(e: PointerEvent) => any} */
+            const showHiRes = full_thumb ? (() => {}) : ((e) => {
+                if ((e.pointerType === 'mouse') && (e.button === 1)) { // middle click
+                    closeThumb();
                     e.preventDefault();
                     e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    closeThumb();
-                    returnObj.closeThumb = Image.showThumbnail(element, media,
-                        {eventTarget, customSearch, full_thumb: true})
-                        .closeThumb;
+                    if (!hiResShown) {
+                        hiResShown = true;
+                        returnObj.closeThumb = Image.showThumbnail(element, media,
+                            {eventTarget, customSearch, full_thumb: true})
+                            .closeThumb;
+                    }
+                }
+            });
+
+            /** @param {PointerEvent | MouseEvent} [e] */
+            const closeThumb = (e) => {
+                if ((e?.pointerType === 'mouse') && (e.button === 1)) {
+                    e.preventDefault();
                     return;
                 }
                 eventElem.removeEventListener('pointerleave', closeThumb);
                 eventElem.removeEventListener('pointerdown', closeThumb, { capture: true });
                 eventElem.removeEventListener('click', closeThumb, { capture: true });
+                eventElem.removeEventListener('auxclick', showHiRes, { capture: true });
                 window.removeEventListener('popstate', closeThumb, { capture: true });
                 window.removeEventListener('scroll', closeThumb, { capture: true });
                 fullscreen.remove();
@@ -666,6 +677,7 @@
 
             eventElem.addEventListener('pointerleave', closeThumb);
             eventElem.addEventListener('click', closeThumb, { capture: true });
+            eventElem.addEventListener('auxclick', showHiRes, { capture: true });
             eventElem.addEventListener('pointerdown', closeThumb, { capture: true });
             window.addEventListener('popstate', closeThumb, { capture: true });
             window.addEventListener('scroll', closeThumb, { capture: true });
