@@ -245,7 +245,7 @@
                         i.type = 'file';
                         i.id = 'download_history_input';
                         i.hidden = true;
-                        i.accept = '.twitterimprovements,.twitterimprovementsbin';
+                        i.accept = '.twitterimprovements,.twitterimprovementsbin,.twitterimprovementsgz';
                         i.addEventListener('change', () => {
                             const file = i.files[0];
                             if (!file) return;
@@ -256,8 +256,11 @@
                                 i.value = ''; // fix for double identical file inputs
                                 void customPopup('Successfully imported!');
                             }
-                            if (file.name.endsWith('.twitterimprovementsbin')) {
-                                file.arrayBuffer().then((buffer) => {
+                            const isGz = file.name.endsWith('.twitterimprovementsgz');
+                            const isBinary = file.name.endsWith('.twitterimprovementsbin');
+                            if (isGz || isBinary) {
+                                /** @param {ArrayBuffer} buffer */
+                                const onBuffer = (buffer) => {
                                     const ids = [];
                                     const view = new DataView(buffer);
                                     const max = view.byteLength;
@@ -270,7 +273,22 @@
                                     return BackgroundPorts.download_history_add_all(ids, ({progress, text}) => {
                                         progressCallback(progress, length, text);
                                     });
-                                }).then(onFinish);
+                                }
+                                if (isBinary) file.arrayBuffer().then(onBuffer).then(onFinish);
+                                else if (isGz) {
+                                    if (!('DecompressionStream' in window)) {
+                                        removeOverlay();
+                                        i.value = '';
+                                        void customPopup('Failed to import! File is compressed but no decompression available.');
+                                        return;
+                                    }
+                                    new Response(file.stream().pipeThrough(new DecompressionStream("gzip")))
+                                        .arrayBuffer().then(onBuffer).then(onFinish).catch(() => {
+                                            removeOverlay();
+                                            i.value = '';
+                                            void customPopup('Failed to import! Bad file.');
+                                    });
+                                }
                             } else {
                                 file.text().then((r) => {
                                     const split = r.split(' ');
@@ -475,10 +493,23 @@
                                 offset += 9;
                             }
 
-                            removeOverlay();
-                            const url = URL.createObjectURL(new Blob([buffer], { type: 'application/octet-stream' }));
-                            download(url, 'export.twitterimprovementsbin');
-                            URL.revokeObjectURL(url);
+                            const downloadBlob = (blob, gz = true) => {
+                                removeOverlay();
+                                const url = URL.createObjectURL(blob);
+                                download(url, 'export.twitterimprovements' + ((gz) ? 'gz' : 'bin'));
+                                URL.revokeObjectURL(url);
+                            }
+
+                            const blob = new Blob([buffer], { type: 'application/octet-stream' });
+                            if ('CompressionStream' in window) {
+                                new Response(
+                                    blob.stream().pipeThrough(new CompressionStream('gzip')), {
+                                        headers: { 'Content-Type': 'application/octet-stream' }
+                                    }
+                                ).blob().then(downloadBlob);
+                            } else {
+                                downloadBlob(blob, false);
+                            }
                         });
                     }
                 },
