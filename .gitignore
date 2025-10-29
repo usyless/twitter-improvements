@@ -1,4 +1,8 @@
 /.idea
 /releases
-/icon.psd
 /build
+/new icon
+/*.psd
+/*.crx
+/*.pem
+/*.ai
