@@ -50,7 +50,7 @@ Saved Image/Video Reversing
 
 **Edge Mobile Canary**
 1. Download the latest release from the releases tab
-2. Within the `src` directory, delete manifest.bat, and rename `manifest_chrome.bat` to `manifest.bat`
+2. Within the `src` directory, delete manifest.bat, and rename `manifest_chrome.json` to `manifest.json`
 3. Open a desktop chromium browser, navigate to `chrome://extensions`, click on `Pack extension`
 4. Choose the `src` directory as the root, then click pack to get a `.crx` file
 5. Transfer this file to your phone, then within edge canary go to Settings > Developer Options > Extension install by crx
