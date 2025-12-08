@@ -64,7 +64,11 @@
         hide_whats_happening: {s: ['div:has(> * > [aria-label="Timeline: Trending now"])'], st: HideType.DISPLAY},
         hide_who_to_follow: {s: [
             'div:has(> * > [aria-label="Who to follow"])',
-            'div:has(> * > * > [aria-label="Loading recommendations for users to follow"])'
+            'div:has(> * > * > [aria-label="Loading recommendations for users to follow"])',
+            'div:has(+ div > div > div > button[data-testid="UserCell"])',
+            'div:has(> div > div > button[data-testid="UserCell"])',
+            'div:has(> div > div > a[href^="/i/connect_people"])',
+            'div:has(> div > div > a[href^="/i/connect_people"]) + div',
         ], st: HideType.DISPLAY},
         hide_relevant_people: {s: ['div:has(> [aria-label="Relevant people"])'], st: HideType.DISPLAY},
         hide_create_your_space: {s: ['a[href="/i/spaces/start"]'], st: HideType.DISPLAY},
