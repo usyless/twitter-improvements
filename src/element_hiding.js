@@ -60,7 +60,13 @@
             'a[href="/i/monetization"]'
         ], st: HideType.DISPLAY},
         hide_ads_button: {s: ['a[href*="https://ads.x.com"]'], st: HideType.DISPLAY},
-        hide_todays_news: {s: ['div:has(> [data-testid="news_sidebar"])'], st: HideType.DISPLAY},
+        hide_todays_news: {s: [
+            'div:has(> [data-testid="news_sidebar"])',
+            'div:has(> div > div > button > a[href^="/explore"])',
+            'div:has(> div > div > button > a[href^="/explore"]) + div:has(> div > div > [data-testid=trend])',
+            'div:has(> div > div > [data-testid=trend]) + div:has(> div > div > :is([data-testid=trend], a[href^="/explore"]))',
+            'div:has(> div > div > [data-testid=trend]) + div:has(> div > div > a[href^="/explore"]) + div'
+        ], st: HideType.DISPLAY},
         hide_whats_happening: {s: ['div:has(> * > [aria-label="Timeline: Trending now"])'], st: HideType.DISPLAY},
         hide_who_to_follow: {s: [
             'div:has(> * > [aria-label="Who to follow"])',
