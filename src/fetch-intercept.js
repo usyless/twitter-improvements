@@ -160,14 +160,14 @@
                 }
 
                 for (const key in obj) {
-                    findTweets(obj[key], key, result);
+                    _findTweets(obj[key], key);
                 }
             }
-            return result;
         }
 
         return (obj) => {
             result = new InterceptedTweets();
+
             _findTweets(obj, null);
             for (const m of result.mediaTweets) {
                 const maybeMediaTransfer = getMediaFromTweetResult(m);
