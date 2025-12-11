@@ -1344,6 +1344,7 @@
                 return;
             }
 
+            link.setAttribute('usy-url-replaced', '');
             link.href = result;
         }
     };
