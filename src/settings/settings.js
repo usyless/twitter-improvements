@@ -154,6 +154,19 @@
                     type: 'break'
                 },
                 {
+                    name: 'download_all_near_click',
+                    category: 'download_preferences',
+                    description: 'Show "Download All" the download popup as the choice closest to your click',
+                },
+                {
+                    name: 'download_all_override_saved',
+                    category: 'download_preferences',
+                    description: '"Download All" ignores saved files and downloads everything'
+                },
+                {
+                    type: 'break'
+                },
+                {
                     name: 'image_button_position',
                     category: 'image_preferences',
                     description: 'Media download button position',
@@ -201,7 +214,20 @@
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
                     attributes: {step: '20'}
-                }
+                },
+                {
+                    type: 'break'
+                },
+                {
+                    name: 'more_media_icon_visible',
+                    category: 'style',
+                    description: 'Make the "more media" icon on the media pages of user profiles stand out more'
+                },
+                {
+                    name: 'download_picker_on_media_page',
+                    category: 'download_preferences',
+                    description: 'Show download picker for multi-media tweets in the media page'
+                },
             ],
             'Download History': [
                 {
@@ -373,29 +399,9 @@
                     description: 'Show bookmark button on the enlarged photo page',
                 },
                 {
-                    name: 'download_all_near_click',
-                    category: 'download_preferences',
-                    description: 'Show "Download All" the download popup as the choice closest to your click',
-                },
-                {
-                    name: 'download_all_override_saved',
-                    category: 'download_preferences',
-                    description: '"Download All" ignores saved files and downloads everything'
-                },
-                {
-                    name: 'more_media_icon_visible',
-                    category: 'style',
-                    description: 'Make the "more media" icon on the media pages of user profiles stand out more'
-                },
-                {
                     name: 'use_download_progress',
                     category: 'download_preferences',
                     description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'
-                },
-                {
-                    name: 'download_picker_on_media_page',
-                    category: 'download_preferences',
-                    description: 'Show download picker for multi-media tweets in the media page'
                 },
                 {
                     name: 'hide_bottom_bar_completely',

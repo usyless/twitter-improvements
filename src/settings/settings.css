@@ -503,7 +503,7 @@ body.chrome {
 
 /*Dynamic settings hiding*/
 div:has(> * > #vx_button:not(:checked)) > *:nth-child(n+3),
-div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+6),
+div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+9),
 div:has(> * > #download_history_enabled:not(:checked)) > *:nth-child(n+3) {
     display: none !important;
 }
