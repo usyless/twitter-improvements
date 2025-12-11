@@ -35,6 +35,8 @@ Display bookmark button on enlarged image/video view
 Save Image Context Menu
 - A right click context menu for all images on Twitter to save them, just like with the button
 
+Replace shortened URL's with their original ones
+
 **All of the above and more are toggleable with the extensions settings**
 
 Saved Image/Video Reversing
