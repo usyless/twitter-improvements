@@ -9,11 +9,11 @@
         return chrome;
     })();
 
-    /** @template T */
+    /** @template F, T */
     class Cache {
-        /** @type {Map<tweetId, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
+        /** @type {Map<F, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
         #pending = new Map();
-        /** @type {Map<tweetId, T>} */
+        /** @type {Map<F, T>} */
         #cache = new Map();
 
         #type;
@@ -29,13 +29,12 @@
         }
 
         /**
-         * @param {tweetId} id
+         * @param {F} id
          * @returns {Promise<T>}
          */
         get(id) {
             const result = this.#cache.get(id);
             if (result) return Promise.resolve(result);
-            if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID");
 
             return new Promise((resolve, reject) => {
                 const success = this.#pending.get(id)?.promises.push({resolve, reject});
@@ -44,7 +43,7 @@
                     const timer = setTimeout(() => {
                         const queued = this.#pending.get(id);
                         if (queued) {
-                            const rejection = `Failed to get ${this.#type} for ID ${id}`;
+                            const rejection = `Failed to get ${this.#type} for value ${id}`;
                             for (const {reject} of queued.promises) reject(rejection);
                             this.#pending.delete(id);
                         }
@@ -56,7 +55,7 @@
         }
 
         /**
-         * @param {tweetId} id
+         * @param {F} id
          * @param {T} value
          */
         set(id, value) {
@@ -70,16 +69,31 @@
         }
 
         /**
-         * @returns {Map<tweetId, T>}
+         * @returns {Map<F, T>}
          */
         get cache() {
             return this.#cache;
         }
     }
 
-    const /** @type {Cache<MediaItem[]>} */ MediaCache = new Cache("media");
-    const /** @type {Cache<tweetId>} */ QuotesCache = new Cache("quoted tweet");
-    const /** @type {Map<string, string>} */ UrlCache = new Map();
+    /**
+     * @template T
+     * @extends Cache<tweetId, T>
+     */
+    class NumberIdCache extends Cache {
+        /**
+         * @param {tweetId} id
+         * @returns {Promise<T>}
+         */
+        get(id) {
+            if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID");
+            return super.get(id);
+        }
+    }
+
+    const /** @type {NumberIdCache<MediaItem[]>} */ MediaCache = new NumberIdCache("media");
+    const /** @type {NumberIdCache<tweetId>} */ QuotesCache = new NumberIdCache("quoted tweet");
+    const /** @type {Cache<string, string>} */ UrlCache = new Cache("url");
 
     window.addEventListener('message', ({source, origin, data}) => {
         if (source !== window || origin !== 'https://x.com') return;
@@ -1336,16 +1350,10 @@
          * @param {HTMLLinkElement} link
          */
         replaceURL: (link) => {
-            if (!link.href.startsWith('https://t.co/')) return;
-
-            const result = UrlCache.get(link.href.split('?')[0]);
-            if (!result) {
-                console.warn(`Failed to replace URL for ${link.href}`);
-                return;
-            }
-
             link.setAttribute('usy-url-replaced', '');
-            link.href = result;
+            UrlCache.get(link.href.split('?')[0])
+                .then((r) => link.href = r)
+                .catch((err) => console.warn(`Failed to replace URL for ${link.href}: ${err}`));
         }
     };
 
@@ -1479,7 +1487,7 @@
                 [`div[data-testid="videoComponent"]:not([usy-media]), 
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
-            replace_tweet_urls: [['a[href]:not([usy-url-replaced])', Extras.replaceURL]]
+            replace_tweet_urls: [['a[href]:not([href^="https://t.co/"]):not([usy-url-replaced])', Extras.replaceURL]]
         },
 
         start: () => {
