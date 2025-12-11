@@ -170,7 +170,7 @@
             result = new InterceptedTweets();
             _findTweets(obj, null);
             for (const m of result.mediaTweets) {
-                const maybeMediaTransfer = getMediaFromTweetResult(obj);
+                const maybeMediaTransfer = getMediaFromTweetResult(m);
                 maybeMediaTransfer && result.media.push(maybeMediaTransfer);
             }
             result.mediaTweets.length = 0;
