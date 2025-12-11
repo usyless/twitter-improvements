@@ -399,6 +399,11 @@
                     description: 'Show bookmark button on the enlarged photo page',
                 },
                 {
+                    name: 'replace_tweet_urls',
+                    category: 'setting',
+                    description: "Replace URL's with their original URL's rather than the shortened ones"
+                },
+                {
                     name: 'use_download_progress',
                     category: 'download_preferences',
                     description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'

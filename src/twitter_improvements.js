@@ -1313,23 +1313,38 @@
          */
         hideBottomBar: (bar) => {
             const style = bar.getAttribute('style');
-            if (style) {
-                const notifs = bar.parentElement?.parentElement?.previousElementSibling;
-                const par = notifs?.parentElement;
-                if (par && !(par.style.transition)) par.style.transition = 'transform 300ms ease-in-out, opacity 300ms ease-in-out';
-                if (style.includes('opacity: 1')) {
-                    if (par) {
-                        par.style.transform = '';
-                        par.style.opacity = '';
-                    }
-                } else {
-                    if (notifs && par) {
-                        const match = notifs.style.transform.match(/translateY\((.*)\)/);
-                        if (match) par.style.transform = `translateY(calc(-1 * ${match[1]}))`;
-                        else par.style.opacity = '0';
-                    }
+            if (!style) return;
+
+            const notifs = bar.parentElement?.parentElement?.previousElementSibling;
+            const par = notifs?.parentElement;
+            if (par && !(par.style.transition)) par.style.transition = 'transform 300ms ease-in-out, opacity 300ms ease-in-out';
+            if (style.includes('opacity: 1')) {
+                if (par) {
+                    par.style.transform = '';
+                    par.style.opacity = '';
+                }
+            } else {
+                if (notifs && par) {
+                    const match = notifs.style.transform.match(/translateY\((.*)\)/);
+                    if (match) par.style.transform = `translateY(calc(-1 * ${match[1]}))`;
+                    else par.style.opacity = '0';
                 }
             }
+        },
+
+        /**
+         * @param {HTMLLinkElement} link
+         */
+        replaceURL: (link) => {
+            if (!link.href.startsWith('https://t.co/')) return;
+
+            const result = UrlCache.get(link.href.split('?')[0]);
+            if (!result) {
+                console.warn(`Failed to replace URL for ${link.href}`);
+                return;
+            }
+
+            link.href = result;
         }
     };
 
@@ -1462,7 +1477,8 @@
                 img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media])`, Image.addImageButton],
                 [`div[data-testid="videoComponent"]:not([usy-media]), 
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
-            hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]]
+            hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
+            replace_tweet_urls: [['a[href]:not([usy-url-replaced])', Extras.replaceURL]]
         },
 
         start: () => {
@@ -1534,11 +1550,11 @@
         start: () => {
             const settings = Settings.listeners, callbacks = Listeners.listeners;
             for (const setting in callbacks) {
-                for (const {event, target, listener} of callbacks[setting]) {
+                for (const {event, target, listener, options=null} of callbacks[setting]) {
                     const t = target?.();
                     if (t) {
-                        t.removeEventListener(event, listener);
-                        if (settings[setting]) t.addEventListener(event, listener);
+                        t.removeEventListener(event, listener, options);
+                        if (settings[setting]) t.addEventListener(event, listener, options);
                     }
                 }
             }

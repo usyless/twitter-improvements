@@ -47,6 +47,10 @@ const defaultSettings = {
         hide_bottom_bar_completely: {
             default: false,
             validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
+        },
+        replace_tweet_urls: {
+            default: true,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 
