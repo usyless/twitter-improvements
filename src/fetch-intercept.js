@@ -4,44 +4,28 @@
 
     const getQualities = (variants) => {
         if (variants) {
-            variants = variants.filter(v => v.content_type === "video/mp4");
+            variants = variants.filter(v => v.content_type === 'video/mp4');
             variants.sort((x, y) => (+y.bitrate) - (+x.bitrate));
             return variants.map(v => v.url);
         }
     }
-    /** @param {MediaTransfer[]} media */
-    const postMedia = (media) => {
-        window.postMessage({ source: "ift", type: "media-urls", media }, "https://x.com");
-    }
 
-    /** @param {Map<tweetId, tweetId>} quotedTweets */
-    const postQuotedTweets = quotedTweets => {
-        window.postMessage({ source: "ift", type: "quoted-tweets", quotedTweets: Array.from(quotedTweets.entries()) }, 'https://x.com');
+    /** @param {InterceptedTweets} intercepted */
+    const postNewData = (intercepted) => {
+        window.postMessage({ ...intercepted, source: 'ift', type: 'ti-window-twt-data' }, 'https://x.com');
     }
 
     const originalSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function (body) {
         const xhr = this;
 
-        this.addEventListener("readystatechange",  () => {
+        this.addEventListener('readystatechange',  () => {
             if (
                 xhr.readyState === 4 && xhr.status === 200
                 && (xhr.responseType === 'text' || xhr.responseType === '')
-                && xhr.getResponseHeader("Content-Type")?.includes('application/json')
+                && xhr.getResponseHeader('Content-Type')?.includes('application/json')
             ) {
-                const /** @type {MediaTransfer[]} */ media = [];
-                const interceptedTweets = findTweets(JSON.parse(xhr.responseText));
-
-                for (const tweetResult of interceptedTweets.mediaTweets) {
-                    const maybeMediaTransfer = getMediaFromTweetResult(tweetResult);
-                    maybeMediaTransfer && media.push(maybeMediaTransfer);
-                }
-
-                if (media.length > 0) postMedia(media);
-
-                if (interceptedTweets.quotesMap.size) {
-                    postQuotedTweets(interceptedTweets.quotesMap);
-                }
+                postNewData(findTweets(JSON.parse(xhr.responseText)));
             }
         });
         return originalSend.call(this, body);
@@ -104,7 +88,7 @@
                 }
                 mediaInfo.push(info);
             }
-            return {id, media: mediaInfo};
+            return [id, mediaInfo];
         }
     }
 
@@ -114,14 +98,19 @@
     class InterceptedTweets {
         /**
          * List of tweets containing pieces of media.
-         * @type {object[]}
+         * @type {MediaTransfer[]}
          */
-        mediaTweets = [];
+        media = [];
         /**
          * Map of tweet IDs to the quoted tweet IDs.
-         * @type {Map<tweetId, tweetId>}
+         * @type {[tweetId, tweetId][]}
          */
-        quotesMap = new Map();
+        quotes = [];
+        /**
+         * Map of twitter shortened url's to their original url's.
+         * @type {[string, string][]}
+         */
+        urls = [];
     }
 
     /**
@@ -148,22 +137,21 @@
             if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)
                 || (obj.__typename === 'TweetWithVisibilityResults' && obj.tweet?.legacy?.extended_entities?.media)
                 || (parent !== 'legacy' && obj.extended_entities?.media)) {
-                result.mediaTweets.push(obj);
+                const maybeMediaTransfer = getMediaFromTweetResult(obj);
+                maybeMediaTransfer && result.media.push(maybeMediaTransfer);
             }
 
             if (obj.__typename === 'Tweet' && obj.rest_id && obj.quoted_status_result?.result?.rest_id) {
-                result.quotesMap.set(
-                    obj.rest_id,
-                    obj.quoted_status_result.result.rest_id,
-                );
+                result.quotes.push([obj.rest_id, obj.quoted_status_result.result.rest_id]);
             }
 
             // fallback for quoted_status_result in legacy
             if (obj.quoted_status_id_str && obj.id_str) {
-                result.quotesMap.set(
-                    obj.id_str,
-                    obj.quoted_status_id_str,
-                );
+                result.quotes.push([obj.id_str, obj.quoted_status_id_str]);
+            }
+
+            if (obj.url && obj.expanded_url && obj.url.startsWith('https://t.co/')) {
+                result.urls.push([obj.url, obj.expanded_url]);
             }
 
             for (const key in obj) {

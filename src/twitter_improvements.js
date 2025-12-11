@@ -79,19 +79,30 @@
 
     const /** @type {Cache<MediaItem[]>} */ MediaCache = new Cache("media");
     const /** @type {Cache<tweetId>} */ QuotesCache = new Cache("quoted tweet");
+    const /** @type {Map<string, string>} */ UrlCache = new Map();
 
-    window.addEventListener("message", ({source, origin, data}) => {
-        if (source !== window || origin !== "https://x.com") return;
+    window.addEventListener('message', ({source, origin, data}) => {
+        if (source !== window || origin !== 'https://x.com') return;
 
         // Skip events clearly not addressed by or for the extension
-        if (data?.source !== "ift") return;
+        if (!data || !(data.source === 'ift' && data.type === 'ti-window-twt-data')) return;
 
-        if (data?.type === 'media-urls') for (const {id, media} of /** @type {MediaTransfer[]}*/ data.media) {
-            MediaCache.set(id, media);
+        if (data.media) {
+            for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) {
+                MediaCache.set(id, media);
+            }
         }
 
-        if (data?.type === 'quoted-tweets') for (const [parentId, quotedId] of data.quotedTweets) {
-            QuotesCache.set(parentId, quotedId);
+        if (data.quotes) {
+            for (const [parentId, quotedId] of data.quotes) {
+                QuotesCache.set(parentId, quotedId);
+            }
+        }
+
+        if (data.urls) {
+            for (const [twitURL, origURL] of data.urls) {
+                UrlCache.set(twitURL, origURL);
+            }
         }
     });
 

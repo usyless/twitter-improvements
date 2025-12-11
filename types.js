@@ -17,9 +17,7 @@
  */
 
 /**
- * @typedef {Object} MediaTransfer
- * @property {tweetId} id
- * @property {MediaItem[]} media
+ * @typedef {[tweetId, MediaItem[]]} MediaTransfer
  */
 
 /**
