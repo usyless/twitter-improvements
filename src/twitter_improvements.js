@@ -87,23 +87,11 @@
         // Skip events clearly not addressed by or for the extension
         if (!data || !(data.source === 'ift' && data.type === 'ti-window-twt-data')) return;
 
-        if (data.media) {
-            for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) {
-                MediaCache.set(id, media);
-            }
-        }
+        if (data.media) for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
 
-        if (data.quotes) {
-            for (const [parentId, quotedId] of data.quotes) {
-                QuotesCache.set(parentId, quotedId);
-            }
-        }
+        if (data.quotes) for (const [parentId, quotedId] of data.quotes) QuotesCache.set(parentId, quotedId);
 
-        if (data.urls) {
-            for (const [twitURL, origURL] of data.urls) {
-                UrlCache.set(twitURL, origURL);
-            }
-        }
+        if (data.urls) for (const [twitURL, origURL] of data.urls) UrlCache.set(twitURL, origURL);
     });
 
     let ACCENT_COLOUR;
