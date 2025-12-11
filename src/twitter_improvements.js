@@ -1487,7 +1487,7 @@
                 [`div[data-testid="videoComponent"]:not([usy-media]), 
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
-            replace_tweet_urls: [['a[href]:not([href^="https://t.co/"]):not([usy-url-replaced])', Extras.replaceURL]]
+            replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]]
         },
 
         start: () => {
