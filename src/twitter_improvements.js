@@ -872,6 +872,17 @@
             const split = save_id.split('-');
             // - 1 is because indexes are 1-4
             const media = MediaCache.cache.get(split[0]);
+
+            if (!media) {
+                logError('Failed to get media for downloadButtonCallback with event:', ev);
+                if (Tweet.inChatPage()) {
+                    Notification.create('Downloading does not work in chat pages anymore due to the new chat system!', 'error');
+                } else {
+                    Notification.create('Failed to get media for tweet!', 'error');
+                }
+                return;
+            }
+
             if (Settings.download_preferences.download_picker_on_media_page
                 && media?.length > 1 && location.pathname.endsWith('/media')) {
                 // if using ti-id-vague, this should always be true
