@@ -72,7 +72,7 @@
             'div:has(> * > [aria-label="Who to follow"])',
             'div:has(> * > * > [aria-label="Loading recommendations for users to follow"])',
             'div:has(+ div > div > div > button[data-testid="UserCell"])',
-            'div:has(> div > div > button[data-testid="UserCell"])',
+            'div:has(> div > div > button[data-testid="UserCell"]:not([aria-label^="Switch to @"]))',
             'div:has(> div > div > a[href^="/i/connect_people"])',
             'div:has(> div > div > a[href^="/i/connect_people"]) + div',
         ], st: HideType.DISPLAY},
