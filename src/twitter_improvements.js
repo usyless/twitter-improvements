@@ -434,6 +434,11 @@
         },
 
         /** @returns {boolean} */
+        inChatPage: () => {
+            return window.location.pathname.includes('/i/chat/');
+        },
+
+        /** @returns {boolean} */
         previewing: () => window.location.pathname.includes('/status/'),
 
         /**
@@ -475,7 +480,7 @@
             try {
                 image.setAttribute('usy-media', '');
 
-                if (image.nodeName === 'VIDEO' && !location.href.includes('/i/chat/')) {
+                if (image.nodeName === 'VIDEO' && !Tweet.inChatPage()) {
                     logInfo('Skipping current image due to being video element in not chat');
                     return;
                 }
