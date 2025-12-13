@@ -287,7 +287,7 @@
                     article.setAttribute('usy-download', '');
                     const id = Helpers.id(Tweet.url(article));
                     MediaCache.get(id).then((media) => {
-                        return finishButton(media, article, id);
+                        finishButton(media, article, id);
                     }).catch((e) => {
                         Settings.logging.error && console.error('Error during addDownloadButton:', e);
                         article.removeAttribute('usy-download');
