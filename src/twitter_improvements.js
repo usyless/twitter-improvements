@@ -476,14 +476,14 @@
         addImageButton: (image) => {
             logInfo('Adding image button to:', image);
 
+            if (image.nodeName === 'VIDEO' && !Tweet.inChatPage()) {
+                logInfo('Skipping current image due to being video element in not chat');
+                return;
+            }
+
             let button;
             try {
                 image.setAttribute('usy-media', '');
-
-                if (image.nodeName === 'VIDEO' && !Tweet.inChatPage()) {
-                    logInfo('Skipping current image due to being video element in not chat');
-                    return;
-                }
 
                 const id = Helpers.idWithNumber(Image.respectiveURL(image));
                 button = Image.genericButton(image, Image.downloadButtonCallback);
