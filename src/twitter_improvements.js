@@ -1449,6 +1449,12 @@
          */
         idWithNumber: (url, override) => {
             const a = url.split("/");
+            if (!a[5]) {
+                throw Error(`Unable to get id from url: ${url}`);
+            }
+            if (!override || !a[7]) {
+                throw Error(`Unable to get index from url: ${url}`);
+            }
             return `${a[5]}-${override ?? a[7]}`;
         },
 
