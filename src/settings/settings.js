@@ -524,6 +524,19 @@
                         });
                     }
                 },
+                {
+                    type: 'break'
+                },
+                {
+                    name: 'info',
+                    category: 'logging',
+                    description: 'Enable informational logging in the console',
+                },
+                {
+                    name: 'error',
+                    category: 'logging',
+                    description: 'Enable error logging in the console',
+                },
             ]
         },
         'Hidden Elements': {

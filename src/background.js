@@ -333,6 +333,17 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+    },
+
+    logging: {
+        info: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        error: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        }
     }
 }
 
