@@ -825,7 +825,7 @@
                     url = `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
                 }
             } else if (url && isInChat) { // is chat? and who knows what else
-                url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) - 1}`;
+                url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) + 1}`;
             }
 
             if (url) return url;
