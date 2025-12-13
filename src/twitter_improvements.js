@@ -812,21 +812,23 @@
         respectiveURL: (image) => {
             let urlElem = image.closest('[href]');
             let url = urlElem?.href;
-            const hasStatus = url?.contains('/status/');
-            if (hasStatus) return url;
+
+            const isInChat = url?.includes?.('/i/');
+
+            if (url && !isInChat) return url;
 
             if (Tweet.maximised()) {
                 url = window.location.href;
                 const li = image.closest('li');
                 if (li) {
                     const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
-                    return `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
-                } else {
-                    return url;
+                    url = `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
                 }
-            } else if (url && !hasStatus) { // is chat? and who knows what else
-                return `${url.split('?')[0]}/status/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) - 1}`;
+            } else if (url && isInChat) { // is chat? and who knows what else
+                url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) - 1}`;
             }
+
+            if (url) return url;
         },
 
         /**
@@ -1480,12 +1482,13 @@
          */
         idWithNumber: (url, override) => {
             const a = url.split("/");
-            if (!a[5]) {
+            console.log(a);
+            if (!(a[5])) {
                 const msg = `Unable to get id from url: ${url}`;
                 logError(msg);
                 throw Error(msg);
             }
-            if (!override || !a[7]) {
+            if (!(a[7]) && !override) {
                 const msg = `Unable to get index from url: ${url}`;
                 logError(msg);
                 throw Error(msg);
