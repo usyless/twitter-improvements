@@ -1482,7 +1482,6 @@
          */
         idWithNumber: (url, override) => {
             const a = url.split("/");
-            console.log(a);
             if (!(a[5])) {
                 const msg = `Unable to get id from url: ${url}`;
                 logError(msg);
