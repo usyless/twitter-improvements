@@ -222,7 +222,8 @@
                         for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
                         createButton(article, altAnchor);
                     }
-                } catch {
+                } catch (e) {
+                    Settings.logging.error && console.error('Error during addVXButton:', e);
                     article.removeAttribute('usy');
                 }
             }
@@ -235,6 +236,7 @@
                     Notification.create('Copied URL to clipboard', 'copied_url');
                 });
             } catch (e) {
+                Settings.logging.error && console.error('Error during vxButtonCallback:', e);
                 Notification.create(`Failed to copy url, please report the issue along with the current url to twitter improvements: ${e}`, 'error');
             }
         },
@@ -244,44 +246,40 @@
          */
         addDownloadButton: (() => {
             const finishButton = (media, article, id) => {
-                try {
-                    if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
-                        const a = Tweet.defaultAnchor(article);
-                        const cb = Tweet.mediaDownloadCallback.bind(null, media);
-                        const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
-                        const id_specific = `${id}-1`;
+                if (media?.length > 0 && !article.querySelector('.usybuttonclickdiv[usy-download]')) {
+                    const a = Tweet.defaultAnchor(article);
+                    const cb = Tweet.mediaDownloadCallback.bind(null, media);
+                    const button = Button.newButton(a, download_button_path, cb, 'usy-download', cb);
+                    const id_specific = `${id}-1`;
+                    if (media.length === 1) {
+                        button.setAttribute('ti-id', id_specific);
+                        Image.addThumbnailSupport(button);
+                    } else {
+                        button.setAttribute('ti-id-vague', id);
+                    }
+                    a.after(button);
+
+                    const buttons = [button];
+
+                    const altAnchor = Tweet.secondaryAnchor(article);
+                    if (altAnchor) {
+                        for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
+                        const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
                         if (media.length === 1) {
                             button.setAttribute('ti-id', id_specific);
-                            Image.addThumbnailSupport(button);
                         } else {
                             button.setAttribute('ti-id-vague', id);
                         }
-                        a.after(button);
-
-                        const buttons = [button];
-
-                        const altAnchor = Tweet.secondaryAnchor(article);
-                        if (altAnchor) {
-                            for (const copy of altAnchor.parentElement.querySelectorAll('[usy-download]')) copy.remove();
-                            const button = Button.newButton(altAnchor, download_button_path, cb, 'usy-download', cb);
-                            if (media.length === 1) {
-                                button.setAttribute('ti-id', id_specific);
-                            } else {
-                                button.setAttribute('ti-id-vague', id);
-                            }
-                            altAnchor.after(button);
-                            buttons.push(button);
-                        }
-
-                        if (media.length > 1) void Tweet.downloadUpdateMarked(media, buttons);
-                        else {
-                            Background.download_history_has(id_specific).then((response) => {
-                                if (response === true) for (const button of buttons) Button.mark(button);
-                            });
-                        }
+                        altAnchor.after(button);
+                        buttons.push(button);
                     }
-                } catch {
-                    article.removeAttribute('usy-download');
+
+                    if (media.length > 1) void Tweet.downloadUpdateMarked(media, buttons);
+                    else {
+                        Background.download_history_has(id_specific).then((response) => {
+                            if (response === true) for (const button of buttons) Button.mark(button);
+                        });
+                    }
                 }
             }
             return (article) => {
@@ -289,11 +287,13 @@
                     article.setAttribute('usy-download', '');
                     const id = Helpers.id(Tweet.url(article));
                     MediaCache.get(id).then((media) => {
-                        finishButton(media, article, id);
-                    }).catch(() => {
+                        return finishButton(media, article, id);
+                    }).catch((e) => {
+                        Settings.logging.error && console.error('Error during addDownloadButton:', e);
                         article.removeAttribute('usy-download');
                     });
-                } catch {
+                } catch (e) {
+                    Settings.logging.error && console.error('Error during addDownloadButton:', e);
                     article.removeAttribute('usy-download');
                 }
             }
@@ -334,7 +334,8 @@
                         [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}],
                         (btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff'));
                 }
-            } catch {
+            } catch (e) {
+                Settings.logging.error && console.error('Error during copyBookmarkButton:', e);
                 article.removeAttribute('usy-bookmarked');
             }
         },
@@ -478,7 +479,8 @@
                 } else {
                     Image.addThumbnailSupport(button);
                 }
-            } catch {
+            } catch (e) {
+                Settings.logging.error && console.error('Error during addImageButton:', e);
                 image.removeAttribute('usy-media');
                 button?.remove();
             }
@@ -488,7 +490,8 @@
         addVideoButton: (video) => {
             let button;
 
-            const onError = () => {
+            const onError = (err) => {
+                Settings.logging.error && console.error('Error during addVideoButton:', err);
                 video.removeAttribute('usy-media');
                 button?.remove();
             }
@@ -561,8 +564,8 @@
                 } else {
                     applyButton();
                 }
-            } catch {
-                onError();
+            } catch (e) {
+                onError(e);
             }
         },
 
@@ -1416,29 +1419,27 @@
          * @param {EventModifiers} modifiers
          */
         download: async (url, filename, media, modifiers) => {
-            if (Settings.download_preferences.use_download_progress) {
-                const { downloadFinished, onProgress, downloadError } = Notification.createMobileDownloadPopup();
-                onProgress(null, 0);
-                try {
+            let onError = Notification.persistentError;
+            try {
+                if (Settings.download_preferences.use_download_progress) {
+                    const {downloadFinished, onProgress, downloadError} = Notification.createMobileDownloadPopup();
+                    onError = downloadError;
+                    onProgress(null, 0);
                     const binary_data = await Helpers.progressDownload(url, onProgress);
                     await downloadFinished(filename);
-                    Helpers.downloadFromBlob(new Blob([binary_data], { type: 'application/octet-stream' }), filename);
-                } catch {
-                    void Background.download_history_remove(media.save_id);
-                    downloadError(`Error downloading: ${filename}`, media, modifiers);
-                }
-            } else {
-                try {
+                    Helpers.downloadFromBlob(new Blob([binary_data], {type: 'application/octet-stream'}), filename);
+                } else {
                     const r = await fetch(url);
                     if (r.ok) {
                         Helpers.downloadFromBlob(await r.blob(), filename);
                     } else {
                         throw new Error(`HTTP error! status: ${r.status}`);
                     }
-                } catch {
-                    void Background.download_history_remove(media.save_id);
-                    Notification.persistentError(`Error downloading: ${filename}`, media, modifiers);
                 }
+            } catch (e) {
+                Settings.logging.error && console.error('Error during download:', e);
+                void Background.download_history_remove(media.save_id);
+                onError(`Error downloading: ${filename}`, media, modifiers);
             }
         },
 
@@ -1450,10 +1451,14 @@
         idWithNumber: (url, override) => {
             const a = url.split("/");
             if (!a[5]) {
-                throw Error(`Unable to get id from url: ${url}`);
+                const msg = `Unable to get id from url: ${url}`;
+                Settings.logging.error && console.error(msg);
+                throw Error(msg);
             }
             if (!override || !a[7]) {
-                throw Error(`Unable to get index from url: ${url}`);
+                const msg = `Unable to get index from url: ${url}`;
+                Settings.logging.error && console.error(msg);
+                throw Error(msg);
             }
             return `${a[5]}-${override ?? a[7]}`;
         },
