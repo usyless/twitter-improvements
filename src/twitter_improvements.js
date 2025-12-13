@@ -474,6 +474,12 @@
             let button;
             try {
                 image.setAttribute('usy-media', '');
+
+                if (image.nodeName === 'VIDEO' && !location.href.includes('/i/chat/')) {
+                    logInfo('Skipping current image due to being video element in not chat');
+                    return;
+                }
+
                 const id = Helpers.idWithNumber(Image.respectiveURL(image));
                 button = Image.genericButton(image, Image.downloadButtonCallback);
 
@@ -821,11 +827,11 @@
                 url = window.location.href;
                 const li = image.closest('li');
                 if (li) {
-                    const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"]))');
+                    const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"])), video');
                     url = `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
                 }
             } else if (url && isInChat) { // is chat? and who knows what else
-                url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) + 1}`;
+                url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"]), video')).indexOf(image) + 1}`;
             }
 
             if (url) return url;
@@ -1526,7 +1532,9 @@
                 [`img[src^="https://pbs.twimg.com/media/"]:not([usy-media]),
                 img[src^="https://pbs.twimg.com/ext_tw_video_thumb/"]:not([usy-media]),
                 img[src^="https://pbs.twimg.com/amplify_video_thumb/"]:not([usy-media]),
-                img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media])`, Image.addImageButton],
+                img[src^="https://pbs.twimg.com/tweet_video_thumb/"]:not([usy-media]),
+                video[src^="https://video.twimg.com/tweet_video/"]:not([usy-media]),
+                video[src^="https://video.twimg.com/amplify_video/"]:not([usy-media])`, Image.addImageButton],
                 [`div[data-testid="videoComponent"]:not([usy-media]), 
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
