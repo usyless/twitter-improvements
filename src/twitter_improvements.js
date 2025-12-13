@@ -810,8 +810,10 @@
          * @returns {string}
          */
         respectiveURL: (image) => {
-            let url = image.closest('[href]')?.href;
-            if (url) return url;
+            let urlElem = image.closest('[href]');
+            let url = urlElem?.href;
+            const hasStatus = url?.contains('/status/');
+            if (hasStatus) return url;
 
             if (Tweet.maximised()) {
                 url = window.location.href;
@@ -822,6 +824,8 @@
                 } else {
                     return url;
                 }
+            } else if (url && !hasStatus) { // is chat? and who knows what else
+                return `${url.split('?')[0]}/status/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"])')).indexOf(image) - 1}`;
             }
         },
 
