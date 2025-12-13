@@ -446,7 +446,7 @@
                 {
                     name: 'import_settings_json',
                     type: 'button',
-                    button: 'Import Settings (Make sure it is from the same version, modifying these past the regular values may cause errors - if so, reset the extensions settings to the defaults)',
+                    button: 'Import Settings\n(May not apply all settings if export is from a different version)',
                     onclick: () => {
                         document.getElementById('import_settings_json_input').click();
                     },
