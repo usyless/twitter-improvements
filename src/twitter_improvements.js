@@ -9,6 +9,11 @@
         return chrome;
     })();
 
+    const emptyFunction = () => {};
+
+    let logInfo = emptyFunction;
+    let logError = emptyFunction;
+
     /** @template F, T */
     class Cache {
         /** @type {Map<F, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
@@ -1609,7 +1614,20 @@
         }
     };
 
+    const Logging = {
+        logInfo: (...a) => console.log(...a),
+        logError: (...a) => console.error(...a),
+
+        setup: () => {
+            if (Settings.logging.info) logInfo = Logging.logInfo;
+            else logInfo = emptyFunction;
+            if (Settings.logging.error) logError = Logging.logError;
+            else logError = emptyFunction;
+        }
+    };
+
     const start = () => {
+        Logging.setup();
         Observer.start();
         Listeners.start();
     }
@@ -1645,6 +1663,7 @@
                     else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
 
                     if (Object.hasOwn(changes, 'listeners')) Listeners.start();
+                    if (Object.hasOwn(changes, 'logging')) Logging.setup();
                 });
                 break;
             }
