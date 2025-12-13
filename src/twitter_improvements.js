@@ -168,7 +168,7 @@
          * @returns {void}
          */
         download_all: async (media, modifiers, {override=false, softOverride=false}={}) => {
-            Settings.logging.info && console.log('Download_all called (media, modifiers, override, softOverride):', media, modifiers, override, softOverride);
+            logInfo('Download_all called (media, modifiers, override, softOverride):', media, modifiers, override, softOverride);
 
             if (!media) {
                 Notification.create('Error downloading, please try again in a second', 'error');
@@ -219,7 +219,7 @@
             }
 
             return (article) => {
-                Settings.logging.info && console.log('Adding vx button onto:', article);
+                logInfo('Adding vx button onto:', article);
                 try {
                     article.setAttribute('usy', '');
                     const a = Tweet.defaultAnchor(article);
@@ -230,9 +230,9 @@
                         for (const copy of altAnchor.parentElement.querySelectorAll('[usy-copy]')) copy.remove();
                         createButton(article, altAnchor);
                     }
-                    Settings.logging.info && console.log('Finished adding download button onto:', article);
+                    logInfo('Finished adding download button onto:', article);
                 } catch (e) {
-                    Settings.logging.error && console.error('Error during addVXButton:', e);
+                    logError('Error during addVXButton:', e);
                     article.removeAttribute('usy');
                 }
             }
@@ -245,7 +245,7 @@
                     Notification.create('Copied URL to clipboard', 'copied_url');
                 });
             } catch (e) {
-                Settings.logging.error && console.error('Error during vxButtonCallback:', e);
+                logError('Error during vxButtonCallback:', e);
                 Notification.create(`Failed to copy url, please report the issue along with the current url to twitter improvements: ${e}`, 'error');
             }
         },
@@ -293,18 +293,18 @@
             }
             return (article) => {
                 try {
-                    Settings.logging.info && console.log('Adding download button onto:', article);
+                    logInfo('Adding download button onto:', article);
                     article.setAttribute('usy-download', '');
                     const id = Helpers.id(Tweet.url(article));
                     MediaCache.get(id).then((media) => {
                         finishButton(media, article, id);
-                        Settings.logging.info && console.log('Finished adding download button onto:', article);
+                        logInfo('Finished adding download button onto:', article);
                     }).catch((e) => {
-                        Settings.logging.error && console.error('Error during addDownloadButton:', e);
+                        logError('Error during addDownloadButton:', e);
                         article.removeAttribute('usy-download');
                     });
                 } catch (e) {
-                    Settings.logging.error && console.error('Error during addDownloadButton:', e);
+                    logError('Error during addDownloadButton:', e);
                     article.removeAttribute('usy-download');
                 }
             }
@@ -325,7 +325,7 @@
 
         /** @param {HTMLElement} article */
         copyBookmarkButton: (article) => {
-            Settings.logging.info && console.log('Copying bookmark button onto:', article);
+            logInfo('Copying bookmark button onto:', article);
             try {
                 article.setAttribute('usy-bookmarked', '');
                 const a = Tweet.secondaryAnchor(article);
@@ -346,12 +346,12 @@
                         [{type: 'pointerout', listener: (e) => e.currentTarget.firstElementChild.firstElementChild.style.color = '#ffffff'}],
                         (btn) => btn.firstElementChild.firstElementChild.style.color = '#ffffff'));
 
-                    Settings.logging.info && console.log('Finished copying bookmark button onto:', article);
+                    logInfo('Finished copying bookmark button onto:', article);
                 } else {
-                    Settings.logging.info && console.log('Failed to copy bookmark button onto:', article);
+                    logInfo('Failed to copy bookmark button onto:', article);
                 }
             } catch (e) {
-                Settings.logging.error && console.error('Error during copyBookmarkButton:', e);
+                logError('Error during copyBookmarkButton:', e);
                 article.removeAttribute('usy-bookmarked');
             }
         },
@@ -469,7 +469,7 @@
 
         /** @param {HTMLImageElement} image */
         addImageButton: (image) => {
-            Settings.logging.info && console.log('Adding image button to:', image);
+            logInfo('Adding image button to:', image);
 
             let button;
             try {
@@ -497,9 +497,9 @@
                 } else {
                     Image.addThumbnailSupport(button);
                 }
-                Settings.logging.info && console.log('Finished adding image button to:', image);
+                logInfo('Finished adding image button to:', image);
             } catch (e) {
-                Settings.logging.error && console.error('Error during addImageButton:', e);
+                logError('Error during addImageButton:', e);
                 image.removeAttribute('usy-media');
                 button?.remove();
             }
@@ -507,12 +507,12 @@
 
         /** @param {HTMLElement} video */
         addVideoButton: (video) => {
-            Settings.logging.info && console.log('Adding video button to:', video);
+            logInfo('Adding video button to:', video);
 
             let button;
 
             const onError = (err) => {
-                Settings.logging.error && console.error('Error during addVideoButton:', err);
+                logError('Error during addVideoButton:', err);
                 video.removeAttribute('usy-media');
                 button?.remove();
             }
@@ -586,7 +586,7 @@
                     applyButton();
                 }
 
-                Settings.logging.info && console.log('Finished adding video button to:', video);
+                logInfo('Finished adding video button to:', video);
             } catch (e) {
                 onError(e);
             }
@@ -1095,7 +1095,7 @@
          * @param {Event} event
          */
         createDownloadChoices: (choices, event) => {
-            Settings.logging.info && console.log('Creating download choices for event:', choices, event);
+            logInfo('Creating download choices for event:', choices, event);
 
             Notification.clearFullscreen();
             const /** @type {EventListeners[]} */ notificationEventListeners = [];
@@ -1220,7 +1220,7 @@
                     else window.addEventListener(type, listener);
                 }
             });
-            Settings.logging.info && console.log('Finished creating download choices for event:', choices, event);
+            logInfo('Finished creating download choices for event:', choices, event);
         },
 
         /**
@@ -1463,7 +1463,7 @@
                     }
                 }
             } catch (e) {
-                Settings.logging.error && console.error('Error during download:', e);
+                logError('Error during download:', e);
                 void Background.download_history_remove(media.save_id);
                 onError(`Error downloading: ${filename}`, media, modifiers);
             }
@@ -1478,12 +1478,12 @@
             const a = url.split("/");
             if (!a[5]) {
                 const msg = `Unable to get id from url: ${url}`;
-                Settings.logging.error && console.error(msg);
+                logError(msg);
                 throw Error(msg);
             }
             if (!override || !a[7]) {
                 const msg = `Unable to get index from url: ${url}`;
-                Settings.logging.error && console.error(msg);
+                logError(msg);
                 throw Error(msg);
             }
             return `${a[5]}-${override ?? a[7]}`;
@@ -1528,7 +1528,7 @@
         },
 
         start: () => {
-            Settings.logging.info && console.log('Starting main observer loop');
+            logInfo('Starting main observer loop');
             Observer.disable();
 
             Button.resetAll();
@@ -1539,7 +1539,7 @@
                 const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
                 const settings = Settings.setting;
                 for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
-                Settings.logging.info && console.log('Main observer loop callbacks:', callbacks);
+                logInfo('Main observer loop callbacks:', callbacks);
                 const update = () => {
                     if (!(lastReactRoot?.isConnected)) {
                         lastReactRoot = document.getElementById('react-root');
@@ -1568,11 +1568,11 @@
             };
             Observer.observer = new MutationObserver(getCallback());
             Observer.observer?.observe(document.body, observerSettings);
-            Settings.logging.info && console.log('Finished starting main observer loop');
+            logInfo('Finished starting main observer loop');
         },
 
         disable: () => {
-            Settings.logging.info && console.log('Disabling main observer loop');
+            logInfo('Disabling main observer loop');
             Observer.observer?.disconnect();
             Observer.observer = null;
         }
@@ -1605,7 +1605,7 @@
                     if (t) {
                         t.removeEventListener(event, listener, options);
                         if (settings[setting]) {
-                            Settings.logging.info && console.log('Adding listener to event on target with options:', listener, event, t, options);
+                            logInfo('Adding listener to event on target with options:', listener, event, t, options);
                             t.addEventListener(event, listener, options);
                         }
                     }
@@ -1635,7 +1635,7 @@
     Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
 
     extension.runtime.onMessage.addListener((message) => {
-        Settings.logging.info && console.log('Received message from background page:', message);
+        logInfo('Received message from background page:', message);
         switch (message.type) {
             case 'history_change_add': {
                 for (const button of Image.getButtons(message.id)) Button.mark(button);
