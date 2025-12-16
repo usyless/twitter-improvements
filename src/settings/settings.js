@@ -641,6 +641,11 @@
                     description: '"Post" button',
                 },
                 {
+                    name: 'hide_creator_studio',
+                    category: 'style',
+                    description: '"Creator Studio" button',
+                },
+                {
                     name: 'hide_follower_requests',
                     category: 'style',
                     description: '"Follower requests" button',

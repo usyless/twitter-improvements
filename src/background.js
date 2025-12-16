@@ -256,6 +256,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_creator_studio: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_follower_requests: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
