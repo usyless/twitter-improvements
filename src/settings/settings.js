@@ -626,11 +626,6 @@
                     description: '"Communities" button',
                 },
                 {
-                    name: 'hide_premium_business',
-                    category: 'style',
-                    description: '"Business" button',
-                },
-                {
                     name: 'hide_create_your_space',
                     category: 'style',
                     description: '"Create your space" button',

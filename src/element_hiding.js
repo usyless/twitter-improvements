@@ -47,13 +47,13 @@
         hide_jobs: {s: ['a[href="/jobs"]'], st: HideType.DISPLAY},
         hide_lists: {s: ['a[href$="/lists"]'], st: HideType.DISPLAY},
         hide_communities: {s: ['a[href$="/communities"]'], st: HideType.DISPLAY},
-        hide_premium_business: {s: ['a[href="/i/premium-business"]'], st: HideType.DISPLAY},
         hide_premium: {s: [
             'a[href="/i/premium_sign_up"]',
             'aside[aria-label*="Premium"]',
             'div:has(> * > aside[aria-label*="Premium"])',
             'div:has(> * > aside[aria-label="Ending today!"])',
-            'div:has(> div > div[data-testid="super-upsell-UpsellCardRenderProperties"])'
+            'div:has(> div > div[data-testid="super-upsell-UpsellCardRenderProperties"])',
+            'a[href="/i/premium-business"]'
         ], st: HideType.DISPLAY},
         hide_verified_orgs: {s: ['a[href="/i/verified-orgs-signup"]'], st: HideType.DISPLAY},
         hide_monetization: {s: [
