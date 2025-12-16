@@ -900,8 +900,9 @@
         },
 
         resetAll: () => {
-            for (const button of document.querySelectorAll('[usy-media].usybuttonclickdiv')) button.remove();
+            for (const button of document.querySelectorAll('[usy-media].usybuttonclickdiv, [usy-download].usybuttonclickdiv')) button.remove();
             for (const image of document.querySelectorAll('[usy-media]')) image.removeAttribute('usy-media');
+            for (const image of document.querySelectorAll('[usy-download]')) image.removeAttribute('usy-download');
         },
 
         getButtons: (id) => document.querySelectorAll(`[ti-id="${id}"]`)
