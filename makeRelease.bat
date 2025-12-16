@@ -4,6 +4,9 @@ setlocal
 :: set cwd as batch file directory
 cd /d "%~dp0"
 
+set "FIREFOX_MANIFEST_ID_REPLACE=twitter-improvements@usyless.uk"
+set "FIREFOX_MANIFEST_ID={49f6525f-921e-4ff0-804d-a85f95ad3233}"
+
 :: Config file name
 set "releaseDirectory=releases\"
 set "srcDirectory=src\"
@@ -36,7 +39,11 @@ pushd %srcDirectory%
 
 :: move chrome manifest outside
 move manifest_chrome.json ..
+
+:: Set id in manifest for release
+powershell -Command "(Get-Content 'manifest.json') -replace '%FIREFOX_MANIFEST_ID_REPLACE%','%FIREFOX_MANIFEST_ID%' | Set-Content 'manifest.json'"
 7z a "..\%releaseDirectory%%firefox_zip%" %fileList%
+powershell -Command "(Get-Content 'manifest.json') -replace '%FIREFOX_MANIFEST_ID%','%FIREFOX_MANIFEST_ID_REPLACE%' | Set-Content 'manifest.json'"
 
 :: move firefox manifest out and move chrome one in
 move manifest.json ..
