@@ -16,7 +16,8 @@ const CONSTRAINTS = {
     NUMBERLIKE: a => typeof a === 'string' && !Number.isNaN(+a),
     STRING: a => typeof a === 'string',
     VALUES: (...v) => a => v.includes(a),
-    COMBINATOR: (...v) => a => v.every(f => f(a)),
+    ALL_OF: (...v) => a => v.every(f => f(a)),
+    ANY_OF: (...v) => a => v.some(f => f(a)),
     GT: v => a => +a > v,
     GTE: v => a => +a >= v,
     LT: v => a => +a < v,
@@ -46,7 +47,7 @@ const defaultSettings = {
         },
         hide_bottom_bar_completely: {
             default: false,
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         },
         replace_tweet_urls: {
             default: true,
@@ -64,7 +65,7 @@ const defaultSettings = {
     contextmenu: {
         save_image: {
             default: true,
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.DESKTOP)
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.DESKTOP)
         }
     },
 
@@ -86,23 +87,23 @@ const defaultSettings = {
         },
         image_button_scale: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
         },
         image_button_height_value: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         },
         image_button_height_value_small: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         },
         small_image_size_threshold: {
             default: '350',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0))
         },
         image_button_width_value: {
             default: '1',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.GT(0), CONSTRAINTS.LTE(100))
         }
     },
 
@@ -162,7 +163,7 @@ const defaultSettings = {
 
         use_download_progress: {
             default: false,
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         },
         download_picker_on_media_page: {
             default: true,
@@ -299,7 +300,7 @@ const defaultSettings = {
 
         tweet_button_positions: {
             default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
-            validate: CONSTRAINTS.COMBINATOR(CONSTRAINTS.STRING, CONSTRAINTS.MUST_INCLUDE(
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.MUST_INCLUDE(
                 '{replies}', '{retweets}', '{likes}', '{views}', '{bookmark}', '{share}', '{download}', '{copy}'
             ))
         },
