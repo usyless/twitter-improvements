@@ -45,12 +45,13 @@
     function reverseFiles(dataTransfer) {
         for (const item of dataTransfer.items) {
             if (item.kind === 'file' && (item.type.includes('image/') || item.type.includes('video/'))) {
-                const id = longestIntegerSubstring(item.getAsFile().name);
+                const filename = item.getAsFile().name;
+                const id = longestIntegerSubstring(filename);
                 // Should be fine for any new tweet id's, no images likely being saved before 2009
                 if (id.length > 10) {
                     void extension.tabs.create({url: `https://x.com/i/status/${id}`});
                 } else {
-                    alert(`Error parsing file name for ${item.getAsFile().name}, are you sure this file has a tweet id in the name?`);
+                    alert(`Error parsing file name for ${filename}, are you sure this file has a tweet id in the name?`);
                 }
             }
         }
