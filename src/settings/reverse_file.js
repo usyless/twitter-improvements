@@ -48,7 +48,7 @@
                 const id = longestIntegerSubstring(item.getAsFile().name);
                 // Should be fine for any new tweet id's, no images likely being saved before 2009
                 if (id.length > 10) {
-                    void extension.tabs.create({url: `https://x.com/hello/status/${id}`});
+                    void extension.tabs.create({url: `https://x.com/i/status/${id}`});
                 } else {
                     alert(`Error parsing file name for ${item.getAsFile().name}, are you sure this file has a tweet id in the name?`);
                 }
