@@ -6,6 +6,8 @@
 
 A simple web extension which brings a few quality of life features to twitter/X. 
 
+**Not all functionality will work if your Twitter/X ui language is different to English**
+
 # Features
 
 Copy as VX/FX/Custom Button
