@@ -24,7 +24,8 @@ const CONSTRAINTS = {
     LTE: v => a => +a <= v,
     MOBILE: () => isAndroid,
     DESKTOP: () => !isAndroid,
-    MUST_INCLUDE: (...v) => a => v.every(i => a.includes(i))
+    MUST_INCLUDE: (...v) => a => v.every(i => a.includes(i)),
+    MUST_ONLY_INCLUDE: (...v) => a => v.reduce((s, i) => s.replace(i, ''), a).length === 0,
 }
 
 const defaultSettings = {
@@ -300,7 +301,7 @@ const defaultSettings = {
 
         tweet_button_positions: {
             default: '{replies}{retweets}{likes}{views}{bookmark}{share}{download}{copy}',
-            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.MUST_INCLUDE(
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.MUST_ONLY_INCLUDE(
                 '{replies}', '{retweets}', '{likes}', '{views}', '{bookmark}', '{share}', '{download}', '{copy}'
             ))
         },
