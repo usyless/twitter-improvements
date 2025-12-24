@@ -802,7 +802,7 @@ function saveImage(url, sourceURL) {
 async function migrateSettings(previousVersion) {
     const migrations = [
         ['1.4', () => new Promise((resolve) => {
-            extension.storage.local.get().then(async (/** @type {Settings} */s) => {
+            extension.storage.local.get().then((/** @type {Settings} */s) => {
                 const setting = s?.setting;
                 if (setting != null) {
                     if (setting.image_button != null) {
@@ -864,22 +864,20 @@ async function migrateSettings(previousVersion) {
                     }
                 }
 
-                await extension.storage.local.set(s);
-
-                resolve();
-            });
+                return extension.storage.local.set(s);
+            }).then(resolve);
         })],
         ['1.1.1.4', () => new Promise((resolve) => {
             extension.storage.local.get(['download_history']).then((r) => {
                 const history = r.download_history ?? {};
-                Promise.all([
+                return Promise.all([
                     new Promise((res) => download_history_add_all({saved_images: Object.keys(history)}, res)),
                     extension.storage.local.remove('download_history')
-                ]).then(resolve);
-            });
+                ]);
+            }).then(resolve);
         })],
         ['1.1.1.1', () => new Promise((resolve) => {
-            extension.storage.local.get().then(async (s) => {
+            extension.storage.local.get().then((s) => {
                 const {
                     // styles
                     hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
@@ -893,7 +891,6 @@ async function migrateSettings(previousVersion) {
                     download_history_prevent_download, download_history,
                 } = s;
 
-                await extension.storage.local.clear();
                 const newSettings = {style: {}, setting: {}, vx_preferences: {}, image_preferences: {}};
 
                 if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
@@ -934,10 +931,8 @@ async function migrateSettings(previousVersion) {
 
                 if (download_history != null) newSettings.download_history = download_history;
 
-                await extension.storage.local.set(newSettings);
-
-                resolve();
-            });
+                return extension.storage.local.clear().then(() => extension.storage.local.set(newSettings));
+            }).then(resolve);
         })]
     ];
 
