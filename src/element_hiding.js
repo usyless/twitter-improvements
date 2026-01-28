@@ -19,7 +19,7 @@
 
     // Naming dependent on style.tweet_button_positions
     const CommonSelectors = {
-        views: ['div:has(> a[href$="/analytics"])'],
+        views: ['div:has(> a[href$="/analytics"])', 'div:has(> button[aria-label="View post analytics"])'],
         share: ['div:has(> div > button[aria-label="Share post"]:not([usy]))'],
         replies: ['div:has(> button[data-testid="reply"])'],
         retweets: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
