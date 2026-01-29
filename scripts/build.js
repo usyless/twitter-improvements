@@ -18,16 +18,16 @@ async function mkdir(dir) {
 const firefox_id_to_replace = "twitter-improvements@usyless.uk";
 const firefox_id_to_replace_to  = "{49f6525f-921e-4ff0-804d-a85f95ad3233}";
 
-function fixFirefoxManifest() {
-    let text = fs_sync.readFileSync(main_manifest, "utf8");
+async function fixFirefoxManifest() {
+    let text = await fs.readFile(main_manifest, "utf8");
     text = text.replaceAll(firefox_id_to_replace, firefox_id_to_replace_to);
-    fs_sync.writeFileSync(main_manifest, text);
+    await fs.writeFile(main_manifest, text);
 }
 
-function undoFirefoxManifest() {
-    let text = fs_sync.readFileSync(main_manifest, "utf8");
+async function undoFirefoxManifest() {
+    let text = await fs.readFile(main_manifest, "utf8");
     text = text.replaceAll(firefox_id_to_replace_to, firefox_id_to_replace);
-    fs_sync.writeFileSync(main_manifest, text);
+    await fs.writeFile(main_manifest, text);
 }
 
 function run(cmd, options = {}) {
@@ -35,7 +35,7 @@ function run(cmd, options = {}) {
     execSync(cmd, { stdio: "inherit", ...options });
 }
 
-function makeZip(output, directory) {
+async function makeZip(output, directory) {
     if (process.platform === "win32") { // use 7z
         run(`7z a ${output} .`, { cwd: directory });
     } else { // use zip
@@ -47,7 +47,7 @@ function makeZip(output, directory) {
 async function makeReleaseFor(platform, version) {
     console.log(`Making release for: ${platform}`);
 
-    makeZip(common.joinWithReleasesQuoted(`${pkg.name} ${platform} v${version}.zip`), common.SRC_DIR);
+    await makeZip(common.joinWithReleasesQuoted(`${pkg.name} ${platform} v${version}.zip`), common.SRC_DIR);
 
     console.log(`Finished making release for: ${platform}`);
 }
@@ -76,19 +76,19 @@ await (async () => {
     const firefox_manifest_temp = common.joinWithDir(firefox_manifest_name);
 
     try {
-        fs_sync.renameSync(chrome_manifest, chrome_manifest_temp);
+        await fs.rename(chrome_manifest, chrome_manifest_temp);
 
-        fixFirefoxManifest();
+        await fixFirefoxManifest();
         await makeReleaseFor('firefox', version);
-        undoFirefoxManifest();
+        await undoFirefoxManifest();
 
-        fs_sync.renameSync(main_manifest, firefox_manifest_temp);
-        fs_sync.renameSync(chrome_manifest_temp, main_manifest);
+        await fs.rename(main_manifest, firefox_manifest_temp);
+        await fs.rename(chrome_manifest_temp, main_manifest);
 
         await makeReleaseFor('chromium', version);
 
-        fs_sync.renameSync(main_manifest, chrome_manifest);
-        fs_sync.renameSync(firefox_manifest_temp, main_manifest);
+        await fs.rename(main_manifest, chrome_manifest);
+        await fs.rename(firefox_manifest_temp, main_manifest);
     } catch (e) {
         console.error('Failed to make release! Make sure you have 7zip installed if on windows and zip if on linux.\nError:', e);
         // this will mess up files for now but that can be fixed eventually
