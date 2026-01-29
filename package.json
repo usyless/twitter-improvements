@@ -1,0 +1,20 @@
+{
+  "name": "twitter-improvements",
+  "version": "1.6.6",
+  "description": "Easy Twitter/X full quality image and video downloading with custom filenames, easy copying tweets with VXTwitter or FXTwitter links, sidebar and tweet button hiding, and other quality of life features!",
+  "homepage": "https://github.com/usyless/twitter-improvements#readme",
+  "bugs": {
+    "url": "https://github.com/usyless/twitter-improvements/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usyless/twitter-improvements.git"
+  },
+  "license": "GPL-3.0",
+  "author": "usy",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "swap-manifests": "node scripts/swap-manifests.js"
+  }
+}
