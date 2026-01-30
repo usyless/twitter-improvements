@@ -78,6 +78,7 @@
             '[aria-label="Timeline: Your Home Timeline"] div:has(> div > div > button[data-testid="UserCell"]:not([aria-label^="Switch to @"]))',
             '[aria-label="Timeline: Your Home Timeline"] div:has(> div > div > a[href^="/i/connect_people"])',
             '[aria-label="Timeline: Your Home Timeline"] div:has(> div > div > a[href^="/i/connect_people"]) + div',
+            '[data-testid="whoToFollowSspAd"]',
         ], st: HideType.DISPLAY},
         hide_relevant_people: {s: ['div:has(> [aria-label="Relevant people"])'], st: HideType.DISPLAY},
         hide_create_your_space: {s: ['a[href="/i/spaces/start"]'], st: HideType.DISPLAY},
