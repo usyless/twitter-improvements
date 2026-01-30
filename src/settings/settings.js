@@ -262,7 +262,7 @@
                 {
                     name: 'import_download_history',
                     type: 'button',
-                    button: 'Import download history from export (normal or binary)',
+                    button: 'Import download history from export',
                     onclick: () => {
                         document.getElementById('download_history_input').click();
                     },
