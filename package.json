@@ -16,5 +16,15 @@
   "scripts": {
     "build": "node scripts/build.js",
     "swap-manifests": "node scripts/swap-manifests.js"
+  },
+  "extensionManifestConfig": {
+    "firefox": {
+      "replaceAll": [
+        {
+          "from": "twitter-improvements@usyless.uk",
+          "to": "{49f6525f-921e-4ff0-804d-a85f95ad3233}"
+        }
+      ]
+    }
   }
 }

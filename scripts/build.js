@@ -15,35 +15,24 @@ async function mkdir(dir) {
     }
 }
 
-const firefox_id_to_replace = "twitter-improvements@usyless.uk";
-const firefox_id_to_replace_to  = "{49f6525f-921e-4ff0-804d-a85f95ad3233}";
-
 const version_string = '"version": "0.0.0.1",';
 const new_version_string = `"version": "${pkg.version}",`;
 
-async function fixFirefoxManifest() {
-    let text = await fs.readFile(main_manifest, "utf8");
-    text = text.replaceAll(firefox_id_to_replace, firefox_id_to_replace_to);
-    text = text.replaceAll(version_string, new_version_string);
-    await fs.writeFile(main_manifest, text);
-}
-
-async function undoFirefoxManifest() {
-    let text = await fs.readFile(main_manifest, "utf8");
-    text = text.replaceAll(firefox_id_to_replace_to, firefox_id_to_replace);
-    text = text.replaceAll(new_version_string, version_string);
-    await fs.writeFile(main_manifest, text);
-}
-
-async function fixVersionManifest() {
+async function applyManifestPatches(platform) {
     let text = await fs.readFile(main_manifest, "utf8");
     text = text.replaceAll(version_string, new_version_string);
+    for (const {from, to} of pkg.extensionManifestConfig?.[platform]?.replaceAll ?? []) {
+        text = text.replaceAll(from, to);
+    }
     await fs.writeFile(main_manifest, text);
 }
 
-async function undoFixVersionManifest() {
+async function undoManifestPatches(platform) {
     let text = await fs.readFile(main_manifest, "utf8");
     text = text.replaceAll(new_version_string, version_string);
+    for (const {from, to} of pkg.extensionManifestConfig?.[platform]?.replaceAll ?? []) {
+        text = text.replaceAll(to, from);
+    }
     await fs.writeFile(main_manifest, text);
 }
 
@@ -87,16 +76,16 @@ await (async () => {
     try {
         await fs.rename(chrome_manifest, chrome_manifest_temp);
 
-        await fixFirefoxManifest();
+        await applyManifestPatches('firefox');
         await makeReleaseFor('firefox');
-        await undoFirefoxManifest();
+        await undoManifestPatches('firefox');
 
         await fs.rename(main_manifest, firefox_manifest_temp);
         await fs.rename(chrome_manifest_temp, main_manifest);
 
-        await fixVersionManifest();
+        await applyManifestPatches('chromium');
         await makeReleaseFor('chromium');
-        await undoFixVersionManifest();
+        await undoManifestPatches('chromium');
 
         await fs.rename(main_manifest, chrome_manifest);
         await fs.rename(firefox_manifest_temp, main_manifest);
