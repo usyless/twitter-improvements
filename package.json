@@ -14,11 +14,12 @@
   "author": "usy",
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.js",
-    "swap-manifests": "node scripts/swap-manifests.js"
+    "build": "usy-extension-builder-build",
+    "swap-manifests": "usy-extension-builder-swap-manifests"
   },
   "devDependencies": {
-    "@types/firefox-webext-browser": "^143.0.0"
+    "@types/firefox-webext-browser": "^143.0.0",
+    "usy-extension-builder": "github:/usyless/usy-extension-builder.git#main"
   },
   "extensionManifestConfig": {
     "firefox": {
