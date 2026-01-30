@@ -15,6 +15,11 @@ async function mkdir(dir) {
     }
 }
 
+const platforms = {
+    firefox: "firefox",
+    chromium: "chromium"
+}
+
 const version_string = '"version": "0.0.0.1",';
 const new_version_string = `"version": "${pkg.version}",`;
 
@@ -42,20 +47,24 @@ function run(cmd, options = {}) {
 }
 
 async function makeZip(output, directory) {
+    let cmd;
     if (process.platform === "win32") { // use 7z
-        run(`7z a ${output} .`, { cwd: directory });
+        cmd = `7z a ${output} .`;
     } else { // use zip
         if (fs_sync.existsSync(output)) fs_sync.unlinkSync(output);
-        run(`zip -r ${output} .`, { cwd: directory });
+        cmd = `zip -r ${output} .`;
     }
+    if (cmd) run(cmd,{ cwd: directory });
 }
 
 async function makeReleaseFor(platform) {
-    console.log(`Making release for: ${platform}`);
+    console.log(`\nMaking release for: ${platform}\n`);
 
-    await makeZip(common.joinWithReleasesQuoted(`${pkg.name} ${platform} v${pkg.version}.zip`), common.SRC_DIR);
+    const output_file = common.joinWithReleasesQuoted(`${pkg.name} ${platform} v${pkg.version}.zip`);
 
-    console.log(`Finished making release for: ${platform}`);
+    await makeZip(output_file, common.SRC_DIR);
+
+    console.log(`\nFinished making release for: ${platform}\nAt: ${output_file}\n`);
 }
 
 await (async () => {
@@ -76,21 +85,21 @@ await (async () => {
     try {
         await fs.rename(chrome_manifest, chrome_manifest_temp);
 
-        await applyManifestPatches('firefox');
-        await makeReleaseFor('firefox');
-        await undoManifestPatches('firefox');
+        await applyManifestPatches(platforms.firefox);
+        await makeReleaseFor(platforms.firefox);
+        await undoManifestPatches(platforms.firefox);
 
         await fs.rename(main_manifest, firefox_manifest_temp);
         await fs.rename(chrome_manifest_temp, main_manifest);
 
-        await applyManifestPatches('chromium');
-        await makeReleaseFor('chromium');
-        await undoManifestPatches('chromium');
+        await applyManifestPatches(platforms.chromium);
+        await makeReleaseFor(platforms.chromium);
+        await undoManifestPatches(platforms.chromium);
 
         await fs.rename(main_manifest, chrome_manifest);
         await fs.rename(firefox_manifest_temp, main_manifest);
     } catch (e) {
-        console.error('Failed to make release! Make sure you have 7zip installed if on windows and zip if on linux.\nError:', e);
+        console.error('\nFailed to make release! Make sure you have 7zip installed if on windows and zip if on linux.\nError:', e, '\n');
         // this will mess up files for now but that can be fixed eventually
     }
 
