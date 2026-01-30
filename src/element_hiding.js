@@ -89,7 +89,9 @@
             'div:has(> [data-testid="placementTracking"] > [aria-label^="Broadcast, "])'
         ], st: HideType.DISPLAY},
         hide_post_reply_sections: {s: [
-            'div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])'
+            'div:has(> div > div[role="progressbar"] + div > div > div > div > div > div > div[data-testid^="UserAvatar-Container"])',
+            'div[aria-label="Home timeline"] > div:not(:last-child):has(> div > div[data-testid^="UserAvatar-Container"])',
+            'div[aria-label="Home timeline"] > div:not(:last-child):has(> div > div[data-testid^="UserAvatar-Container"]) + div'
         ], st: HideType.DISPLAY},
         hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: HideType.DISPLAY},
         hide_subscribe_buttons: {s: ['button[aria-label^="Subscribe to "]'], st: HideType.DISPLAY},
