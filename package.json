@@ -17,6 +17,9 @@
     "build": "node scripts/build.js",
     "swap-manifests": "node scripts/swap-manifests.js"
   },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0"
+  },
   "extensionManifestConfig": {
     "firefox": {
       "replaceAll": [
