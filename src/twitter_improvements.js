@@ -1241,7 +1241,7 @@
                 }
 
                 popup.classList.add('animate');
-                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition, options: {passive: true}});
+                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition});
 
                 for (const {type, listener, options} of notificationEventListeners) {
                     listener();
