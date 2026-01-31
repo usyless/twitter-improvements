@@ -361,7 +361,7 @@
          * @returns {HTMLElement}
          */
         defaultAnchor: (article) => {
-           return article.querySelector('button[aria-label="Share post"]:not([usy])').parentElement.parentElement;
+           return article.querySelector('div:has(> div > button[aria-label="Share post"]:not([usy])), div:has(> div > button > div > div > svg > g > path[d^="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3"])');
         },
 
         /**
