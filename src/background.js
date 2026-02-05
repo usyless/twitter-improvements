@@ -683,7 +683,7 @@ function send_to_all_tabs(message) {
 
 /**
  * @param {string} url
- * @returns {Omit<NameParts, 'extension'>}
+ * @returns {Omit<NameParts, 'extension', 'mediaFilename'>}
  */
 function getNamePartsGeneric(url) {
     const parts = url.split("/");

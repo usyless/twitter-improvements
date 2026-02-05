@@ -35,7 +35,7 @@
  * @property {tweetId} tweetId
  * @property {tweetNum} tweetNum
  * @property {string} extension
- * @property {string} [mediaFilename]
+ * @property {string} mediaFilename
  */
 
 /**
