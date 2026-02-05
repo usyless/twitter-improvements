@@ -703,7 +703,7 @@ function getNamePartsImage(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
         extension: sourceURL.match(/format=(\w+)/)[1],
-        imageId: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0],
+        mediaFilename: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0],
     }
 }
 
@@ -716,7 +716,7 @@ function getNamePartsVideo(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
         extension: sourceURL.includes(".mp4") ? "mp4" : "gif",
-        imageId: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0].split('.')[0]
+        mediaFilename: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0].split('.')[0]
     }
 }
 
@@ -738,7 +738,7 @@ function formatFilename(parts, save_format) {
             .replaceAll('{username}', parts.username)
             .replaceAll('{tweetId}', parts.tweetId)
             .replaceAll('{tweetNum}', parts.tweetNum ?? '')
-            .replaceAll('{imageId}', parts.imageId ?? '')
+            .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
             .replaceAll('{extension}', parts.extension ?? '') +
         (parts.extension ? `.${parts.extension}` : '');
 }
@@ -802,6 +802,16 @@ function saveImage(url, sourceURL) {
 /** @param {string} previousVersion */
 async function migrateSettings(previousVersion) {
     const migrations = [
+        ['1.6.8', async () => {
+            /** @type {Settings} */
+            const s = await extension.storage.local.get('download_preferences');
+            /** @type {String} */
+            let save_format = s?.download_preferences?.save_format;
+            if (!save_format) return;
+
+            s.download_preferences = save_format.replaceAll('{imageId}', '{mediaFilename}');
+            return extension.storage.local.set(s);
+        }],
         ['1.4', () => new Promise((resolve) => {
             extension.storage.local.get().then((/** @type {Settings} */s) => {
                 const setting = s?.setting;
