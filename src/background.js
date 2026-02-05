@@ -809,7 +809,7 @@ async function migrateSettings(previousVersion) {
             let save_format = s?.download_preferences?.save_format;
             if (!save_format) return;
 
-            s.download_preferences = save_format.replaceAll('{imageId}', '{mediaFilename}');
+            s.download_preferences.save_format = save_format.replaceAll('{imageId}', '{mediaFilename}');
             return extension.storage.local.set(s);
         }],
         ['1.4', async () => {
