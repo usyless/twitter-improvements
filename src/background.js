@@ -812,139 +812,139 @@ async function migrateSettings(previousVersion) {
             s.download_preferences = save_format.replaceAll('{imageId}', '{mediaFilename}');
             return extension.storage.local.set(s);
         }],
-        ['1.4', () => new Promise((resolve) => {
-            extension.storage.local.get().then((/** @type {Settings} */s) => {
-                const setting = s?.setting;
-                if (setting != null) {
-                    if (setting.image_button != null) {
-                        setting.media_download_button = setting.image_button;
-                        delete setting.image_button;
-                    }
-
-                    if (setting.inline_image_button != null) {
-                        setting.inline_download_button = setting.inline_image_button;
-                        delete setting.inline_image_button;
-                    }
-
-                    if (setting.video_button != null) {
-                        setting.inline_download_button ||= setting.video_button;
-                        delete setting.video_button;
-                    }
-                }
-                delete s.video_preferences;
-                delete s.video_details;
-
-                const notifs = s?.hidden_extension_notifications;
-                if (notifs != null) {
-                    if (notifs.save_image != null) {
-                        notifs.save_media = notifs.save_image;
-                        delete notifs.save_image;
-                    }
-                    if (notifs.save_video != null) {
-                        notifs.save_media ||= notifs.save_video;
-                        delete notifs.save_video;
-                    }
-
-                    if (notifs.save_image_duplicate != null) {
-                        notifs.save_media_duplicate = notifs.save_image_duplicate;
-                        delete notifs.save_image_duplicate;
-                    }
-                    if (notifs.save_video_duplicate != null) {
-                        notifs.save_media_duplicate ||= notifs.save_video_duplicate;
-                        delete notifs.save_video_duplicate;
-                    }
+        ['1.4', async () => {
+            /** @type {Settings} */
+            const s = await extension.storage.local.get();
+            const setting = s?.setting;
+            if (setting != null) {
+                if (setting.image_button != null) {
+                    setting.media_download_button = setting.image_button;
+                    delete setting.image_button;
                 }
 
-                const image = s?.image_preferences;
-                if (image != null) {
-                    if (image.long_image_button != null) {
-                        if (image.long_image_button === true) {
-                            image.image_button_width_value = '100';
-                        }
-                        delete image.long_image_button;
-                    }
-                    if (image.download_history_enabled != null) {
-                        s.download_preferences ||= {};
-                        s.download_preferences.download_history_enabled = image.download_history_enabled;
-                        delete image.download_history_enabled;
-                    }
-                    if (image.download_history_prevent_download != null) {
-                        s.download_preferences ||= {};
-                        s.download_preferences.download_history_prevent_download = image.download_history_prevent_download;
-                        delete image.download_history_prevent_download;
-                    }
+                if (setting.inline_image_button != null) {
+                    setting.inline_download_button = setting.inline_image_button;
+                    delete setting.inline_image_button;
                 }
 
-                return extension.storage.local.set(s);
-            }).then(resolve);
-        })],
-        ['1.1.1.4', () => new Promise((resolve) => {
-            extension.storage.local.get(['download_history']).then((r) => {
-                const history = r.download_history ?? {};
-                return Promise.all([
-                    new Promise((res) => download_history_add_all({saved_images: Object.keys(history)}, res)),
-                    extension.storage.local.remove('download_history')
-                ]);
-            }).then(resolve);
-        })],
-        ['1.1.1.1', () => new Promise((resolve) => {
-            extension.storage.local.get().then((s) => {
-                const {
-                    // styles
-                    hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
-                    hide_premium, hide_verified_orgs, hide_monetization, hide_ads_button, hide_whats_happening,
-                    hide_who_to_follow, hide_relevant_people, hide_create_your_space, hide_post_button,
-                    hide_follower_requests, hide_live_on_x, hide_post_reply_sections, hide_sidebar_footer,
-                    // settings
-                    vx_button, video_button, image_button, show_hidden,
-                    // preferences
-                    url_prefix, long_image_button, custom_url, download_history_enabled,
-                    download_history_prevent_download, download_history,
-                } = s;
-
-                const newSettings = {style: {}, setting: {}, vx_preferences: {}, image_preferences: {}};
-
-                if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
-                if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
-                if (hide_grok != null) newSettings.style.hide_grok = hide_grok;
-                if (hide_jobs != null) newSettings.style.hide_jobs = hide_jobs;
-                if (hide_lists != null) newSettings.style.hide_lists = hide_lists;
-                if (hide_communities != null) newSettings.style.hide_communities = hide_communities;
-                if (hide_premium != null) newSettings.style.hide_premium = hide_premium;
-                if (hide_verified_orgs != null) newSettings.style.hide_verified_orgs = hide_verified_orgs;
-                if (hide_monetization != null) newSettings.style.hide_monetization = hide_monetization;
-                if (hide_ads_button != null) newSettings.style.hide_ads_button = hide_ads_button;
-                if (hide_whats_happening != null) newSettings.style.hide_whats_happening = hide_whats_happening;
-                if (hide_who_to_follow != null) newSettings.style.hide_who_to_follow = hide_who_to_follow;
-                if (hide_relevant_people != null) newSettings.style.hide_relevant_people = hide_relevant_people;
-                if (hide_create_your_space != null) newSettings.style.hide_create_your_space = hide_create_your_space;
-                if (hide_post_button != null) newSettings.style.hide_post_button = hide_post_button;
-                if (hide_follower_requests != null) newSettings.style.hide_follower_requests = hide_follower_requests;
-                if (hide_live_on_x != null) newSettings.style.hide_live_on_x = hide_live_on_x;
-                if (hide_post_reply_sections != null) newSettings.style.hide_post_reply_sections = hide_post_reply_sections;
-                if (hide_sidebar_footer != null) newSettings.style.hide_sidebar_footer = hide_sidebar_footer;
-
-                if (vx_button != null) newSettings.setting.vx_button = vx_button;
-                if (video_button != null) newSettings.setting.video_button = video_button;
-                if (image_button != null) newSettings.setting.image_button = image_button;
-                if (show_hidden != null) newSettings.setting.show_hidden = show_hidden;
-
-                if (url_prefix != null) {
-                    if (url_prefix === 'vx') newSettings.vx_preferences.url_prefix = 'fixvx.com';
-                    else if (url_prefix === 'fx') newSettings.vx_preferences.url_prefix = 'fixupx.com';
-                    else newSettings.vx_preferences.url_prefix = url_prefix;
+                if (setting.video_button != null) {
+                    setting.inline_download_button ||= setting.video_button;
+                    delete setting.video_button;
                 }
-                if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
+            }
+            delete s.video_preferences;
+            delete s.video_details;
 
-                if (download_history_prevent_download != null) newSettings.image_preferences.download_history_prevent_download = download_history_prevent_download;
-                if (long_image_button != null) newSettings.image_preferences.long_image_button = long_image_button;
-                if (download_history_enabled != null) newSettings.image_preferences.download_history_enabled = download_history_enabled;
+            const notifs = s?.hidden_extension_notifications;
+            if (notifs != null) {
+                if (notifs.save_image != null) {
+                    notifs.save_media = notifs.save_image;
+                    delete notifs.save_image;
+                }
+                if (notifs.save_video != null) {
+                    notifs.save_media ||= notifs.save_video;
+                    delete notifs.save_video;
+                }
 
-                if (download_history != null) newSettings.download_history = download_history;
+                if (notifs.save_image_duplicate != null) {
+                    notifs.save_media_duplicate = notifs.save_image_duplicate;
+                    delete notifs.save_image_duplicate;
+                }
+                if (notifs.save_video_duplicate != null) {
+                    notifs.save_media_duplicate ||= notifs.save_video_duplicate;
+                    delete notifs.save_video_duplicate;
+                }
+            }
 
-                return extension.storage.local.clear().then(() => extension.storage.local.set(newSettings));
-            }).then(resolve);
-        })]
+            const image = s?.image_preferences;
+            if (image != null) {
+                if (image.long_image_button != null) {
+                    if (image.long_image_button === true) {
+                        image.image_button_width_value = '100';
+                    }
+                    delete image.long_image_button;
+                }
+                if (image.download_history_enabled != null) {
+                    s.download_preferences ||= {};
+                    s.download_preferences.download_history_enabled = image.download_history_enabled;
+                    delete image.download_history_enabled;
+                }
+                if (image.download_history_prevent_download != null) {
+                    s.download_preferences ||= {};
+                    s.download_preferences.download_history_prevent_download = image.download_history_prevent_download;
+                    delete image.download_history_prevent_download;
+                }
+            }
+
+            return extension.storage.local.set(s);
+        }],
+        ['1.1.1.4', async () => {
+            /** @type {Settings} */
+            const r = await extension.storage.local.get('download_history')
+            const history = r.download_history ?? {};
+            return Promise.all([
+                new Promise((res) => download_history_add_all({saved_images: Object.keys(history)}, res)),
+                extension.storage.local.remove('download_history')
+            ]);
+        }],
+        ['1.1.1.1', async () => {
+            /** @type {Settings} */
+            const s = await extension.storage.local.get()
+            const {
+                // styles
+                hide_notifications, hide_messages, hide_grok, hide_jobs, hide_lists, hide_communities,
+                hide_premium, hide_verified_orgs, hide_monetization, hide_ads_button, hide_whats_happening,
+                hide_who_to_follow, hide_relevant_people, hide_create_your_space, hide_post_button,
+                hide_follower_requests, hide_live_on_x, hide_post_reply_sections, hide_sidebar_footer,
+                // settings
+                vx_button, video_button, image_button, show_hidden,
+                // preferences
+                url_prefix, long_image_button, custom_url, download_history_enabled,
+                download_history_prevent_download, download_history,
+            } = s;
+
+            const newSettings = {style: {}, setting: {}, vx_preferences: {}, image_preferences: {}};
+
+            if (hide_notifications != null) newSettings.style.hide_notifications = hide_notifications;
+            if (hide_messages != null) newSettings.style.hide_messages = hide_messages;
+            if (hide_grok != null) newSettings.style.hide_grok = hide_grok;
+            if (hide_jobs != null) newSettings.style.hide_jobs = hide_jobs;
+            if (hide_lists != null) newSettings.style.hide_lists = hide_lists;
+            if (hide_communities != null) newSettings.style.hide_communities = hide_communities;
+            if (hide_premium != null) newSettings.style.hide_premium = hide_premium;
+            if (hide_verified_orgs != null) newSettings.style.hide_verified_orgs = hide_verified_orgs;
+            if (hide_monetization != null) newSettings.style.hide_monetization = hide_monetization;
+            if (hide_ads_button != null) newSettings.style.hide_ads_button = hide_ads_button;
+            if (hide_whats_happening != null) newSettings.style.hide_whats_happening = hide_whats_happening;
+            if (hide_who_to_follow != null) newSettings.style.hide_who_to_follow = hide_who_to_follow;
+            if (hide_relevant_people != null) newSettings.style.hide_relevant_people = hide_relevant_people;
+            if (hide_create_your_space != null) newSettings.style.hide_create_your_space = hide_create_your_space;
+            if (hide_post_button != null) newSettings.style.hide_post_button = hide_post_button;
+            if (hide_follower_requests != null) newSettings.style.hide_follower_requests = hide_follower_requests;
+            if (hide_live_on_x != null) newSettings.style.hide_live_on_x = hide_live_on_x;
+            if (hide_post_reply_sections != null) newSettings.style.hide_post_reply_sections = hide_post_reply_sections;
+            if (hide_sidebar_footer != null) newSettings.style.hide_sidebar_footer = hide_sidebar_footer;
+
+            if (vx_button != null) newSettings.setting.vx_button = vx_button;
+            if (video_button != null) newSettings.setting.video_button = video_button;
+            if (image_button != null) newSettings.setting.image_button = image_button;
+            if (show_hidden != null) newSettings.setting.show_hidden = show_hidden;
+
+            if (url_prefix != null) {
+                if (url_prefix === 'vx') newSettings.vx_preferences.url_prefix = 'fixvx.com';
+                else if (url_prefix === 'fx') newSettings.vx_preferences.url_prefix = 'fixupx.com';
+                else newSettings.vx_preferences.url_prefix = url_prefix;
+            }
+            if (custom_url != null) newSettings.vx_preferences.custom_url = custom_url;
+
+            if (download_history_prevent_download != null) newSettings.image_preferences.download_history_prevent_download = download_history_prevent_download;
+            if (long_image_button != null) newSettings.image_preferences.long_image_button = long_image_button;
+            if (download_history_enabled != null) newSettings.image_preferences.download_history_enabled = download_history_enabled;
+
+            if (download_history != null) newSettings.download_history = download_history;
+
+            return extension.storage.local.clear().then(() => extension.storage.local.set(newSettings));
+        }]
     ];
 
     previousVersion = (previousVersion?.match?.(/\d+/g) ?? []).join('');
