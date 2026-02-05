@@ -715,7 +715,8 @@ function getNamePartsImage(url, sourceURL) {
 function getNamePartsVideo(url, sourceURL) {
     return {
         ...getNamePartsGeneric(url),
-        extension: sourceURL.includes(".mp4") ? "mp4" : "gif"
+        extension: sourceURL.includes(".mp4") ? "mp4" : "gif",
+        imageId: sourceURL.substring(sourceURL.lastIndexOf('/') + 1).split('?')[0].split('.')[0]
     }
 }
 
