@@ -963,7 +963,13 @@ async function migrateSettings(previousVersion) {
         if (previousIsBelow(version)) m.push(migration);
         else break;
     }
-    for (let i = m.length - 1; i >= 0; --i) await m[i]();
+    for (let i = m.length - 1; i >= 0; --i) {
+        try {
+            await m[i]();
+        } catch (e) {
+            console.error('Migration failed:', m[i], '\nWith error:', e);
+        }
+    }
 }
 
 /**
