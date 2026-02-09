@@ -219,11 +219,6 @@
                     type: 'break'
                 },
                 {
-                    name: 'more_media_icon_visible',
-                    category: 'style',
-                    description: 'Make the "more media" icon on the media pages of user profiles stand out more'
-                },
-                {
                     name: 'download_picker_on_media_page',
                     category: 'download_preferences',
                     description: 'Show download picker for multi-media tweets in the media page'
@@ -402,6 +397,11 @@
                     name: 'replace_tweet_urls',
                     category: 'setting',
                     description: "Replace URL's with their original URL's rather than the shortened ones"
+                },
+                {
+                    name: 'more_media_icon_visible',
+                    category: 'style',
+                    description: 'Make the "more media" icon on the media pages of user profiles stand out more'
                 },
                 {
                     name: 'use_download_progress',
