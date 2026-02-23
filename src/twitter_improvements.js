@@ -9,6 +9,9 @@
         return chrome;
     })();
 
+    let tabId;
+    let assignTabId = () => Background.get_tab_id().then(tab_id => (tabId = tab_id));
+
     const emptyFunction = () => {};
 
     let logInfo = emptyFunction;
@@ -146,7 +149,7 @@
          * @param {MediaItem[]} media
          * @param {EventModifiers} modifiers
          */
-        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers }),
+        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId }),
 
         /** @returns {Promise<Settings>} */
         get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
@@ -157,6 +160,8 @@
 
         /** @param {string} url */
         open_tab: (url) => extension.runtime.sendMessage({type: 'open_tab', url}),
+
+        get_tab_id: () => extension.runtime.sendMessage({type: 'get_tab_id'}),
     };
 
     const Downloaders = {
@@ -1665,7 +1670,7 @@
         Listeners.start();
     }
 
-    Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid()]).then(start);
+    Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid(), assignTabId()]).then(start);
 
     extension.runtime.onMessage.addListener((message) => {
         logInfo('Received message from background page:', message);

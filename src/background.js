@@ -551,7 +551,9 @@ const requestMap = {
         });
     },
 
-    validate_setting: ({category, setting, value}, sendResponse) => sendResponse(!!(defaultSettings[category]?.[setting]?.validate(value)))
+    validate_setting: ({category, setting, value}, sendResponse) => sendResponse(!!(defaultSettings[category]?.[setting]?.validate(value))),
+
+    get_tab_id: (_, sendResponse, sender) => sendResponse(sender.tab.id),
 };
 
 const requestMapPorts = {
@@ -566,8 +568,8 @@ const requestMapPorts = {
     }
 }
 
-extension.runtime.onMessage.addListener((request, _, sendResponse) => {
-    requestMap[request.type]?.(request, sendResponse);
+extension.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    requestMap[request.type]?.(request, sendResponse, sender);
     return true;
 });
 
@@ -642,11 +644,12 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
  * @param {MediaItem} [media]
+ * @param {number} [tabId]
  * @return {Promise<number>}
  */
-function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media}={}) {
+function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media}={}, tabId) {
     if (isAndroid && !isEdgeAndroid) {
-        sendToTab({ type: 'download', url, filename, media, modifiers });
+        sendToTab({ type: 'download', url, filename, media, modifiers }, tabId);
         return Promise.resolve(-1);
     } else {
         return Settings.getSettings().then(() => {
@@ -668,10 +671,15 @@ function download(url, filename, modifiers={ctrl: false, shift: false, alt: fals
 }
 
 const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'};
-function sendToTab(message) {
-    extension.tabs.query(singleTabQuery).then((tabs) => {
-        void extension.tabs.sendMessage(tabs[0].id, message);
-    });
+function sendToTab(message, tabId) {
+    if (tabId != null) {
+        void extension.tabs.sendMessage(tabId, message);
+    } else {
+        extension.tabs.query(singleTabQuery).then((tabs) => {
+            if (tabs.length <= 0) console.error("Cannot find any tab to send message to! Please report this issue to the developer");
+            else void extension.tabs.sendMessage(tabs[0].id, message);
+        });
+    }
 }
 
 const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
@@ -760,9 +768,10 @@ async function checkErrorAllowed(error) {
 /**
  * @param {MediaItem[]} media
  * @param {EventModifiers} modifiers
+ * @param {number} [tabId]
  * @param {function(any)} sendResponse
  */
-function download_media({media, modifiers}, sendResponse) {
+function download_media({media, modifiers, tabId}, sendResponse) {
     Settings.getSettings().then(() => {
         const {save_format, download_history_enabled} = Settings.download_preferences;
         for (const m of media) {
@@ -770,8 +779,8 @@ function download_media({media, modifiers}, sendResponse) {
             parts.tweetNum = m.index;
             if (download_history_enabled) void download_history_add(m.save_id);
             const onError = (error) => download_history_remove({id: m.save_id},
-                () => checkErrorAllowed(error).then((r) => r && sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers})));
-            download(m.url, formatFilename(parts, save_format), modifiers, {media: m})
+                () => checkErrorAllowed(error).then((r) => r && sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers}, tabId)));
+            download(m.url, formatFilename(parts, save_format), modifiers, {media: m}, tabId)
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
                     else if (downloadId === -1) void 0; // android, ignore it
