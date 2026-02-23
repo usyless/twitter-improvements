@@ -517,6 +517,9 @@ const onSettingsChangeListener = (changes, namespace) => {
 }
 extension.storage.onChanged.addListener(onSettingsChangeListener);
 
+/**
+ * @type {Object.<string, (any, (any) => void, browser.runtime.MessageSender) => void>}
+ */
 const requestMap = {
     save_media: download_media,
     download_history_has: download_history_has,
