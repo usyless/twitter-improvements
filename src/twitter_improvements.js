@@ -9,6 +9,7 @@
         return chrome;
     })();
 
+    /** @type {Number} */
     let tabId;
     let assignTabId = () => Background.get_tab_id().then(tab_id => (tabId = tab_id));
 
@@ -161,6 +162,7 @@
         /** @param {string} url */
         open_tab: (url) => extension.runtime.sendMessage({type: 'open_tab', url}),
 
+        /** @returns {Promise<Number>} */
         get_tab_id: () => extension.runtime.sendMessage({type: 'get_tab_id'}),
     };
 
