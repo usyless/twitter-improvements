@@ -1462,8 +1462,10 @@
                 objectURL = URL.createObjectURL(blob);
             link.href = objectURL;
             link.download = filename;
-            link.dispatchEvent(new MouseEvent('click'));
-            URL.revokeObjectURL(objectURL);
+            link.click();
+            setTimeout(() => {
+                URL.revokeObjectURL(objectURL);
+            }, 5000);
         },
 
         /**
