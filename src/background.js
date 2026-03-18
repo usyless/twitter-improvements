@@ -588,7 +588,13 @@ extension.runtime.onInstalled?.addListener((details) => {
     // updates it if needed
     getHistoryDB().then(() => {
         if (details.reason === 'install') void extension.tabs.create({url: extension.runtime.getURL('/settings/settings.html?installed=true')});
-        else if (details.reason === 'update' && details.previousVersion != null) void migrateSettings(details.previousVersion);
+        else if (details.reason === 'update' && details.previousVersion != null) {
+            if (details.previousVersion === '0.0.0.1') {
+                console.warn("Ignoring migrations due to dev version");
+            } else {
+                void migrateSettings(details.previousVersion);
+            }
+        }
     });
 });
 
