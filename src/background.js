@@ -64,6 +64,10 @@ const defaultSettings = {
         dont_open_new_tab_from_chat: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
+        },
+        fix_click_selection_bug: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 

@@ -409,6 +409,11 @@
                     description: "Don't open a new tab when clicking links within the chat panel"
                 },
                 {
+                    name: 'fix_click_selection_bug',
+                    category: 'listeners',
+                    description: 'Fix the bug which causes twitter to refresh when clicking with text selected (may have unintended text selection bugs)',
+                },
+                {
                     name: 'use_download_progress',
                     category: 'download_preferences',
                     description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'

@@ -1668,6 +1668,14 @@
                 options: {
                     capture: true,
                 }
+            }],
+            fix_click_selection_bug: [{
+                event: 'pointerdown',
+                target: () => window,
+                listener: () => window.getSelection().removeAllRanges(),
+                options: {
+                    capture: true,
+                }
             }]
         },
 
