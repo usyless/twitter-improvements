@@ -13,6 +13,10 @@
     let tabId;
     let assignTabId = () => Background.get_tab_id().then(tab_id => (tabId = tab_id));
 
+    const ConstantEvents = {
+        popstate: new PopStateEvent('popstate')
+    }
+
     const emptyFunction = () => {};
 
     let logInfo = emptyFunction;
@@ -1618,11 +1622,22 @@
         }
     };
 
+    /**
+     * @template {keyof WindowEventMap} T
+     * @typedef {Object} EventConfig
+     * @property {T} event
+     * @property {() => Window} target
+     * @property {(e: WindowEventMap[T]) => void} listener
+     * @property {AddEventListenerOptions} [options]
+     */
+
     const Listeners = {
+        /** @type {Record<string, EventConfig<any>[]>} */
         listeners: {
             vx_copy_shortcut: [{
                 event: 'keydown',
                 target: () => window,
+                /** @param {KeyboardEvent} e */
                 listener: (e) => {
                     if (e.ctrlKey && e.key.toLowerCase() === 'c' && Tweet.previewing() && window.getSelection().isCollapsed) {
                         const id = Helpers.id(window.location.href);
@@ -1633,6 +1648,25 @@
                             }
                         }
                     }
+                }
+            }],
+            dont_open_new_tab_from_chat: [{
+                event: 'click',
+                target: () => window,
+                /** @param {PointerEvent} e */
+                listener: (e) => {
+                    if (!window.location.href.startsWith('https://x.com/i/chat/')) return;
+                    const a = e.target.closest('a');
+                    if (!a || !a.href?.startsWith('https://x.com/i/status/')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    window.history.pushState(null, '', a.href);
+                    window.dispatchEvent(ConstantEvents.popstate);
+                },
+                options: {
+                    capture: true,
                 }
             }]
         },

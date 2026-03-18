@@ -404,6 +404,11 @@
                     description: 'Make the "more media" icon on the media pages of user profiles stand out more'
                 },
                 {
+                    name: 'dont_open_new_tab_from_chat',
+                    category: 'listeners',
+                    description: "Don't open a new tab when clicking links within the chat panel"
+                },
+                {
                     name: 'use_download_progress',
                     category: 'download_preferences',
                     description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'

@@ -60,6 +60,10 @@ const defaultSettings = {
         vx_copy_shortcut: {
             default: true,
             validate: CONSTRAINTS.BOOLEAN
+        },
+        dont_open_new_tab_from_chat: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 
