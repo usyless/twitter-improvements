@@ -106,8 +106,7 @@
         console.log('Unable to load global settings, if this is from the background page you can ignore it')
     });
 
-    // this should do nothing in the bg page i believe
-    extension.runtime.onMessage.addListener((message) => {
+    const onMessageListener = (message) => {
         if (message.type === 'settings_update') {
             GlobalSettings.load().then(() => {
                 for (const listener of globalThis.GlobalSettings.onUpdate.listeners) {
@@ -115,5 +114,11 @@
                 }
             });
         }
-    });
+    };
+
+    // this should do nothing in the bg page i believe
+    extension.runtime.onMessage.addListener(onMessageListener);
+    globalThis.enableIsBackgroundPage = () => {
+        extension.runtime.onMessage.removeListener(onMessageListener);
+    }
 })();

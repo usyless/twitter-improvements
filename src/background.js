@@ -4,6 +4,8 @@ if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loa
     importScripts(chrome.runtime.getURL('/common.js'));
 }
 
+globalThis.enableIsBackgroundPage();
+
 const isAndroid = /Android/.test(navigator.userAgent);
 const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
