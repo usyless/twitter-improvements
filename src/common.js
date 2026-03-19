@@ -57,10 +57,12 @@
         validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
     };
 
+    /**
+     * @returns {{_resolve: () => void, ready: boolean, setReady: () => void, promise: Promise<void>}}
+     */
     const getReadyObject = () => {
         const obj = {
             _resolve: undefined,
-            listeners: [],
             ready: false,
             setReady: () => {
                 obj.ready = true;
@@ -84,9 +86,11 @@
     };
     /** @type {LoadedSettings} */
     globalThis.GlobalSettings = {
-        load: async () => {
-            const r = await GlobalBackground.get_settings();
+        loadFrom: (r) => {
             for (const setting in r) GlobalSettings[setting] = r[setting];
+        },
+        load: async () => {
+            GlobalSettings.loadFrom(await GlobalBackground.get_settings());
         },
         onUpdate: {
             listeners: [],
@@ -124,11 +128,10 @@
 
     const onMessageListener = (message) => {
         if (message.type === 'settings_update') {
-            GlobalSettings.load().then(() => {
-                for (const listener of globalThis.GlobalSettings.onUpdate.listeners) {
-                    listener(message.changes);
-                }
-            });
+            GlobalSettings.loadFrom(message.settings);
+            for (const listener of GlobalSettings.onUpdate.listeners) {
+                listener(message.changes);
+            }
         }
     };
 

@@ -437,7 +437,15 @@ const Settings = { // Setting handling
 
 /** @typedef {typeof defaultSettings} Settings */
 
-/** @typedef {Settings & { load: *, onUpdate: *, onReady: * }} LoadedSettings */
+/** @typedef {Settings & {
+ *      load: () => Promise<void>,
+ *      onUpdate: {
+ *          listeners: ((Object) => *)[],
+ *          addListener: (f: (Object) => *) => void
+ *      },
+ *      onReady: *,
+ *      loadFrom: (r: Object) => void
+ * }} LoadedSettings */
 
 const DOWNLOAD_DB_VERSION = 2;
 
@@ -494,7 +502,10 @@ const getHistoryDB = (() => {
 const onSettingsChangeListener = (changes, namespace) => {
     if (namespace === 'local') {
         Settings.loadSettings().then(() => {
-            send_to_all_tabs({type: 'settings_update', changes});
+            const settings = {};
+            for (const setting in defaultSettings) settings[setting] = Settings[setting];
+
+            send_to_all_tabs({type: 'settings_update', changes, settings});
             if (Object.hasOwn(changes, 'contextmenu')) void setupContextMenus();
             if (Object.hasOwn(changes, 'extension_icon')) setIcon();
         });
