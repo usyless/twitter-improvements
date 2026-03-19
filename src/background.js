@@ -1,6 +1,6 @@
 'use strict';
 
-if (!window.firefoxMode) { // is chrome, common not loaded yet
+if (typeof window.chromeMode === 'undefined') { // is chrome, common not loaded yet
     importScripts(extension.runtime.getURL('/common.js'));
 }
 

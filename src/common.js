@@ -1,17 +1,11 @@
 (() => {
-    console.log("hi from common");
-
     window.chromeMode = false;
-    window.firefoxMode = false;
     // set browser to chrome if not in firefox
     /** @type {typeof browser} */
-    window.extension = (typeof browser !== 'undefined' ? (() => {
-        window.firefoxMode = true;
-        return browser;
-    }) : (() => {
+    window.extension = typeof browser !== 'undefined' ? browser : (() => {
         window.chromeMode = true;
         return chrome;
-    }))();
+    })();
 
     window.CommonSelectors = {
         views: ['div:has(> a[href$="/analytics"])', 'div:has(> button[aria-label="View post analytics"])'],
