@@ -44,22 +44,13 @@
       ],
       "js": [
         "/common.js",
-        "/twitter_improvements.js"
+        "/twitter_improvements.js",
+        "/element_hiding.js"
       ],
       "css": [
         "/twitter_improvements.css"
       ],
       "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://x.com/*"
-      ],
-      "js": [
-        "/common.js",
-        "/element_hiding.js"
-      ],
-      "run_at": "document_end"
     },
     {
       "matches": [
