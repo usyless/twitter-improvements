@@ -40,6 +40,12 @@
             return mediaFromTweet(tweet.id_str, tweet.extended_entities.media,
                 tweet.user?.id_str ?? tweet.user_id_str, tweet.user?.screen_name);
         } else { // most other tweets
+            let tweetMedia;
+            if (Array.isArray(tweet)) { // my custom type
+                tweetMedia = tweet[1];
+                tweet = tweet[0];
+            }
+
             tweet = tweet.tweet ?? tweet;
             if (tweet) {
                 let id = tweet.rest_id;
@@ -51,9 +57,11 @@
                     id = retweet?.rest_id;
                     user_id = retweet?.legacy?.user_id_str;
                 }
-                tweet = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
+                if (!tweetMedia) {
+                    tweetMedia = retweet?.legacy?.extended_entities?.media ?? tweet?.extended_entities?.media;
+                }
 
-                return mediaFromTweet(id, tweet, user_id);
+                return mediaFromTweet(id, tweetMedia, user_id);
             }
         }
     }
@@ -65,15 +73,21 @@
             const usernameReplaceStr = `/${username}/status`;
             if (!username) console.warn("No username found for user_id: ", user_id, " Tweet id: ", id);
             // has media
-            const /** @type {MediaItem[]} */ mediaInfo = [];
+            /** @type {MediaItem[]} */
+            const mediaInfo = [];
             for (let index = 1; index <= media.length; ++index) {
                 const {media_url_https, video_info, type, expanded_url} = media[index - 1];
                 const /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image',
-                    tweetURL: (username) ? expanded_url.replace(usernameReplaceRegex, usernameReplaceStr) : expanded_url};
+                    tweetURL: (username) ? expanded_url.replace(usernameReplaceRegex, usernameReplaceStr).replace("{ID}", id) : expanded_url.replace("{ID}", id)};
                 switch (type) {
                     case 'photo': {
                         const lastDot = media_url_https?.lastIndexOf('.');
-                        info.url = `${media_url_https?.substring(0, lastDot)}?format=${media_url_https?.substring(lastDot + 1)}&name=orig`;
+                        const lastSlash = media_url_https?.lastIndexOf('/');
+                        if (lastDot > lastSlash) {
+                            info.url = `${media_url_https?.substring(0, lastDot)}?format=${media_url_https?.substring(lastDot + 1)}&name=orig`;
+                        } else {
+                            info.url = media_url_https;
+                        }
                         break;
                     }
                     case 'video':
@@ -129,6 +143,7 @@
      */
     const findTweets = (() => {
         let result = new InterceptedTweets();
+        const choice_regex = /^choice([1-4])_image_original$/;
 
         const _findTweets = (obj, parent) => {
             if (obj && typeof obj === 'object') {
@@ -148,6 +163,32 @@
 
                 if (obj.__typename === 'Tweet' && obj.rest_id && obj.quoted_status_result?.result?.rest_id) {
                     result.quotes.push([obj.rest_id, obj.quoted_status_result.result.rest_id]);
+                }
+
+                if (obj.__typename === 'Tweet' && Array.isArray(obj.card?.legacy?.binding_values)) {
+                    const media_tweets = [obj, []];
+
+                    for (const entry of obj.card.legacy.binding_values) {
+                        if (typeof entry !== 'object' ||
+                            typeof entry.key !== 'string' ||
+                            !entry.key.startsWith('choice') ||
+                            typeof entry.value !== 'object' ||
+                            entry.value.type !== 'IMAGE' ||
+                            typeof entry.value.image_value !== 'object' ||
+                            typeof entry.value.image_value.url !== 'string') continue;
+
+                        const match = entry.key.match(choice_regex);
+                        if (!match) continue;
+                        media_tweets[1].push({
+                            type: 'photo',
+                            expanded_url: `https://x.com/lol/status/{ID}/photo/${match[1]}`,
+                            media_url_https: entry.value.image_value.url
+                        });
+                    }
+
+                    if (media_tweets[1].length > 0) {
+                        result.mediaTweets.push(media_tweets);
+                    }
                 }
 
                 // fallback for quoted_status_result in legacy
