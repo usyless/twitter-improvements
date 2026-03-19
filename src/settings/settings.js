@@ -1007,6 +1007,8 @@
         });
     });
 
+    let setSettingsPaneHeight;
+
     { // Settings panes scrolling
         let lastPane;
 
@@ -1084,6 +1086,7 @@
             const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)
             panes.style.height = `${currPane.lastElementChild.getBoundingClientRect().bottom - currPane.getBoundingClientRect().top + 20}px`;
         }
+        setSettingsPaneHeight = setHeight;
 
         const setHeightDelay = ()=>  setTimeout(setHeight, 200);
         const scrollLastPaneDelay = () => setTimeout(scrollToLastPane, 200);
@@ -1189,6 +1192,7 @@
                 elem.checked = elem.value = keySettings[key];
             }
         }
+        setSettingsPaneHeight();
     });
 
     function setStorage(data) {
