@@ -31,10 +31,11 @@
         download_history_add: (id) => extension.runtime.sendMessage({type: 'download_history_add', id}),
 
         /**
+         * Needs GlobalTabId to be ready to be used
          * @param {MediaItem[]} media
          * @param {EventModifiers} modifiers
          */
-        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId: GlobalTabId }),
+        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId: GlobalTabId.value }),
 
         /** @returns {Promise<Settings>} */
         get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
