@@ -1190,6 +1190,7 @@
                     continue;
                 }
                 elem.checked = elem.value = keySettings[key];
+                elem.closest('[data-setting]').properties.element.dispatchEvent(valueLoadedEvent);
             }
         }
         setSettingsPaneHeight();
