@@ -12,6 +12,7 @@
         share: [
             'div:has(> div > button[aria-label="Share post"]:not([usy]))',
             'div:has(> div > button > div > div > svg > g > path[d^="M17 4c-1.1 0-2 .9-2 2 0 .33.08.65.22.92C15.56 7.56"])',
+            'div:has(> div > button > div > div > svg > g > path[d^="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12"])',
         ],
         replies: ['div:has(> button[data-testid="reply"])'],
         retweets: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
