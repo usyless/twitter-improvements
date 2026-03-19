@@ -35,7 +35,8 @@
   ],
   "background": {
     "scripts": [
-      "background.js"
+      "/common.js",
+      "/background.js"
     ],
     "persistent": false
   },
@@ -45,6 +46,7 @@
         "https://x.com/*"
       ],
       "js": [
+        "/common.js",
         "/twitter_improvements.js"
       ],
       "css": [
@@ -57,6 +59,7 @@
         "https://x.com/*"
       ],
       "js": [
+        "/common.js",
         "/element_hiding.js"
       ],
       "run_at": "document_end"

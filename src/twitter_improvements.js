@@ -1,14 +1,6 @@
 (() => {
     'use strict';
 
-    let chromeMode = false;
-    // set browser to chrome if not in firefox
-    /** @type {typeof browser} */
-    const extension = typeof browser !== 'undefined' ? browser : (() => {
-        chromeMode = true;
-        return chrome;
-    })();
-
     /** @type {Number} */
     let tabId;
     let assignTabId = () => Background.get_tab_id().then(tab_id => (tabId = tab_id));
