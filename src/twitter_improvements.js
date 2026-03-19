@@ -1,10 +1,6 @@
 (() => {
     'use strict';
 
-    /** @type {Number} */
-    let tabId;
-    let assignTabId = () => GlobalBackground.get_tab_id().then(tab_id => (tabId = tab_id));
-
     const ConstantEvents = {
         popstate: new PopStateEvent('popstate')
     }
@@ -1671,7 +1667,7 @@
         Listeners.start();
     }
 
-    Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise, loadAndroid(), assignTabId()]).then(start);
+    Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise, loadAndroid(), GlobalTabId.onReady.promise]).then(start);
 
     GlobalSettings.onUpdate.addListener((changes) => {
         // only need to reload for vx setting change

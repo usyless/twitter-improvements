@@ -34,7 +34,7 @@
          * @param {MediaItem[]} media
          * @param {EventModifiers} modifiers
          */
-        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId }),
+        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId: GlobalTabId }),
 
         /** @returns {Promise<Settings>} */
         get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
@@ -78,7 +78,7 @@
             const r = await GlobalBackground.get_default_settings();
             for (const def in r) GlobalDefaults[def] = r[def];
         },
-        onReady: getReadyObject()
+        onReady: getReadyObject(),
     };
     /** @type {LoadedSettings} */
     globalThis.GlobalSettings = {
@@ -92,18 +92,32 @@
                 GlobalSettings.onUpdate.listeners.push(f);
             }
         },
-        onReady: getReadyObject()
+        onReady: getReadyObject(),
     };
+
+    globalThis.GlobalTabId = {
+        load: async () => {
+            GlobalTabId.value = await GlobalBackground.get_tab_id();
+        },
+        onReady: getReadyObject(),
+    }
 
     GlobalDefaults.load().then(() => {
         GlobalDefaults.onReady.setReady();
     }).catch(() => {
         console.log('Unable to load global defaults, if this is from the background page you can ignore it')
     });
+
     GlobalSettings.load().then(() => {
         GlobalSettings.onReady.setReady();
     }).catch(() => {
         console.log('Unable to load global settings, if this is from the background page you can ignore it')
+    });
+
+    GlobalTabId.load().then(() => {
+        GlobalTabId.onReady.setReady();
+    }).catch(() => {
+        console.log('Unable to load global tab id, if this is from the background page you can ignore it')
     });
 
     const onMessageListener = (message) => {
