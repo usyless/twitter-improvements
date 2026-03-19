@@ -1,7 +1,7 @@
 'use strict';
 
-if (typeof window.chromeMode === 'undefined') { // is chrome, common not loaded yet
-    importScripts(extension.runtime.getURL('/common.js'));
+if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loaded yet
+    importScripts(chrome.runtime.getURL('/common.js'));
 }
 
 const isAndroid = /Android/.test(navigator.userAgent);

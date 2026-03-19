@@ -1,13 +1,13 @@
 (() => {
-    window.chromeMode = false;
+    globalThis.chromeMode = false;
     // set browser to chrome if not in firefox
     /** @type {typeof browser} */
-    window.extension = typeof browser !== 'undefined' ? browser : (() => {
-        window.chromeMode = true;
+    globalThis.extension = typeof browser !== 'undefined' ? browser : (() => {
+        globalThis.chromeMode = true;
         return chrome;
     })();
 
-    window.CommonSelectors = {
+    globalThis.CommonSelectors = {
         views: ['div:has(> a[href$="/analytics"])', 'div:has(> button[aria-label="View post analytics"])'],
         share: [
             'div:has(> div > button[aria-label="Share post"]:not([usy]))',
