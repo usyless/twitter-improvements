@@ -363,9 +363,12 @@
          * @param {HTMLElement} article
          * @returns {HTMLElement}
          */
-        defaultAnchor: (article) => {
-           return article.querySelector('div:has(> div > button[aria-label="Share post"]:not([usy])), div:has(> div > button > div > div > svg > g > path[d^="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3"])');
-        },
+        defaultAnchor: (() => {
+            const selector = CommonSelectors.share.join(', ');
+            return (article) => {
+                return article.querySelector(selector);
+            }
+        })(),
 
         /**
          * @param {HTMLElement} article
@@ -381,10 +384,12 @@
          * @param {HTMLElement} article
          * @returns {HTMLElement}
          */
-        respectiveBookmarkButton: (article) => {
-            return (article.querySelector('button[data-testid="bookmark"]')
-                ?? article.querySelector('button[data-testid="removeBookmark"]')).parentElement;
-        },
+        respectiveBookmarkButton: (() => {
+            const selector = CommonSelectors.bookmark.join(', ');
+            return (article) => {
+                return article.querySelector(selector);
+            }
+        })(),
 
         /**
          * @param {HTMLElement} article
