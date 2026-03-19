@@ -7,33 +7,8 @@
 
     document.getElementById('versionDisplay').textContent += extension?.runtime?.getManifest?.()?.version;
 
-    const Defaults = {
-        loadDefaults: async () => {
-            const r = await Background.get_default_settings();
-            for (const def in r) Defaults[def] = r[def];
-        },
-    };
-    const Settings = {
-        loadSettings: async () => {
-            const r = await Background.get_settings();
-            for (const setting in r) Settings[setting] = r[setting];
-        },
-    };
-
-    const Background = {
-        get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
-        get_default_settings: () => extension.runtime.sendMessage({type: 'get_default_settings'}),
-
-        clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
-        download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
-        get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
-        validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
-    };
-
-    Background.get_android().then((r) => {
-        if (r) {
-            document.body.classList.add('mobile');
-        }
+    GlobalBackground.get_android().then((r) => {
+        if (r) document.body.classList.add('mobile');
     });
 
     const BackgroundPorts = {
@@ -238,7 +213,7 @@
                         customPopup('Are you sure you want to clear your media download history?', true).then((result) => {
                             if (result) {
                                 const {removeOverlay} = makeScreenOverlay('Deleting, please wait...');
-                                Background.clear_download_history().then(() => {
+                                GlobalBackground.clear_download_history().then(() => {
                                     removeOverlay();
                                     void customPopup('Successfully cleared media download history');
                                 });
@@ -358,7 +333,7 @@
                     button: 'Export download history\nExports as {tweet id}-{media number}',
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
-                        Background.download_history_get_all().then((r) => {
+                        GlobalBackground.download_history_get_all().then((r) => {
                             removeOverlay();
                             const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'application/octet-stream' }));
                             download(url, 'export.twitterimprovements');
@@ -372,7 +347,7 @@
                     button: 'Get saved media count',
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Calculating, please wait...");
-                        Background.download_history_get_all().then((r) => {
+                        GlobalBackground.download_history_get_all().then((r) => {
                             removeOverlay();
                             void customPopup(`You have downloaded approximately ${r.length} unique media`);
                         });
@@ -470,7 +445,7 @@
                                     await clearStorage();
                                     await setStorage(j);
                                 })
-                                .then(() => customPopup('Imported Settings').then(location.reload.bind(location)))
+                                .then(() => customPopup('Imported Settings'))
                                 .catch((e) => customPopup(`Failed to parse JSON: ${e.toString()}`));
                         });
                         document.body.appendChild(i);
@@ -485,7 +460,7 @@
                     button: 'Export download history\n(Binary - for a smaller file size)',
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
-                        Background.download_history_get_all().then((r) => {
+                        GlobalBackground.download_history_get_all().then((r) => {
                             const buffers = [];
                             for (const /** @type {saveId} */ saveId of r) {
                                 const [tweetId, tweetNum] = saveId.split('-');
@@ -948,8 +923,8 @@
             e.valueProperty = 'value';
             input.addEventListener('change', async (ev) => {
                 const currentTarget = ev.currentTarget;
-                if (await Background.validate_setting(e.category, e.name, input.value)) update_value(ev, currentTarget);
-                else input.value = Defaults[e.category][e.name].default;
+                if (await GlobalBackground.validate_setting(e.category, e.name, input.value)) update_value(ev, currentTarget);
+                else input.value = GlobalDefaults[e.category][e.name].default;
             });
             return outer;
         },
@@ -1006,8 +981,9 @@
     // Now that the building is done, append to the page
     document.getElementById('settings').replaceWith(settingsElem);
 
-    Promise.all([Defaults.loadDefaults(), Settings.loadSettings()])
+    Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise])
         .then(() => {
+            const Settings = GlobalSettings;
         for (const {obj, func} of valuesToUpdate) {
             const value = Settings[obj.category][obj.name];
             if (value == null) void customPopup(`Warning: Value is ${value} for ${obj.name} in ${obj.category}`);
@@ -1017,14 +993,14 @@
         valuesToUpdate.length = 0;
 
         // icon switching
-        let counter = 0, altSet = Settings.extension_icon.custom;
+        let counter = 0, altSet = GlobalSettings.extension_icon.custom;
 
         const setIcon = () => document.querySelector('link[rel="icon"]').href = (altSet) ? '../icons/alt/icon.svg' : '../icons/icon.svg';
         setIcon();
         document.getElementById('madeText').addEventListener('click', () => {
             if (++counter >= 5) {
                 counter = 0;
-                setStorage({extension_icon: {custom: !altSet}});
+                void setStorage({extension_icon: {custom: !altSet}});
                 altSet = !altSet;
                 setIcon();
             }
@@ -1145,7 +1121,7 @@
 
                 d.addEventListener('click', () => {
                     const props = setting.properties;
-                    props.valueElement[props.valueProperty] = Defaults[props.category][props.name].default;
+                    props.valueElement[props.valueProperty] = GlobalDefaults[props.category][props.name].default;
                     props.element.dispatchEvent(valueLoadedEvent);
                     props.valueElement.dispatchEvent(changeEvent);
                     outer.click();
@@ -1196,9 +1172,24 @@
         getStorage([obj.category]).then((r) => {
             if (r[obj.category] == null) r[obj.category] = {};
             r[obj.category][obj.name] = obj.valueElement[obj.valueProperty];
-            setStorage(r);
+            void setStorage(r);
         });
     }
+
+    GlobalSettings.onUpdate.addListener((changes) => {
+        const settings = GlobalSettings;
+        for (const k in changes) {
+            const keySettings = settings[k];
+            for (const key in keySettings) {
+                const elem = document.getElementById(key);
+                if (!elem) {
+                    console.error(`Cant find elemement with id ${key} to update!`);
+                    continue;
+                }
+                elem.checked = elem.value = keySettings[key];
+            }
+        }
+    });
 
     function setStorage(data) {
         return extension.storage.local.set(data); // potentially add little saved message with .then

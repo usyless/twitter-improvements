@@ -1,9 +1,6 @@
 (() => {
     'use strict';
 
-    /** @returns {Promise<Settings>} */
-    const loadSettings = () => extension.runtime.sendMessage({type: 'get_settings'});
-
     const HideType = {
         DISPLAY: '{display:none!important;}',
         VISIBILITY: '{visibility:hidden!important;pointer-events:none!important;}',
@@ -89,8 +86,8 @@
         }
     }
 
-    const start = () => loadSettings().then((settings) => {
-        const enabled = settings.style;
+    const start = () => {
+        const enabled = GlobalSettings.style;
 
         // Apply new enabled styles
         let style = '';
@@ -114,11 +111,11 @@
             s.textContent = style;
             if (!s.isConnected) document.head.appendChild(s);
         }
-    });
+    };
 
-    void start();
+    GlobalSettings.onReady.promise.then(start);
 
-    extension.runtime.onMessage.addListener((message) => {
-        if (message.type === 'settings_update' && Object.hasOwn(message.changes, 'style')) void start();
+    GlobalSettings.onUpdate.addListener((changes) => {
+        if (Object.hasOwn(changes, 'style')) start();
     });
 })();

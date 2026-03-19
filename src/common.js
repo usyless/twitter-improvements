@@ -21,4 +21,99 @@
         copy: ['div[usy-copy]'],
         download: ['div[usy-download]']
     };
+
+    globalThis.GlobalBackground = {
+        /** @param {saveId} id */
+        download_history_has: (id) => extension.runtime.sendMessage({type: 'download_history_has', id}),
+        /** @param {saveId} id */
+        download_history_remove: (id) => extension.runtime.sendMessage({type: 'download_history_remove', id}),
+        /** @param {saveId} id */
+        download_history_add: (id) => extension.runtime.sendMessage({type: 'download_history_add', id}),
+
+        /**
+         * @param {MediaItem[]} media
+         * @param {EventModifiers} modifiers
+         */
+        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId }),
+
+        /** @returns {Promise<Settings>} */
+        get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
+        /** @returns {Promise<Settings>} */
+        get_default_settings: () => extension.runtime.sendMessage({type: 'get_default_settings'}),
+        /** @returns {Promise<boolean>} */
+        get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
+
+        /** @param {string} url */
+        open_tab: (url) => extension.runtime.sendMessage({type: 'open_tab', url}),
+
+        /** @returns {Promise<Number>} */
+        get_tab_id: () => extension.runtime.sendMessage({type: 'get_tab_id'}),
+
+        // for the settings page
+        clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
+        download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
+        validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
+    };
+
+    const getReadyObject = () => {
+        const obj = {
+            _resolve: undefined,
+            listeners: [],
+            ready: false,
+            setReady: () => {
+                obj.ready = true;
+                obj._resolve();
+            },
+            promise: undefined
+        };
+        obj.promise = new Promise(resolve => {
+            obj._resolve = resolve;
+        });
+        return obj;
+    };
+
+    /** @type {LoadedSettings} */
+    globalThis.GlobalDefaults = {
+        load: async () => {
+            const r = await GlobalBackground.get_default_settings();
+            for (const def in r) GlobalDefaults[def] = r[def];
+        },
+        onReady: getReadyObject()
+    };
+    /** @type {LoadedSettings} */
+    globalThis.GlobalSettings = {
+        load: async () => {
+            const r = await GlobalBackground.get_settings();
+            for (const setting in r) GlobalSettings[setting] = r[setting];
+        },
+        onUpdate: {
+            listeners: [],
+            addListener: (f) => {
+                GlobalSettings.onUpdate.listeners.push(f);
+            }
+        },
+        onReady: getReadyObject()
+    };
+
+    GlobalDefaults.load().then(() => {
+        GlobalDefaults.onReady.setReady();
+    }).catch(() => {
+        console.log('Unable to load global defaults, if this is from the background page you can ignore it')
+    });
+    GlobalSettings.load().then(() => {
+        GlobalSettings.onReady.setReady();
+    }).catch(() => {
+        console.log('Unable to load global settings, if this is from the background page you can ignore it')
+    });
+
+    // this should do nothing in the bg page i believe
+    extension.runtime.onMessage.addListener((message) => {
+        if (message.type === 'settings_update') {
+            GlobalSettings.load().then(() => {
+                for (const listener of globalThis.GlobalSettings.onUpdate.listeners) {
+                    listener(message.changes);
+                }
+            });
+        }
+    });
 })();

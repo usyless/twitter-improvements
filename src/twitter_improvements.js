@@ -3,7 +3,7 @@
 
     /** @type {Number} */
     let tabId;
-    let assignTabId = () => Background.get_tab_id().then(tab_id => (tabId = tab_id));
+    let assignTabId = () => GlobalBackground.get_tab_id().then(tab_id => (tabId = tab_id));
 
     const ConstantEvents = {
         popstate: new PopStateEvent('popstate')
@@ -118,49 +118,9 @@
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z",
         thumbnail_path = "M2 2C0 2 0 2 0 4v6c0 2 0 2 2 2H12c2 0 2 0 2-2V4c0-2 0-2-2-2H2ZM2 3H12c1 0 1 0 1 1v6c0 1 0 1-1 1H2c-1 0-1 0-1-1V4C1 3 1 3 2 3Zm0 7L4.264 5.01c.432-.978.812-.939 1.43-.038L9 10Zm8-6a1 1 0 000 4 1 1 0 000-4Z";
-
-    const /** @type {LoadedSettings} */ Defaults = {
-        loadDefaults: async () => {
-            const r = await Background.get_default_settings();
-            for (const def in r) Defaults[def] = r[def];
-        },
-    };
-    const /** @type {LoadedSettings} */ Settings = {
-        loadSettings: async () => {
-            const r = await Background.get_settings();
-            for (const setting in r) Settings[setting] = r[setting];
-        },
-    };
+    
     let isAndroid;
-    const loadAndroid = () => Background.get_android().then((r) => {isAndroid = r});
-
-    const Background = {
-        /** @param {saveId} id */
-        download_history_has: (id) => extension.runtime.sendMessage({type: 'download_history_has', id}),
-        /** @param {saveId} id */
-        download_history_remove: (id) => extension.runtime.sendMessage({type: 'download_history_remove', id}),
-        /** @param {saveId} id */
-        download_history_add: (id) => extension.runtime.sendMessage({type: 'download_history_add', id}),
-
-        /**
-         * @param {MediaItem[]} media
-         * @param {EventModifiers} modifiers
-         */
-        save_media: (media, modifiers) => extension.runtime.sendMessage({ type: 'save_media', media, modifiers, tabId }),
-
-        /** @returns {Promise<Settings>} */
-        get_settings: () => extension.runtime.sendMessage({type: 'get_settings'}),
-        /** @returns {Promise<Settings>} */
-        get_default_settings: () => extension.runtime.sendMessage({type: 'get_default_settings'}),
-        /** @returns {Promise<boolean>} */
-        get_android: () => extension.runtime.sendMessage({type: 'get_android'}),
-
-        /** @param {string} url */
-        open_tab: (url) => extension.runtime.sendMessage({type: 'open_tab', url}),
-
-        /** @returns {Promise<Number>} */
-        get_tab_id: () => extension.runtime.sendMessage({type: 'get_tab_id'}),
-    };
+    const loadAndroid = () => GlobalBackground.get_android().then((r) => {isAndroid = r});
 
     const Downloaders = {
         /**
@@ -181,11 +141,11 @@
             if (!override && Helpers.shouldPreventDuplicate()) {
                 let newMedia;
                 if (softOverride) {
-                    newMedia = (await Promise.all(media.map(async (m) => [m, await Background.download_history_has(m.save_id)])))
+                    newMedia = (await Promise.all(media.map(async (m) => [m, await GlobalBackground.download_history_has(m.save_id)])))
                         .filter(([_, saved]) => !saved).map(([m]) => m);
                 }
                 if (((newMedia && newMedia.length === 0) || (!softOverride)) &&
-                    (await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).some(Boolean)) {
+                    (await Promise.all(media.map(({save_id}) => GlobalBackground.download_history_has(save_id)))).some(Boolean)) {
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
                         notif.style.cursor = 'pointer';
@@ -203,7 +163,7 @@
                     }
                 }
 
-                void Background.save_media(media, modifiers);
+                void GlobalBackground.save_media(media, modifiers);
                 Notification.create(`Downloading media${isAndroid ? '\n(This may take a second on android)' : ''}`, 'save_media');
             } else {
                 Notification.create('No media to save', 'error');
@@ -288,7 +248,7 @@
 
                     if (media.length > 1) void Tweet.downloadUpdateMarked(media, buttons);
                     else {
-                        Background.download_history_has(id_specific).then((response) => {
+                        GlobalBackground.download_history_has(id_specific).then((response) => {
                             if (response === true) for (const button of buttons) Button.mark(button);
                         });
                     }
@@ -319,7 +279,7 @@
          */
         downloadUpdateMarked: async (media, buttons) => {
             // all saved
-            if ((await Promise.all(media.map(({save_id}) => Background.download_history_has(save_id)))).every(Boolean)) {
+            if ((await Promise.all(media.map(({save_id}) => GlobalBackground.download_history_has(save_id)))).every(Boolean)) {
                 for (const button of buttons) Button.mark(button);
             } else {
                 for (const button of buttons) Button.unmark(button);
@@ -468,8 +428,8 @@
          */
         genericButton: (media, cb) => {
             const button = Button.newButton(Image.createDownloadButton(), download_button_path, cb, "usy-media", cb);
-            const {image_button_width_value, image_button_scale, image_button_position} = Settings.image_preferences;
-            button.style.width = (image_button_width_value === Defaults.image_preferences.image_button_width_value.default)
+            const {image_button_width_value, image_button_scale, image_button_position} = GlobalSettings.image_preferences;
+            button.style.width = (image_button_width_value === GlobalDefaults.image_preferences.image_button_width_value.default)
                 ? 'fit-content' : `${+image_button_width_value / +image_button_scale}%`;
             button.classList.add(...(Image.buttonModes[image_button_position] ?? []));
             button.style.transform = `scale(${image_button_scale})`;
@@ -497,8 +457,8 @@
                 button = Image.genericButton(image, Image.downloadButtonCallback);
 
                 button.setAttribute('ti-id', id);
-                if (Settings.download_preferences.download_history_enabled) { // mark image
-                    if (Settings.download_preferences.download_picker_on_media_page
+                if (GlobalSettings.download_preferences.download_history_enabled) { // mark image
+                    if (GlobalSettings.download_preferences.download_picker_on_media_page
                         && image.closest('a[href$="/photo/1"], a[href$="/video/1"]')?.querySelector(':scope > div + svg')) {
                         // is multi-media, and on media page
                         button.removeAttribute('ti-id');
@@ -508,7 +468,7 @@
                             void Tweet.downloadUpdateMarked(media, [button]);
                         });
                     } else {
-                        Background.download_history_has(id).then((response) => {
+                        GlobalBackground.download_history_has(id).then((response) => {
                             if (response === true) Button.mark(button);
                         });
                         Image.addThumbnailSupport(button);
@@ -549,8 +509,8 @@
                     MediaCache.get(tweetId).then((media) => {
                         const mark_button = (button) => {
                             button.setAttribute('ti-id', saveId);
-                            if (Settings.download_preferences.download_history_enabled) { // mark image
-                                Background.download_history_has(saveId).then((response) => {
+                            if (GlobalSettings.download_preferences.download_history_enabled) { // mark image
+                                GlobalBackground.download_history_has(saveId).then((response) => {
                                     if (response === true) Button.mark(button);
                                     else Button.unmark(button);
                                 });
@@ -756,7 +716,7 @@
 
         /** @param {HTMLElement} button */
         addThumbnailSupport: (button) => {
-            const timeout = +Settings.download_preferences.hover_thumbnail_timeout;
+            const timeout = +GlobalSettings.download_preferences.hover_thumbnail_timeout;
             if (!(isAndroid) && (timeout >= 0)) {
                 const id_specific = button.getAttribute('ti-id');
                 if (id_specific) {
@@ -792,8 +752,8 @@
 
         setButtonHeight: (image, button) => {
             const {image_button_height_value: ibh,image_button_height_value_small: ibhs,
-                    small_image_size_threshold, image_button_scale} = Settings.image_preferences,
-                {image_button_height_value: {default: dibh}, image_button_height_value_small: {default: dibhs}} = Defaults.image_preferences;
+                    small_image_size_threshold, image_button_scale} = GlobalSettings.image_preferences,
+                {image_button_height_value: {default: dibh}, image_button_height_value_small: {default: dibhs}} = GlobalDefaults.image_preferences;
 
             if (ibh === dibh && ibhs === dibhs) return;
 
@@ -891,7 +851,7 @@
                 return;
             }
 
-            if (Settings.download_preferences.download_picker_on_media_page
+            if (GlobalSettings.download_preferences.download_picker_on_media_page
                 && media?.length > 1 && location.pathname.endsWith('/media')) {
                 // if using ti-id-vague, this should always be true
                 Notification.createDownloadChoices(media, ev);
@@ -922,7 +882,7 @@
         },
 
         getPrefix: () => {
-            const {url_prefix, custom_url} = Settings.vx_preferences;
+            const {url_prefix, custom_url} = GlobalSettings.vx_preferences;
             return (url_prefix === 'x.com') ? custom_url : url_prefix;
         }
     };
@@ -1010,15 +970,15 @@
         handleClick: (ev, save_id, func, type='media') => {
             if (ev?.type === 'click') {
                 func();
-            } else if (Settings.download_preferences.download_history_enabled) {
-                Background.download_history_has(save_id).then((r) => {
+            } else if (GlobalSettings.download_preferences.download_history_enabled) {
+                GlobalBackground.download_history_has(save_id).then((r) => {
                     // buttons implicitly adjusted
                     if (r === true) {
                         Notification.create(`Removing ${type} from saved`, 'history_remove');
-                        void Background.download_history_remove(save_id);
+                        void GlobalBackground.download_history_remove(save_id);
                     } else {
                         Notification.create(`Adding ${type} to saved`, 'history_add');
-                        void Background.download_history_add(save_id);
+                        void GlobalBackground.download_history_add(save_id);
                     }
                 });
             }
@@ -1033,7 +993,7 @@
          * @returns {HTMLDivElement}
          */
         create: (text, type, timeout = 5000) => {
-            if (!Settings.hidden_extension_notifications[type]) {
+            if (!GlobalSettings.hidden_extension_notifications[type]) {
                 document.querySelectorAll('div.usyDefaultNotification').forEach((e) => e.remove());
                 const outer = document.createElement('div'), inner = document.createElement('div');
                 outer.appendChild(inner);
@@ -1166,8 +1126,8 @@
                 btn.dataset.index = index.toString();
                 btn.setAttribute('ti-id', save_id);
 
-                if (Settings.download_preferences.download_history_enabled) {
-                    Background.download_history_has(save_id).then((r) => r && Button.mark(btn));
+                if (GlobalSettings.download_preferences.download_history_enabled) {
+                    GlobalBackground.download_history_has(save_id).then((r) => r && Button.mark(btn));
                 }
 
                 popup.appendChild(btn);
@@ -1177,7 +1137,7 @@
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
                 if (Number.isNaN(choice)) {
                     Downloaders.download_all(choices, Helpers.eventModifiers(e),
-                        Settings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
+                        GlobalSettings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
                 } else Downloaders.download_all(choices[choice], Helpers.eventModifiers(e));
             });
             popup.addEventListener('contextmenu', (e) => {
@@ -1244,7 +1204,7 @@
                     popup.style.removeProperty('top');
                     popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
                     fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
-                } else if (Settings.download_preferences.download_all_near_click) {
+                } else if (GlobalSettings.download_preferences.download_all_near_click) {
                     popup.firstElementChild.before(popup.lastElementChild);
                 }
 
@@ -1486,7 +1446,7 @@
         download: async (url, filename, media, modifiers) => {
             let onError = Notification.persistentError;
             try {
-                if (Settings.download_preferences.use_download_progress) {
+                if (GlobalSettings.download_preferences.use_download_progress) {
                     const {downloadFinished, onProgress, downloadError} = Notification.createMobileDownloadPopup();
                     onError = downloadError;
                     onProgress(null, 0);
@@ -1503,7 +1463,7 @@
                 }
             } catch (e) {
                 logError('Error during download:', e);
-                void Background.download_history_remove(media.save_id);
+                void GlobalBackground.download_history_remove(media.save_id);
                 onError(`Error downloading: ${filename}`, media, modifiers);
             }
         },
@@ -1536,7 +1496,7 @@
 
         /** @returns {boolean} */
         shouldPreventDuplicate: () => {
-            return Settings.download_preferences.download_history_enabled && Settings.download_preferences.download_history_prevent_download;
+            return GlobalSettings.download_preferences.download_history_enabled && GlobalSettings.download_preferences.download_history_prevent_download;
         },
 
         /**
@@ -1578,7 +1538,7 @@
             let lastReactRoot;
             const getCallback = () => {
                 const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
-                const settings = Settings.setting;
+                const settings = GlobalSettings.setting;
                 for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
                 logInfo('Main observer loop callbacks:', callbacks);
                 const update = () => {
@@ -1677,7 +1637,7 @@
         },
 
         start: () => {
-            const settings = Settings.listeners, callbacks = Listeners.listeners;
+            const settings = GlobalSettings.listeners, callbacks = Listeners.listeners;
             for (const setting in callbacks) {
                 for (const {event, target, listener, options=null} of callbacks[setting]) {
                     const t = target?.();
@@ -1698,9 +1658,9 @@
         logError: (...a) => console.error(...a),
 
         setup: () => {
-            if (Settings.logging.info) logInfo = Logging.logInfo;
+            if (GlobalSettings.logging.info) logInfo = Logging.logInfo;
             else logInfo = emptyFunction;
-            if (Settings.logging.error) logError = Logging.logError;
+            if (GlobalSettings.logging.error) logError = Logging.logError;
             else logError = emptyFunction;
         }
     };
@@ -1711,7 +1671,17 @@
         Listeners.start();
     }
 
-    Promise.all([Defaults.loadDefaults(), Settings.loadSettings(), loadAndroid(), assignTabId()]).then(start);
+    Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise, loadAndroid(), assignTabId()]).then(start);
+
+    GlobalSettings.onUpdate.addListener((changes) => {
+        // only need to reload for vx setting change
+        if (Object.hasOwn(changes, 'setting')) Observer.start();
+        // update on image pref or download pref change
+        else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
+
+        if (Object.hasOwn(changes, 'listeners')) Listeners.start();
+        if (Object.hasOwn(changes, 'logging')) Logging.setup();
+    });
 
     extension.runtime.onMessage.addListener((message) => {
         logInfo('Received message from background page:', message);
@@ -1731,19 +1701,6 @@
             case 'history_change_remove': {
                 for (const button of Image.getButtons(message.id)) Button.unmark(button);
                 for (const button of document.querySelectorAll(`[ti-id-vague="${message.id.split('-')[0]}"]`)) Button.unmark(button);
-                break;
-            }
-            case 'settings_update': {
-                Settings.loadSettings().then(() => {
-                    const changes = message.changes;
-                    // only need to reload for vx setting change
-                    if (Object.hasOwn(changes, 'setting')) Observer.start();
-                    // update on image pref or download pref change
-                    else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
-
-                    if (Object.hasOwn(changes, 'listeners')) Listeners.start();
-                    if (Object.hasOwn(changes, 'logging')) Logging.setup();
-                });
                 break;
             }
             case 'history_change': {

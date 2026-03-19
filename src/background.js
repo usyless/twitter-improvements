@@ -446,7 +446,7 @@ const Settings = { // Setting handling
 
 /** @typedef {typeof defaultSettings} Settings */
 
-/** @typedef {Settings & { loadSettings: *, loadDefaults: * }} LoadedSettings */
+/** @typedef {Settings & { load: *, onUpdate: *, onReady: * }} LoadedSettings */
 
 const DOWNLOAD_DB_VERSION = 2;
 
@@ -696,10 +696,13 @@ function sendToTab(message, tabId) {
 }
 
 const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
+const settingsTabQuery = {discarded: false, url: extension.runtime.getURL('/settings/settings.html')};
 function send_to_all_tabs(message) {
-    extension.tabs.query(tabQuery).then((tabs) => {
+    const onTabs = (tabs) => {
         for (const tab of tabs) void extension.tabs.sendMessage(tab.id, message);
-    });
+    };
+    extension.tabs.query(tabQuery).then(onTabs);
+    extension.tabs.query(settingsTabQuery).then(onTabs);
 }
 
 /**
