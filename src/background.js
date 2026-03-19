@@ -681,7 +681,7 @@ function send_to_all_tabs(message) {
     extension.tabs.query(tabQuery).then((tabs) => { // sends to content scripts
         for (const tab of tabs) void extension.tabs.sendMessage(tab.id, message);
     });
-    void extension.runtime.sendMessage(message); // sends to extension pages
+    extension.runtime.sendMessage(message).catch(() => {}); // sends to extension pages
 }
 
 /**
