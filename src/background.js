@@ -369,22 +369,11 @@ const Settings = { // Setting handling
     defaults: defaultSettings,
 
     getSettings: (() => {
-        let loaded = false;
-        let loading = false;
-        const promiseQueue = [];
-        return () => new Promise((resolve) => {
-            if (loaded) resolve();
-            else if (loading) promiseQueue.push(resolve);
-            else {
-                loading = true;
-                Settings.loadSettings().then(() => {
-                    loaded = true;
-                    for (const promise of promiseQueue) promise();
-                    resolve();
-                    promiseQueue.length = 0;
-                });
-            }
-        });
+        let settings_promise;
+        return () => {
+            if (!settings_promise) settings_promise = Settings.loadSettings();
+            return settings_promise;
+        }
     })(),
 
     loadSettings: () => new Promise(resolve => {
