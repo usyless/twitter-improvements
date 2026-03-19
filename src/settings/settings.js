@@ -1180,9 +1180,8 @@
     }
 
     GlobalSettings.onUpdate.addListener((changes) => {
-        const settings = GlobalSettings;
         for (const k in changes) {
-            const keySettings = settings[k];
+            const keySettings = GlobalSettings[k];
             for (const key in keySettings) {
                 const elem = document.getElementById(key);
                 if (!elem) {
