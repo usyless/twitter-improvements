@@ -453,63 +453,53 @@ const Settings = { // Setting handling
 const DOWNLOAD_DB_VERSION = 2;
 
 const getHistoryDB = (() => {
-    let download_history_db;
-    let db_opening = false;
-    const pending_db_promises = [];
-    return () => new Promise((resolve, reject) => {
-        if (download_history_db != null) resolve(download_history_db);
-        else if (db_opening) pending_db_promises.push({ resolve, reject });
-        else {
-            db_opening = true;
-            const request = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
+    const openDB = () => new Promise((resolve, reject) => {
+        const request = indexedDB.open('download_history', DOWNLOAD_DB_VERSION);
 
-            request.onsuccess = (e) => {
-                download_history_db = e.target.result;
-                db_opening = false;
+        request.onsuccess = (e) => resolve(e.target.result);
 
-                for (const { resolve } of pending_db_promises) resolve(download_history_db);
-                resolve(download_history_db);
-                pending_db_promises.length = 0;
-            };
+        request.onerror = (e) => {
+            const error = e.target.error;
+            console.error("Error opening downloads database: ", error);
+            reject(error);
+        };
 
-            request.onerror = (e) => {
-                const error = e.target.error;
-                console.error("Error opening downloads database: ", error);
+        request.onupgradeneeded = async (event) => {
+            const db = event.target.result;
+            const transaction = event.target.transaction;
 
-                db_opening = false;
-
-                for (const { reject } of pending_db_promises) reject(error);
-                reject(error);
-                pending_db_promises.length = 0;
-            };
-
-            request.onupgradeneeded = async (event) => {
-                const db = event.target.result;
-                const transaction = event.target.transaction;
-
-                // remove unnecessary index
-                if (event.oldVersion <= 1) {
-                    if (db.objectStoreNames.contains('download_history')) {
-                        // update to new version
-                        const keys = [];
-                        await new Promise((resolve) => {
-                            transaction.objectStore('download_history')
-                                .getAllKeys().addEventListener('success', (e) => {
-                                for (const saveId of e.target.result) keys.push(saveId);
-                                resolve();
-                            });
+            // remove unnecessary index
+            if (event.oldVersion <= 1) {
+                if (db.objectStoreNames.contains('download_history')) {
+                    // update to new version
+                    const keys = [];
+                    await new Promise((resolve) => {
+                        transaction.objectStore('download_history')
+                            .getAllKeys().addEventListener('success', (e) => {
+                            for (const saveId of e.target.result) keys.push(saveId);
+                            resolve();
                         });
-                        db.deleteObjectStore('download_history');
-                        const objectStore = db.createObjectStore('download_history');
-                        for (const key of keys) objectStore.put(true, key);
-                    } else {
-                        // just create without the update process
-                        db.createObjectStore('download_history');
-                    }
+                    });
+                    db.deleteObjectStore('download_history');
+                    const objectStore = db.createObjectStore('download_history');
+                    for (const key of keys) objectStore.put(true, key);
+                } else {
+                    // just create without the update process
+                    db.createObjectStore('download_history');
                 }
-            };
-        }
+            }
+        };
     });
+
+    let db_promise;
+    const on_err = (err) => {
+        db_promise = null;
+        throw err;
+    };
+    return () => {
+        if (!db_promise) db_promise = openDB().catch(on_err);
+        return db_promise;
+    };
 })();
 
 const onSettingsChangeListener = (changes, namespace) => {
