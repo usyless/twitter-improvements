@@ -12,10 +12,10 @@
 
     /** @template F, T */
     class Cache {
-        /** @type {Map<F, {promises: {resolve: (T) => void, reject: (string) => void}[], timer: number}>} */
-        #pending = new Map();
         /** @type {Map<F, T>} */
         #cache = new Map();
+        /** @type {Map<F, {promise: Promise<T>, resolve: (T) => void, timer: number}>} */
+        #promises = new Map();
 
         #type;
         #timeout;
@@ -37,22 +37,19 @@
             const result = this.#cache.get(id);
             if (result) return Promise.resolve(result);
 
-            return new Promise((resolve, reject) => {
-                const success = this.#pending.get(id)?.promises.push({resolve, reject});
+            const promise_result = this.#promises.get(id);
+            if (promise_result) return promise_result.promise;
 
-                if (success == null) {
-                    const timer = setTimeout(() => {
-                        const queued = this.#pending.get(id);
-                        if (queued) {
-                            const rejection = `Failed to get ${this.#type} for value ${id}`;
-                            for (const {reject} of queued.promises) reject(rejection);
-                            this.#pending.delete(id);
-                        }
-                    }, this.#timeout);
-
-                    this.#pending.set(id, {promises: [{resolve, reject}], timer});
-                }
+            let resolve, timer;
+            const promise = new Promise((res, reject) => {
+                resolve = res;
+                timer = setTimeout(() => {
+                    this.#promises.delete(id);
+                    reject(`Failed to get ${this.#type} for value ${id}`);
+                }, this.#timeout);
             });
+            this.#promises.set(id, { resolve, timer, promise });
+            return promise;
         }
 
         /**
@@ -61,11 +58,11 @@
          */
         set(id, value) {
             this.#cache.set(id, value);
-            const entry = this.#pending.get(id);
+            const entry = this.#promises.get(id);
             if (entry) {
                 clearTimeout(entry.timer);
-                for (const {resolve} of entry.promises) resolve(value);
-                this.#pending.delete(id);
+                entry.resolve(value);
+                this.#promises.delete(id);
             }
         }
 
