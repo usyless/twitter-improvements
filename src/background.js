@@ -675,7 +675,7 @@ function download(url, filename, modifiers={ctrl: false, shift: false, alt: fals
     }
 }
 
-const singleTabQuery = {active: true, currentWindow: true, discarded: false, status: 'complete', url: '*://*.x.com/*'};
+const singleTabQuery = {active: true, currentWindow: true, discarded: false, url: '*://*.x.com/*'};
 function sendToTab(message, tabId) {
     if (tabId != null) {
         void extension.tabs.sendMessage(tabId, message);
@@ -687,14 +687,12 @@ function sendToTab(message, tabId) {
     }
 }
 
-const tabQuery = {discarded: false, status: 'complete', url: '*://*.x.com/*'};
-const settingsTabQuery = {discarded: false, url: extension.runtime.getURL('/settings/settings.html')};
+const tabQuery = {discarded: false, url: '*://*.x.com/*'};
 function send_to_all_tabs(message) {
-    const onTabs = (tabs) => {
+    extension.tabs.query(tabQuery).then((tabs) => { // sends to content scripts
         for (const tab of tabs) void extension.tabs.sendMessage(tab.id, message);
-    };
-    extension.tabs.query(tabQuery).then(onTabs);
-    extension.tabs.query(settingsTabQuery).then(onTabs);
+    });
+    void extension.runtime.sendMessage(message); // sends to extension pages
 }
 
 /**
