@@ -1573,6 +1573,42 @@
         }
     };
 
+    const ChatHelpers = {
+        preventAutoFocus: () => {
+            let count = 0;
+            const MAX = 30;
+
+            const blurIfNeeded = ()=> {
+                const el = document.activeElement;
+                if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')) el.blur();
+                count++;
+                if (count < MAX) requestAnimationFrame(blurIfNeeded);
+            }
+
+            requestAnimationFrame(blurIfNeeded);
+
+            const handler = (e) => {
+                const t = e.target;
+                if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) t.blur();
+            };
+            document.addEventListener('focus', handler, {capture: true});
+            setTimeout(() => {
+                document.removeEventListener('focus', handler, {capture: true});
+            }, 2000);
+        },
+        cleanupCurrentRestore: null,
+        cancelRestore: () => {
+            if (!ChatHelpers.cleanupCurrentRestore) return;
+            ChatHelpers.cleanupCurrentRestore();
+            ChatHelpers.cleanupCurrentRestore = null;
+        },
+        getScroller: () => {
+            const list = document.querySelector('[data-testid="dm-message-list"]');
+            if (!list) return;
+            return list.querySelector(':scope > div[style*="overflow"]') || list.closest('[style*="overflow"]');
+        }
+    };
+
     /**
      * @template {keyof WindowEventMap} T
      * @typedef {Object} EventConfig
@@ -1606,20 +1642,126 @@
                 target: () => window,
                 /** @param {PointerEvent} e */
                 listener: (e) => {
-                    if (!window.location.href.startsWith('https://x.com/i/chat/')) return;
                     const a = e.target.closest('a');
-                    if (!a || !a.href?.startsWith('https://x.com/i/status/')) return;
+                    const href = a?.href;
+                    if (!a || !href || a.target !== '_blank' ||
+                        !a.closest('[data-testid="dm-container"]') ||
+                        !(href.startsWith('https://x.com/i/status/') ||
+                          href.startsWith('https://www.x.com/i/status/') ||
+                          href.startsWith('https://twitter.com/i/status/') ||
+                          href.startsWith('https://www.twitter.com/i/status/'))) return;
+
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
 
+                    const scroller = ChatHelpers.getScroller();
+                    if (scroller) {
+                        const state = window.history.state;
+                        state.ti__chat_bottom_dist = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+                        window.history.replaceState(state, '', window.location.href);
+                    }
+
                     window.history.pushState(null, '', a.href);
                     window.dispatchEvent(ConstantEvents.popstate);
+
+                    ChatHelpers.preventAutoFocus();
                 },
                 options: {
                     capture: true,
                 }
-            }],
+            },
+                {
+                    event: 'popstate',
+                    target: () => window,
+                    listener: () => {
+                        ChatHelpers.preventAutoFocus();
+                        if (window.history.state && Object.hasOwn(window.history.state, 'ti__chat_bottom_dist')) {
+                            const offset = window.history.state.ti__chat_bottom_dist;
+
+                            ChatHelpers.cancelRestore();
+                            let observer;
+                            let timeoutId;
+                            let stopped;
+
+                            const applyScroll = () => {
+                                if (stopped) return;
+                                const scroller = ChatHelpers.getScroller();
+                                if (!scroller) return;
+                                scroller.style.scrollBehavior = 'auto';
+                                scroller.scrollTop = Math.max(0, scroller.scrollHeight - offset - scroller.clientHeight);
+                            }
+
+                            const cleanup = () => {
+                                stopped = true;
+                                ChatHelpers.cleanupCurrentRestore = null;
+                                if (observer) {
+                                    observer.disconnect();
+                                    observer = null;
+                                }
+                                if (timeoutId) {
+                                    clearTimeout(timeoutId);
+                                    timeoutId = null;
+                                }
+                            }
+
+                            ChatHelpers.cleanupCurrentRestore = cleanup;
+
+                            let waitCount = 0;
+                            const waitForChat = ()=> {
+                                if (stopped) return;
+                                if (ChatHelpers.getScroller()) {
+                                    const container = document.querySelector('[data-testid="dm-message-list-container"]');
+                                    if (container) {
+                                        observer = new MutationObserver(applyScroll);
+                                        observer.observe(container, {childList: true, subtree: true, attributes: true});
+                                    }
+
+                                    let frameCount = 0;
+                                    const frame = () => {
+                                        if (stopped) return;
+                                        applyScroll();
+                                        ++frameCount;
+                                        if (frameCount < 120) requestAnimationFrame(frame);
+                                        else cleanup();
+                                    }
+                                    requestAnimationFrame(frame);
+
+                                    timeoutId = setTimeout(cleanup, 5000);
+                                }
+                                else if (waitCount < 40) {
+                                    ++waitCount;
+                                    setTimeout(waitForChat, 50);
+                                }
+                            }
+
+                            setTimeout(waitForChat, 100);
+                        }
+                    }
+                },
+                {
+                    event: 'wheel',
+                    target: () => document,
+                    listener: ChatHelpers.cancelRestore,
+                    options: {capture: true}
+                },
+                {
+                    event: 'touchstart',
+                    target: () => document,
+                    listener: ChatHelpers.cancelRestore,
+                    options: {capture: true}
+                },
+                {
+                    event: 'keydown',
+                    target: () => document,
+                    /** @param {KeyboardEvent} e */
+                    listener: (e) => {
+                        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
+                            ChatHelpers.cancelRestore();
+                        }
+                    },
+                    options: {capture: true}
+                }],
             fix_click_selection_bug: [{
                 event: 'pointerdown',
                 target: () => window,
