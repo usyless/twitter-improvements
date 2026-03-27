@@ -89,15 +89,13 @@
     const /** @type {NumberIdCache<tweetId>} */ QuotesCache = new NumberIdCache("quoted tweet");
     const /** @type {Cache<string, string>} */ UrlCache = new Cache("url");
 
-    window.addEventListener('ti-window-twt-data', ({detail: data}) => {
-        if (!data) return;
-
+    globalThis.ti_on_intercepted = (data) => {
         if (data.media) for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
 
         if (data.quotes) for (const [parentId, quotedId] of data.quotes) QuotesCache.set(parentId, quotedId);
 
         if (data.urls) for (const [twitURL, origURL] of data.urls) UrlCache.set(twitURL, origURL);
-    });
+    };
 
     let ACCENT_COLOUR;
 

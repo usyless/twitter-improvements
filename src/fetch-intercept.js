@@ -13,7 +13,7 @@
     /** @param {InterceptedTweets} intercepted */
     const postNewData = (intercepted) => {
         window.dispatchEvent(new CustomEvent('ti-window-twt-data', {
-            detail: intercepted,
+            detail: Object.freeze(intercepted),
             bubbles: false,
             cancelable: false,
             composed: false
