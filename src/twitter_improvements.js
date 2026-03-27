@@ -1645,6 +1645,7 @@
                     try {
                         host = (new URL(a.href)).hostname;
                     } catch {}
+                    logInfo("Clicked element", a, "with href and host", href, host);
                     if (!a || !href || a.target !== '_blank' ||
                         !a.closest('[data-testid="dm-container"]') ||
                         !(ChatHelpers.validLinkHosts.includes(host))) return;
@@ -1668,6 +1669,7 @@
                         }
                     }, '', a.href);
                     window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+                    logInfo("Dispatched pop state event with state", window.history.state);
 
                     ChatHelpers.preventAutoFocus();
                 },
