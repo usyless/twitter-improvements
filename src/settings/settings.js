@@ -1255,17 +1255,21 @@
         outer.appendChild(notifOuter);
         notifOuter.append(notifInner, buttonContainer);
         document.body.appendChild(outer);
+        const wheelListener = (e) => e.preventDefault();
+        window.addEventListener('wheel', wheelListener, { passive: false });
 
         return new Promise((resolve) => {
             buttonContainer.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (btn) {
+                    window.removeEventListener('wheel', wheelListener);
                     resolve(btn.dataset.type === 'yes');
                     outer.remove();
                 }
             });
             outer.addEventListener('click', (ev) => {
                 if (!ev.target.closest('.notifOuter')) {
+                    window.removeEventListener('wheel', wheelListener);
                     resolve(false);
                     outer.remove();
                 }
