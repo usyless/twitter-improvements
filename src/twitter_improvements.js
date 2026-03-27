@@ -1,10 +1,6 @@
 (() => {
     'use strict';
 
-    const ConstantEvents = {
-        popstate: new PopStateEvent('popstate')
-    }
-
     const emptyFunction = () => {};
 
     let logInfo = emptyFunction;
@@ -1658,14 +1654,20 @@
                     e.stopImmediatePropagation();
 
                     const scroller = ChatHelpers.getScroller();
+                    const state = ((typeof window.history.state !== 'object') || !(window.history.state) ? ({}) : (window.history.state));
                     if (scroller) {
-                        const state = window.history.state;
                         state.ti__chat_bottom_dist = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
                         window.history.replaceState(state, '', window.location.href);
                     }
 
-                    window.history.pushState(null, '', a.href);
-                    window.dispatchEvent(ConstantEvents.popstate);
+                    window.history.pushState({
+                        key: Math.random().toString(36).substring(2, 8),
+                        state: {
+                            ...(state.state || {}),
+                            previousPath: window.location.pathname
+                        }
+                    }, '', a.href);
+                    window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
 
                     ChatHelpers.preventAutoFocus();
                 },
