@@ -1,10 +1,6 @@
 (() => {
     'use strict';
 
-    if (chromeMode) {
-        document.body.classList.add('chrome');
-    }
-
     document.getElementById('versionDisplay').textContent += extension?.runtime?.getManifest?.()?.version;
 
     GlobalBackground.get_android().then((r) => {
@@ -1019,28 +1015,6 @@
             if (t) window.location.hash = t.dataset.pane;
         });
 
-        let touchStartX = 0, disableTouch = false;
-        pageWrapper.addEventListener('touchstart', (e) => {
-            if (e.target.closest('button') || e.target.closest('input')) {
-                scrollToLastPane(true);
-                disableTouch = true;
-            } else {
-                touchStartX = e.changedTouches[0].screenX;
-            }
-        });
-        pageWrapper.addEventListener('touchmove', (e) => {
-            if (disableTouch && !e.target.closest('input[type="text"]')) e.preventDefault();
-        }, {passive: false});
-        pageWrapper.addEventListener('touchend', (e) => {
-            if (disableTouch) {
-                scrollToLastPane();
-                disableTouch = false;
-            } else {
-                const touchEndX = e.changedTouches[0].screenX;
-                if (Math.abs(touchStartX - touchEndX) > 50) changePane(touchStartX - touchEndX > 50);
-                else scrollToLastPane();
-            }
-        });
         pageWrapper.addEventListener('wheel', (e) => {
             if (e.shiftKey) {
                 e.preventDefault();
@@ -1054,7 +1028,7 @@
         }
 
         const hashchangeHandler = (_, instant) => {
-            const hash = decodeURIComponent(window.location.hash.substring(1));
+            const hash = decodeURIComponent(window.location.hash.substring(1)) || 'Settings';
             if (Object.hasOwn(options, hash)) {
                 lastPane = hash;
                 header.querySelector('.selected')?.classList.remove('selected');
@@ -1074,13 +1048,45 @@
             if (p) {
                 for (const f of panes.querySelectorAll('.focused')) f.classList.remove('focused');
                 p.classList.add('focused');
-                if (chromeMode) {
-                    panes.style.transform = `translateX(-${p.offsetLeft}px)`;
-                } else {
-                    panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
-                }
+                panes.scroll({left: p.offsetLeft, behavior: (instant) ? 'instant' : 'smooth'});
             }
         }
+
+        function updatePaneOpacities() {
+            const screenCenter = window.innerWidth / 2;
+
+            for (const pane of panes.children) {
+                const {left, width} = pane.getBoundingClientRect();
+                const distanceFromCenter = Math.abs(screenCenter - (left + (width / 2)));
+                pane.style.opacity = Math.max(0.0, 1 - (distanceFromCenter / (window.innerWidth * 0.7)));
+            }
+        }
+
+        const arr = Array.from(panes.children);
+        function getClosestPaneToCenter() {
+            const screenCenter = window.innerWidth / 2;
+
+            return arr.reduce((closest, pane) => {
+                const rect = pane.getBoundingClientRect();
+                const paneCenter = rect.left + (rect.width / 2);
+                const distance = Math.abs(screenCenter - paneCenter);
+
+                return (distance < closest.distance)
+                    ? { element: pane, distance: distance }
+                    : closest;
+            }, { element: null, distance: Infinity }).element;
+        }
+
+        panes.addEventListener('scroll', () => {
+            requestAnimationFrame(updatePaneOpacities);
+        }, { passive: true });
+
+        panes.addEventListener('scrollend', () => {
+            const finalPane = getClosestPaneToCenter();
+            if (finalPane && (window.location.hash !== finalPane.dataset.pane)) {
+                window.location.hash = finalPane.dataset.pane;
+            }
+        });
 
         function setHeight() {
             const currPane = panes.querySelector(`div[data-pane="${header.querySelector('.selected').dataset.pane}"]`)
@@ -1092,6 +1098,7 @@
         const scrollLastPaneDelay = () => setTimeout(scrollToLastPane, 200);
         setHeight();
         setHeightDelay(); // Fix initial install height
+        updatePaneOpacities();
 
         window.addEventListener('resize', scrollLastPaneDelay);
         window.addEventListener('resize', setHeightDelay);

@@ -106,15 +106,13 @@ body {
         scroll-behavior: smooth;
 
         > div {
+            transition: none;
             scroll-snap-align: start;
+            scroll-snap-stop: always;
             min-width: 100%;
             max-width: 100%;
             flex-shrink: 1;
             opacity: 0;
-
-            &.focused {
-                opacity: 1;
-            }
 
             > div {
                 display: flex;
@@ -489,15 +487,6 @@ body:not(.mobile) {
     div:has(> #use_download_progress),
     div:has(> #hide_bottom_bar_completely) {
         display: none !important;
-    }
-}
-
-/*chrome stuff*/
-body.chrome {
-    #settings-panes {
-        overflow-x: visible !important;
-        overflow-y: visible !important;
-        transition: transform 0.25s cubic-bezier(0.0, 0.0, 0.58, 1.0), height 0.2s ease-in-out;
     }
 }
 
