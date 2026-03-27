@@ -1779,9 +1779,9 @@
         },
 
         start: () => {
-            const settings = GlobalSettings.listeners, callbacks = Listeners.listeners;
-            for (const setting in callbacks) {
-                for (const {event, target, listener, options=null} of callbacks[setting]) {
+            const settings = GlobalSettings.listeners;
+            for (const setting in Listeners.listeners) {
+                for (const {event, target, listener, options=null} of Listeners.listeners[setting]) {
                     const t = target?.();
                     if (t) {
                         t.removeEventListener(event, listener, options);

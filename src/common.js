@@ -94,9 +94,7 @@
         },
         onUpdate: {
             listeners: [],
-            addListener: (f) => {
-                GlobalSettings.onUpdate.listeners.push(f);
-            }
+            addListener: (f) => GlobalSettings.onUpdate.listeners.push(f)
         },
         onReady: getReadyObject(),
     };
