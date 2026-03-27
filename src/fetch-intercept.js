@@ -12,8 +12,9 @@
 
     /** @param {InterceptedTweets} intercepted */
     const postNewData = (intercepted) => {
+        if (!intercepted) return;
         window.dispatchEvent(new CustomEvent('ti-window-twt-data', {
-            detail: Object.freeze(intercepted),
+            detail: JSON.stringify(intercepted), // prevent it being mutable
             bubbles: false,
             cancelable: false,
             composed: false
@@ -149,6 +150,7 @@
     const findTweets = (() => {
         let result = new InterceptedTweets();
         const choice_regex = /^choice([1-4])_image_original$/;
+        const KeysToCheck = ['media', 'quotes', 'urls'];
 
         const _findTweets = (obj, parent) => {
             if (obj && typeof obj === 'object') {
@@ -221,7 +223,8 @@
             }
             result.mediaTweets.length = 0;
             delete result.mediaTweets;
-            return result;
+
+            for (const k of KeysToCheck) if (result[k].length > 0) return result;
         }
     })();
 })();
