@@ -89,11 +89,8 @@
     const /** @type {NumberIdCache<tweetId>} */ QuotesCache = new NumberIdCache("quoted tweet");
     const /** @type {Cache<string, string>} */ UrlCache = new Cache("url");
 
-    window.addEventListener('message', ({source, origin, data}) => {
-        if (source !== window || origin !== 'https://x.com') return;
-
-        // Skip events clearly not addressed by or for the extension
-        if (!data || !(data.source === 'ift' && data.type === 'ti-window-twt-data')) return;
+    window.addEventListener('ti-window-twt-data', ({detail: data}) => {
+        if (!data) return;
 
         if (data.media) for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
 

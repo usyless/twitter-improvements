@@ -12,7 +12,12 @@
 
     /** @param {InterceptedTweets} intercepted */
     const postNewData = (intercepted) => {
-        window.postMessage({ ...intercepted, source: 'ift', type: 'ti-window-twt-data' }, 'https://x.com');
+        window.dispatchEvent(new CustomEvent('ti-window-twt-data', {
+            detail: intercepted,
+            bubbles: false,
+            cancelable: false,
+            composed: false
+        }));
     }
 
     const originalSend = XMLHttpRequest.prototype.send;
