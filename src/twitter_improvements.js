@@ -1606,7 +1606,8 @@
             const list = document.querySelector('[data-testid="dm-message-list"]');
             if (!list) return;
             return list.querySelector(':scope > div[style*="overflow"]') || list.closest('[style*="overflow"]');
-        }
+        },
+        validLinkHosts: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com']
     };
 
     /**
@@ -1644,12 +1645,13 @@
                 listener: (e) => {
                     const a = e.target.closest('a');
                     const href = a?.href;
+                    let host;
+                    try {
+                        host = (new URL(a.href)).hostname;
+                    } catch {}
                     if (!a || !href || a.target !== '_blank' ||
                         !a.closest('[data-testid="dm-container"]') ||
-                        !(href.startsWith('https://x.com/i/status/') ||
-                          href.startsWith('https://www.x.com/i/status/') ||
-                          href.startsWith('https://twitter.com/i/status/') ||
-                          href.startsWith('https://www.twitter.com/i/status/'))) return;
+                        !(ChatHelpers.validLinkHosts.includes(host))) return;
 
                     e.preventDefault();
                     e.stopPropagation();
