@@ -439,12 +439,9 @@ const Settings = { // Setting handling
 
 /** @typedef {Settings & {
  *      load: () => Promise<void>,
- *      onUpdate: {
- *          listeners: ((Object) => *)[],
- *          addListener: (f: (Object) => *) => void
- *      },
- *      onReady: *,
- *      loadFrom: (r: Object) => void
+ *      [onUpdate]: BasicEventListener,
+ *      onReady: ReadyObject,
+ *      [loadFrom]: (r: Object) => void
  * }} LoadedSettings */
 
 const DOWNLOAD_DB_VERSION = 2;

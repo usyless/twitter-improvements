@@ -57,8 +57,15 @@
         validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
     };
 
+    /** @typedef {{
+     *      _resolve: () => void,
+     *      ready: boolean,
+     *      setReady: () => void,
+     *      promise: Promise<void>
+     * }} ReadyObject */
+
     /**
-     * @returns {{_resolve: () => void, ready: boolean, setReady: () => void, promise: Promise<void>}}
+     * @returns {ReadyObject}
      */
     const getReadyObject = () => {
         const obj = {
@@ -74,6 +81,33 @@
             obj._resolve = resolve;
         });
         return obj;
+    };
+
+    /** @typedef {{
+     *      fireListeners: (any) => void,
+     *      removeListener: (f: (any) => *) => void,
+     *      addListener: (f: (any) => *) => void
+     * }} BasicEventListener */
+
+    /**
+     * @returns {BasicEventListener}
+     */
+    const getListenersObject = () => {
+        const listeners = [];
+        return {
+            addListener: (f) => listeners.push(f),
+            removeListener: (f) => {
+                const idx = listeners.indexOf(f);
+                if (idx >= 0) listeners.splice(idx, 1);
+            },
+            fireListeners: (e) => {
+                for (const listener of listeners) {
+                    try {
+                        listener(e);
+                    } catch {}
+                }
+            }
+        }
     };
 
     /** @type {LoadedSettings} */
@@ -92,10 +126,7 @@
         load: async () => {
             GlobalSettings.loadFrom(await GlobalBackground.get_settings());
         },
-        onUpdate: {
-            listeners: [],
-            addListener: (f) => GlobalSettings.onUpdate.listeners.push(f)
-        },
+        onUpdate: getListenersObject(),
         onReady: getReadyObject(),
     };
 
@@ -106,30 +137,22 @@
         onReady: getReadyObject(),
     }
 
-    GlobalDefaults.load().then(() => {
-        GlobalDefaults.onReady.setReady();
-    }).catch(() => {
+    GlobalDefaults.load().then(GlobalDefaults.onReady.setReady).catch(() => {
         console.log('Unable to load global defaults, if this is from the background page you can ignore it')
     });
 
-    GlobalSettings.load().then(() => {
-        GlobalSettings.onReady.setReady();
-    }).catch(() => {
+    GlobalSettings.load().then(GlobalSettings.onReady.setReady).catch(() => {
         console.log('Unable to load global settings, if this is from the background page you can ignore it')
     });
 
-    GlobalTabId.load().then(() => {
-        GlobalTabId.onReady.setReady();
-    }).catch(() => {
+    GlobalTabId.load().then(GlobalTabId.onReady.setReady).catch(() => {
         console.log('Unable to load global tab id, if this is from the background page you can ignore it')
     });
 
     const onMessageListener = (message) => {
         if (message.type === 'settings_update') {
             GlobalSettings.loadFrom(message.settings);
-            for (const listener of GlobalSettings.onUpdate.listeners) {
-                listener(message.changes);
-            }
+            GlobalSettings.onUpdate.fireListeners(message.changes);
         }
     };
 
