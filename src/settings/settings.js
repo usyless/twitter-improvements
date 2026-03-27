@@ -362,6 +362,11 @@
                     description: "Replace URL's with their original URL's rather than the shortened ones"
                 },
                 {
+                    name: 'replace_user_urls_with_media',
+                    category: 'setting',
+                    description: "Replace URL's to user profiles with ones directly to the media page"
+                },
+                {
                     name: 'more_media_icon_visible',
                     category: 'style',
                     description: 'Make the "more media" icon on the media pages of user profiles stand out more'

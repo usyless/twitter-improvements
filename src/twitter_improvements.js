@@ -85,16 +85,21 @@
         }
     }
 
-    const /** @type {NumberIdCache<MediaItem[]>} */ MediaCache = new NumberIdCache("media");
-    const /** @type {NumberIdCache<tweetId>} */ QuotesCache = new NumberIdCache("quoted tweet");
-    const /** @type {Cache<string, string>} */ UrlCache = new Cache("url");
+    /** @type {NumberIdCache<MediaItem[]>} */
+    const MediaCache = new NumberIdCache("media");
+    /** @type {NumberIdCache<tweetId>} */
+    const QuotesCache = new NumberIdCache("quoted tweet");
+    /** @type {Cache<string, string>} */
+    const UrlCache = new Cache("url");
+    /** @type {Set<string>} */
+    const UsernamesCache = new Set();
 
+    /** @param {InterceptedTweets} data */
     globalThis.ti_on_intercepted = (data) => {
-        if (data.media) for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
-
-        if (data.quotes) for (const [parentId, quotedId] of data.quotes) QuotesCache.set(parentId, quotedId);
-
-        if (data.urls) for (const [twitURL, origURL] of data.urls) UrlCache.set(twitURL, origURL);
+        for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
+        for (const [parentId, quotedId] of data.quotes) QuotesCache.set(parentId, quotedId);
+        for (const [twitURL, origURL] of data.urls) UrlCache.set(twitURL, origURL);
+        for (const username of data.usernames) UsernamesCache.add(username);
     };
 
     let ACCENT_COLOUR;
@@ -1364,6 +1369,20 @@
             UrlCache.get(link.href.split('?')[0])
                 .then((r) => link.href = r)
                 .catch((err) => console.warn(`Failed to replace URL for ${link.href}: ${err}`));
+        },
+
+        /**
+         * @param {HTMLLinkElement} link
+         */
+        makeURLMedia: (link) => {
+            link.setAttribute('usy-profile-url-media', '');
+            const parts = link.href.split('/');
+            if ((parts.length > 2) &&
+                UsernamesCache.has((parts[parts.length - 1].length === 0)
+                    ? parts[parts.length - 2] : parts[parts.length - 1])) {
+                if (link.href.endsWith('/')) link.href += 'media';
+                else link.href += '/media';
+            }
         }
     };
 
@@ -1510,7 +1529,8 @@
                 [`div[data-testid="videoComponent"]:not([usy-media]), 
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
-            replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]]
+            replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]],
+            replace_user_urls_with_media: [['a[href^="https://x.com/"]:not([usy-profile-url-media])', Extras.makeURLMedia]],
         },
 
         start: () => {

@@ -136,6 +136,11 @@
          * @type {[string, string][]}
          */
         urls = [];
+        /**
+         * List of encountered usernames
+         * @type {string[]}
+         */
+        usernames = [];
     }
 
     /**
@@ -150,16 +155,18 @@
     const findTweets = (() => {
         let result = new InterceptedTweets();
         const choice_regex = /^choice([1-4])_image_original$/;
-        const KeysToCheck = ['media', 'quotes', 'urls'];
+        const KeysToCheck = ['media', 'quotes', 'urls', 'usernames'];
 
         const _findTweets = (obj, parent) => {
             if (obj && typeof obj === 'object') {
                 if (obj.__typename === 'User' && obj.rest_id && obj.core?.screen_name && !(USER_CACHE.has(obj.rest_id))) {
                     USER_CACHE.set(obj.rest_id, obj.core.screen_name);
+                    result.usernames.push(obj.core.screen_name);
                 }
 
                 if (obj.screen_name && obj.id_str && !(USER_CACHE.has(obj.rest_id))) {
                     USER_CACHE.set(obj.id_str, obj.screen_name);
+                    result.usernames.push(obj.screen_name);
                 }
 
                 if ((obj.__typename === 'Tweet' && obj.legacy?.extended_entities?.media)

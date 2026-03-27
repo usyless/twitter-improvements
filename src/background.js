@@ -51,6 +51,10 @@ const defaultSettings = {
         replace_tweet_urls: {
             default: true,
             validate: CONSTRAINTS.BOOLEAN
+        },
+        replace_user_urls_with_media: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 
