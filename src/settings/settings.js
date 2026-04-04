@@ -364,7 +364,7 @@
                 {
                     name: 'replace_user_urls_with_media',
                     category: 'listeners',
-                    description: "Replace URL's to user profiles with ones directly to the media page"
+                    description: "Navigate directly to user media pages when clicking profile URL's"
                 },
                 {
                     name: 'more_media_icon_visible',
