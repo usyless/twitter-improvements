@@ -1497,7 +1497,15 @@
             let count = 0
             for (const c of str) if (c === char) ++count;
             return count;
-        }
+        },
+
+        // these are probably non exhaustive and have many that don't actually exist
+        builtInPaths: new Set([
+            '/notifications', '/home', '/explore', '/settings', '/lists', '/communities',
+            '/search', '/hashtag', '/trending', '/account', '/profile', '/business', '/ads-get-started',
+            '/help', '/tos', '/privacy', '/rules', '/cookies', '/contact', '/about', '/i', '/intent', '/share',
+            '/logout', '/login', '/signup', '/welcome', '/download'
+        ])
     };
 
     const Observer = {
@@ -1784,29 +1792,20 @@
                 event: 'click',
                 target: () => window,
                 /** @param {PointerEvent} e */
-                listener: (() => {
-                    // these are probably non exhaustive and have many that don't actually exist
-                    const excludedURLs = new Set([
-                        '/notifications', '/home', '/explore', '/settings', '/lists', '/communities',
-                        '/search', '/hashtag', '/trending', '/account', '/profile', '/business', '/ads-get-started',
-                        '/help', '/tos', '/privacy', '/rules', '/cookies', '/contact', '/about', '/i', '/intent', '/share',
-                        '/logout', '/login', '/signup', '/welcome', '/download'
-                    ]);
-                    return (e) => {
-                        const link = e.target.closest('a[href^="/"]');
-                        if (!link) return;
-                        const href = link.getAttribute('href');
-                        if ((Helpers.countChar(href, '/') === 1) &&
-                            (window.location.pathname !== (href.endsWith('/') ? (href + 'media') : (href + '/media'))) &&
-                            !excludedURLs.has(href)) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
+                listener: (e) => {
+                    const link = e.target.closest('a[href^="/"]');
+                    if (!link) return;
+                    const href = link.getAttribute('href');
+                    if ((Helpers.countChar(href, '/') === 1) &&
+                        (window.location.pathname !== (href.endsWith('/') ? (href + 'media') : (href + '/media'))) &&
+                        !Helpers.builtInPaths.has(href)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
 
-                            ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
-                        }
+                        ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
                     }
-                })(),
+                },
                 options: {capture: true}
             }]
         },
