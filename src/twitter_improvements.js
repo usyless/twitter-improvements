@@ -1796,7 +1796,9 @@
                         const link = e.target.closest('a[href^="/"]');
                         if (!link) return;
                         const href = link.getAttribute('href');
-                        if ((Helpers.countChar(href, '/') === 1) && !excludedURLs.has(href)) {
+                        if ((Helpers.countChar(href, '/') === 1) &&
+                            (window.location.pathname !== (href.endsWith('/') ? (href + 'media') : (href + '/media'))) &&
+                            !excludedURLs.has(href)) {
                             e.preventDefault();
                             e.stopPropagation();
                             e.stopImmediatePropagation();
