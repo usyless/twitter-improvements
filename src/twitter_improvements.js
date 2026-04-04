@@ -1370,20 +1370,6 @@
                 .then((r) => link.href = r)
                 .catch((err) => console.warn(`Failed to replace URL for ${link.href}: ${err}`));
         },
-
-        /**
-         * @param {HTMLLinkElement} link
-         */
-        makeURLMedia: (link) => {
-            link.setAttribute('usy-profile-url-media', '');
-            const parts = link.href.split('/');
-            if ((parts.length > 2) &&
-                UsernamesCache.has((parts[parts.length - 1].length === 0)
-                    ? parts[parts.length - 2] : parts[parts.length - 1])) {
-                if (link.href.endsWith('/')) link.href += 'media';
-                else link.href += '/media';
-            }
-        }
     };
 
     const Helpers = {
@@ -1508,7 +1494,13 @@
          */
         eventModifiers: ({shiftKey: shift, ctrlKey: ctrl, altKey: alt}) => ({shift, ctrl, alt}),
 
-        allHoveringElements: () => document.querySelectorAll(':hover')
+        allHoveringElements: () => document.querySelectorAll(':hover'),
+
+        countChar: (str, char) => {
+            let count = 0
+            for (const c of str) if (c === char) ++count;
+            return count;
+        }
     };
 
     const Observer = {
@@ -1530,7 +1522,6 @@
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
             replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]],
-            replace_user_urls_with_media: [['a[href^="https://x.com/"]:not([usy-profile-url-media])', Extras.makeURLMedia]],
         },
 
         start: () => {
@@ -1618,7 +1609,19 @@
             if (!list) return;
             return list.querySelector(':scope > div[style*="overflow"]') || list.closest('[style*="overflow"]');
         },
-        validLinkHosts: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com']
+        validLinkHosts: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com'],
+        spaNavigate: (to, extraState = {}) => {
+            logInfo("Navigating to: ", to, " With extra state: ", extraState);
+            window.history.pushState({
+                key: Math.random().toString(36).substring(2, 8),
+                state: {
+                    ...extraState,
+                    previousPath: window.location.pathname
+                }
+            }, '', to);
+            window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+            logInfo("Dispatched pop state event with state", window.history.state);
+        }
     };
 
     /**
@@ -1676,16 +1679,7 @@
                         window.history.replaceState(state, '', window.location.href);
                     }
 
-                    window.history.pushState({
-                        key: Math.random().toString(36).substring(2, 8),
-                        state: {
-                            ...(state.state || {}),
-                            previousPath: window.location.pathname
-                        }
-                    }, '', a.href);
-                    window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
-                    logInfo("Dispatched pop state event with state", window.history.state);
-
+                    ChatHelpers.spaNavigate(a.href, state.state || {});
                     ChatHelpers.preventAutoFocus();
                 },
                 options: {
@@ -1787,9 +1781,30 @@
                 event: 'pointerdown',
                 target: () => window,
                 listener: () => window.getSelection().removeAllRanges(),
-                options: {
-                    capture: true,
-                }
+                options: {capture: true}
+            }],
+            replace_user_urls_with_media: [{
+                event: 'click',
+                target: () => window,
+                /** @param {PointerEvent} e */
+                listener: (e) => {
+                    const link = e.target.closest('a[href^="/"]');
+                    if (!link) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    const href = link.getAttribute('href');
+                    if ((Helpers.countChar(href, '/') === 1) &&
+                        UsernamesCache.has(href.substring(1))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+
+                        ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
+                    }
+                },
+                options: {capture: true}
             }]
         },
 

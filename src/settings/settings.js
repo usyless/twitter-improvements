@@ -363,7 +363,7 @@
                 },
                 {
                     name: 'replace_user_urls_with_media',
-                    category: 'setting',
+                    category: 'listeners',
                     description: "Replace URL's to user profiles with ones directly to the media page"
                 },
                 {

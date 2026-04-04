@@ -51,10 +51,6 @@ const defaultSettings = {
         replace_tweet_urls: {
             default: true,
             validate: CONSTRAINTS.BOOLEAN
-        },
-        replace_user_urls_with_media: {
-            default: false,
-            validate: CONSTRAINTS.BOOLEAN
         }
     },
 
@@ -68,6 +64,10 @@ const defaultSettings = {
             validate: CONSTRAINTS.BOOLEAN
         },
         fix_click_selection_bug: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
+        replace_user_urls_with_media: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         }
