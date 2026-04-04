@@ -1790,10 +1790,6 @@
                 listener: (e) => {
                     const link = e.target.closest('a[href^="/"]');
                     if (!link) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
                     const href = link.getAttribute('href');
                     if ((Helpers.countChar(href, '/') === 1) &&
                         UsernamesCache.has(href.substring(1))) {
