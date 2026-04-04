@@ -1367,6 +1367,21 @@
                 .then((r) => link.href = r)
                 .catch((err) => console.warn(`Failed to replace URL for ${link.href}: ${err}`));
         },
+
+        /**
+         * @param {HTMLLinkElement} link
+         */
+        makeURLMedia: (link) => {
+            link.setAttribute('usy-profile-url-media', '');
+            const href = link.getAttribute('href');
+            if ((Helpers.countChar(href, '/') === 1) &&
+                (link.role !== 'tab') &&
+                !Helpers.builtInPaths.has(href)) {
+                if (link.href.endsWith('/')) link.href += 'media';
+                else link.href += '/media';
+                link.setAttribute('usy-profile-url-media-adjusted', '');
+            }
+        }
     };
 
     const Helpers = {
@@ -1527,6 +1542,7 @@
                 img[alt="Embedded video"]:not([usy-media])`, Image.addVideoButton]],
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
             replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]],
+            replace_user_urls_with_media: [['a[href^="/"]:not([usy-profile-url-media])', Extras.makeURLMedia]],
         },
 
         start: () => {
@@ -1539,7 +1555,7 @@
             let lastReactRoot;
             const getCallback = () => {
                 const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
-                const settings = GlobalSettings.setting;
+                const settings = {...GlobalSettings.setting, ...GlobalSettings.listeners};
                 for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
                 logInfo('Main observer loop callbacks:', callbacks);
                 const update = () => {
@@ -1793,18 +1809,14 @@
                 target: () => window,
                 /** @param {PointerEvent} e */
                 listener: (e) => {
-                    const link = e.target.closest('a[href^="/"]');
+                    const link = e.target.closest('[usy-profile-url-media-adjusted]');
                     if (!link) return;
-                    const href = link.getAttribute('href');
-                    if ((Helpers.countChar(href, '/') === 1) &&
-                        (window.location.pathname !== (href.endsWith('/') ? (href + 'media') : (href + '/media'))) &&
-                        !Helpers.builtInPaths.has(href)) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
 
-                        ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
-                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    ChatHelpers.spaNavigate(link.href, window.history.state?.state || {});
                 },
                 options: {capture: true}
             }]
@@ -1849,7 +1861,7 @@
 
     GlobalSettings.onUpdate.addListener((changes) => {
         // only need to reload for vx setting change
-        if (Object.hasOwn(changes, 'setting')) Observer.start();
+        if (Object.hasOwn(changes, 'setting') || Object.hasOwn(changes, 'listeners')) Observer.start();
         // update on image pref or download pref change
         else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
 
