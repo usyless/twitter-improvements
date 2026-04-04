@@ -91,15 +91,12 @@
     const QuotesCache = new NumberIdCache("quoted tweet");
     /** @type {Cache<string, string>} */
     const UrlCache = new Cache("url");
-    /** @type {Set<string>} */
-    const UsernamesCache = new Set();
 
     /** @param {InterceptedTweets} data */
     globalThis.ti_on_intercepted = (data) => {
         for (const [id, media] of /** @type {MediaTransfer[]}*/ data.media) MediaCache.set(id, media);
         for (const [parentId, quotedId] of data.quotes) QuotesCache.set(parentId, quotedId);
         for (const [twitURL, origURL] of data.urls) UrlCache.set(twitURL, origURL);
-        for (const username of data.usernames) UsernamesCache.add(username);
     };
 
     let ACCENT_COLOUR;
@@ -1787,19 +1784,27 @@
                 event: 'click',
                 target: () => window,
                 /** @param {PointerEvent} e */
-                listener: (e) => {
-                    const link = e.target.closest('a[href^="/"]');
-                    if (!link) return;
-                    const href = link.getAttribute('href');
-                    if ((Helpers.countChar(href, '/') === 1) &&
-                        UsernamesCache.has(href.substring(1))) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.stopImmediatePropagation();
+                listener: (() => {
+                    // these are probably non exhaustive and have many that don't actually exist
+                    const excludedURLs = new Set([
+                        '/notifications', '/home', '/explore', '/settings', '/lists', '/communities',
+                        '/search', '/hashtag', '/trending', '/account', '/profile', '/business', '/ads-get-started',
+                        '/help', '/tos', '/privacy', '/rules', '/cookies', '/contact', '/about', '/i', '/intent', '/share',
+                        '/logout', '/login', '/signup', '/welcome', '/download'
+                    ]);
+                    return (e) => {
+                        const link = e.target.closest('a[href^="/"]');
+                        if (!link) return;
+                        const href = link.getAttribute('href');
+                        if ((Helpers.countChar(href, '/') === 1) && !excludedURLs.has(href)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
 
-                        ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
+                            ChatHelpers.spaNavigate((link.href.endsWith('/') ? (link.href + 'media') : (link.href + '/media')), window.history.state?.state || {});
+                        }
                     }
-                },
+                })(),
                 options: {capture: true}
             }]
         },
