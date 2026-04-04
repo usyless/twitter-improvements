@@ -604,6 +604,11 @@
                     description: '"Communities" button',
                 },
                 {
+                    name: 'hide_articles_sidebar',
+                    category: 'style',
+                    description: '"Articles" button',
+                },
+                {
                     name: 'hide_create_your_space',
                     category: 'style',
                     description: '"Create your space" button',

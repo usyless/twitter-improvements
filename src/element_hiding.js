@@ -58,6 +58,7 @@
         ], st: HideType.DISPLAY},
         hide_relevant_people: {s: ['div:has(> [aria-label="Relevant people"])'], st: HideType.DISPLAY},
         hide_create_your_space: {s: ['a[href="/i/spaces/start"]'], st: HideType.DISPLAY},
+        hide_articles_sidebar: {s: ['a[href="/compose/articles"]'], st: HideType.DISPLAY},
         hide_post_button: {s: ['div:has(> a[href="/compose/post"]):not([data-testid="Dropdown"])'], st: HideType.DISPLAY},
         hide_creator_studio: {s: ['a[href="/i/jf/creators/studio"]'], st: HideType.DISPLAY},
         hide_follower_requests: {s: ['a[href="/follower_requests"]'], st: HideType.DISPLAY},

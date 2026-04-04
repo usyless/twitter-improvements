@@ -260,6 +260,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_articles_sidebar: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_post_button: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
