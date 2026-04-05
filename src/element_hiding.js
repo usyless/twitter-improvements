@@ -85,13 +85,15 @@
             // :has selector is the same for the first two here, and the first two in the next element
             // these selectors pick the "Discover more" element
             // the final set of selectors picks the "Probable spam" element which comes after
+            // the probable spam element is either the expanded one or the button
+            // these selectors are veery jank
             {s: [
                 'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div)',
                 'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ *'
                 ], st: HideType.DISPLAY},
             {s: [
-                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2)',
-                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2) ~ *'
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2, > div > div > button)',
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2, > div > div > button) ~ *'
                 ], st: HideType.UNSET_DISPLAY}
         ],
 
