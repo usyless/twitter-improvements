@@ -111,7 +111,7 @@
         for (const setting in enabled) if (enabled[setting] === true) {
             const sm = SelectorMap?.[setting];
             if (!sm) continue;
-            for (const t of Array.isArray(sm) ? sm : [sm]) {
+            for (const t of (Array.isArray(sm) ? (sm) : ([sm]))) {
                 const {s, st} = t;
                 for (const a of s) style += a + st;
             }
