@@ -232,6 +232,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_discover_more: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_notifications: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN

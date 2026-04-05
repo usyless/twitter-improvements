@@ -3,6 +3,7 @@
 
     const HideType = {
         DISPLAY: '{display:none!important;}',
+        UNSET_DISPLAY: '{display:initial!important;}',
         VISIBILITY: '{visibility:hidden!important;pointer-events:none!important;}',
     };
 
@@ -80,12 +81,22 @@
         hide_retweet_button_tweet: {s: CommonSelectors.retweets, st: HideType.VISIBILITY},
         hide_like_button_tweet: {s: CommonSelectors.likes, st: HideType.VISIBILITY},
         hide_bookmark_button_tweet: {s: CommonSelectors.bookmark, st: HideType.VISIBILITY},
+        hide_discover_more: [
+            {s: [
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div)',
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ *'
+                ], st: HideType.DISPLAY},
+            {s: [
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2)',
+                'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ div[data-testid="cellInnerDiv"]:has(> div > div > div > h2) ~ *'
+                ], st: HideType.UNSET_DISPLAY}
+        ],
 
         more_media_icon_visible: {
             s: ['a[href$="/photo/1"] > div + svg', 'a[href$="/video/1"] > div + svg'],
             st: '{box-shadow:0 0 5px rgba(0,0,0,0.6)!important;background-color:rgba(0,0,0,0.3)!important;border-radius:4px!important;}'
         }
-    }
+    };
 
     const start = () => {
         const enabled = GlobalSettings.style;
@@ -94,8 +105,9 @@
         let style = '';
         for (const setting in enabled) if (enabled[setting] === true) {
             const sm = SelectorMap?.[setting];
-            if (sm) {
-                const {s, st} = sm;
+            if (!sm) continue;
+            for (const t of Array.isArray(sm) ? sm : [sm]) {
+                const {s, st} = t;
                 for (const a of s) style += a + st;
             }
         }

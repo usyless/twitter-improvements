@@ -570,6 +570,11 @@
                     name: 'hide_bookmark_button_tweet',
                     category: 'style',
                     description: 'Bookmark button',
+                },
+                {
+                    name: 'hide_discover_more',
+                    category: 'style',
+                    description: '"Discover more" section',
                 }
             ],
             'Left Sidebar': [
