@@ -82,6 +82,9 @@
         hide_like_button_tweet: {s: CommonSelectors.likes, st: HideType.VISIBILITY},
         hide_bookmark_button_tweet: {s: CommonSelectors.bookmark, st: HideType.VISIBILITY},
         hide_discover_more: [
+            // :has selector is the same for the first two here, and the first two in the next element
+            // these selectors pick the "Discover more" element
+            // the final set of selectors picks the "Probable spam" element which comes after
             {s: [
                 'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div)',
                 'div[data-testid="cellInnerDiv"]:has(> div > div > div > h2 + div) ~ *'
