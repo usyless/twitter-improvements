@@ -119,7 +119,7 @@
                 {
                     name: 'download_all_near_click',
                     category: 'download_preferences',
-                    description: 'Show "Download All" the download popup as the choice closest to your click',
+                    description: 'Show "Download All" in the download popup as the choice closest to your click',
                 },
                 {
                     name: 'download_all_override_saved',
