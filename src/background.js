@@ -11,7 +11,7 @@ const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
 const CONSTRAINTS = {
     BOOLEAN: a => typeof a === 'boolean',
-    NUMBERLIKE: a => typeof a === 'string' && !Number.isNaN(+a),
+    NUMBERLIKE: a => typeof a === 'string' && Number.isFinite(+a),
     STRING: a => typeof a === 'string',
     VALUES: (...v) => a => v.includes(a),
     ALL_OF: (...v) => a => v.every(f => f(a)),
@@ -400,8 +400,7 @@ const Settings = { // Setting handling
 
             for (const category in defaultSettings) {
                 const defaults = defaultSettings[category];
-                Settings[category] = defaultSettingToSetting(defaults);
-                const settingsCategory = Settings[category];
+                const settingsCategory = Settings[category] = defaultSettingToSetting(defaults);
 
                 if (storage[category] == null) {
                     continue;
