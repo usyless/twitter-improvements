@@ -186,7 +186,7 @@ const defaultSettings = {
         },
         hover_thumbnail_timeout: {
             default: "-1",
-            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.DESKTOP)
+            validate: CONSTRAINTS.NUMBERLIKE
         },
 
         disable_cancelled_download_notification: {

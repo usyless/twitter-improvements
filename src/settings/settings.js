@@ -135,8 +135,7 @@
                     description: 'Hover over download button duration to show thumbnail (negative for disabled)',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
-                    attributes: {step: '0.1'},
-                    class: [PLATFORMS.DESKTOP_ONLY]
+                    attributes: {step: '0.1'}
                 },
                 {
                     type: 'break'
