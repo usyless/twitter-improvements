@@ -6,7 +6,7 @@ if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loa
 
 globalThis.enableIsBackgroundPage();
 
-const isAndroid = /Android/.test(navigator.userAgent);
+const isAndroid = true;
 const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
 const CONSTRAINTS = {
@@ -42,7 +42,7 @@ const defaultSettings = {
         },
         bookmark_on_photo_page: {
             default: false,
-            validate: CONSTRAINTS.BOOLEAN
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.DESKTOP)
         },
         hide_bottom_bar_completely: {
             default: false,
@@ -51,6 +51,10 @@ const defaultSettings = {
         replace_tweet_urls: {
             default: true,
             validate: CONSTRAINTS.BOOLEAN
+        },
+        prevent_video_autoscroll: {
+            default: false,
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         }
     },
 
@@ -137,19 +141,19 @@ const defaultSettings = {
         },
         save_directory: {
             default: '',
-            validate: CONSTRAINTS.STRING
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.DESKTOP)
         },
         save_directory_shift: {
             default: '',
-            validate: CONSTRAINTS.STRING
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.DESKTOP)
         },
         save_directory_ctrl: {
             default: '',
-            validate: CONSTRAINTS.STRING
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.DESKTOP)
         },
         save_directory_alt: {
             default: '',
-            validate: CONSTRAINTS.STRING
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.STRING, CONSTRAINTS.DESKTOP)
         },
         save_format: {
             default: '[twitter] {username} - {tweetId} - {tweetNum}',
@@ -182,7 +186,7 @@ const defaultSettings = {
         },
         hover_thumbnail_timeout: {
             default: "-1",
-            validate: CONSTRAINTS.NUMBERLIKE
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.NUMBERLIKE, CONSTRAINTS.DESKTOP)
         },
 
         disable_cancelled_download_notification: {

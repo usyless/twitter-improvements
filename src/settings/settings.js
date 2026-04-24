@@ -392,6 +392,11 @@
                     description: 'Hide navigation bar completely when scrolling down'
                 },
                 {
+                    name: 'prevent_video_autoscroll',
+                    category: 'setting',
+                    description: 'Prevent the video player on mobile auto-scrolling when a video ends'
+                },
+                {
                     type: 'break'
                 },
                 {

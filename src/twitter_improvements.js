@@ -936,7 +936,7 @@
 
         resetAll: () => {
             for (const e of document.querySelectorAll('.usybuttonclickdiv')) e.remove();
-            for (const attr of ['usy', 'usy-bookmarked', 'usy-download', 'usy-media']) {
+            for (const attr of ['usy', 'usy-bookmarked', 'usy-download', 'usy-media', 'usy-noscroll']) {
                 for (const e of document.querySelectorAll(`[${attr}]`)) e.removeAttribute(attr);
             }
         },
@@ -1381,6 +1381,23 @@
                 else link.href += '/media';
                 link.setAttribute('usy-profile-url-media-adjusted', '');
             }
+        },
+
+        /**
+         * @param {HTMLVideoElement} video
+         */
+        preventAutoScroll: (video) => {
+            video.addEventListener('ended', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                /** @type {HTMLVideoElement} */
+                const video = e.currentTarget;
+
+                video.currentTime = 0;
+                void video.play();
+            }, {capture: true});
         }
     };
 
@@ -1526,7 +1543,7 @@
     const Observer = {
         /** @type {(MutationObserver | null)} */ observer: null,
 
-        /** @type {Record<string, [string, function(HTMLElement): *][]>} */ callbackMappings: {
+        /** @type {Record<string, [string, function(HTMLElement): *, ((url: string) => boolean)?][]>} */ callbackMappings: {
             vx_button: [['article:not([usy])', Tweet.addVXButton]],
             bookmark_on_photo_page: [['article:not([usy-bookmarked])', Tweet.copyBookmarkButton]],
             inline_download_button: [['article:not([usy-download])', Tweet.addDownloadButton]],
@@ -1543,6 +1560,9 @@
             hide_bottom_bar_completely: [['div[data-testid="BottomBar"]', Extras.hideBottomBar]],
             replace_tweet_urls: [['a[href^="https://t.co/"]:not([usy-url-replaced])', Extras.replaceURL]],
             replace_user_urls_with_media: [['a[href^="/"]:not([usy-profile-url-media])', Extras.makeURLMedia]],
+            prevent_video_autoscroll: [[
+                'video:not([usy-noscroll])', Extras.preventAutoScroll, (url) => url.includes('/mediaViewer?')
+            ]]
         },
 
         start: () => {
@@ -1554,9 +1574,19 @@
             const observerSettings = {subtree: true, childList: true};
             let lastReactRoot;
             const getCallback = () => {
-                const /** @type {[string, function(HTMLElement): *][]} */ callbacks = [];
+                /** @type {[string, function(HTMLElement): *][]} */
+                const callbacks = [];
+                /** @type {[string, function(HTMLElement): *, ((url: string) => boolean)][]} */
+                const conditionalCallbacks = [];
+
                 const settings = {...GlobalSettings.setting, ...GlobalSettings.listeners};
-                for (const m in callbackMappings) if (settings[m]) callbacks.push(...callbackMappings[m]);
+                for (const m in callbackMappings) if (settings[m]) {
+                    for (const cb of callbackMappings[m]) {
+                        if (cb.length === 2) callbacks.push(cb);
+                        else conditionalCallbacks.push(cb);
+                    }
+                }
+                const conditionalCallbacksExists = conditionalCallbacks.length > 0;
                 logInfo('Main observer loop callbacks:', callbacks);
                 const update = () => {
                     if (!(lastReactRoot?.isConnected)) {
@@ -1574,6 +1604,9 @@
                         // uses this rather than called with observer to make sure it isn't re-started
                         Observer.observer?.disconnect();
                         for (const [s, f] of callbacks) for (const a of lastReactRoot.querySelectorAll(s)) f(a);
+                        let href;
+                        if (conditionalCallbacksExists) href = window.location.href;
+                        for (const [s, f, cond] of conditionalCallbacks) if (cond(href)) for (const a of lastReactRoot.querySelectorAll(s)) f(a);
                         Observer.observer?.observe(document.body, observerSettings);
                     }
                 };

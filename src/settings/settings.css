@@ -485,7 +485,8 @@ body.mobile {
 /*Desktop settings hiding*/
 body:not(.mobile) {
     div:has(> #use_download_progress),
-    div:has(> #hide_bottom_bar_completely) {
+    div:has(> #hide_bottom_bar_completely),
+    div:has(> #prevent_video_autoscroll) {
         display: none !important;
     }
 }
