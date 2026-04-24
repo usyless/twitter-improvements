@@ -1387,6 +1387,7 @@
          * @param {HTMLVideoElement} video
          */
         preventAutoScroll: (video) => {
+            video.setAttribute('usy-noscroll', '');
             video.addEventListener('ended', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
