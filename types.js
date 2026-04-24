@@ -67,4 +67,5 @@
  * @property {string[]} [class]
  * @property {function(): *} [init]
  * @property {boolean} [noDefaultListener]
+ * @property {{id: string, values: (string | boolean)[]}} [dependsUpon]
  */

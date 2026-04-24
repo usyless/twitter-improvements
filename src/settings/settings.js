@@ -52,6 +52,8 @@
         }
     }
 
+    let dependency_style_text = "";
+
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
     const resizeEvent = new Event('resize');
@@ -80,18 +82,30 @@
                     category: 'vx_preferences',
                     description: 'URL prefix provider',
                     type: 'choice',
-                    choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}]
+                    choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}],
+                    dependsUpon: {
+                        id: 'vx_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'custom_url',
                     category: 'vx_preferences',
                     description: 'Custom copy URL (Set prefix to \'Custom\')',
                     type: 'text',
+                    dependsUpon: {
+                        id: 'vx_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'vx_copy_shortcut',
                     category: 'listeners',
-                    description: 'Allow Ctrl+C to copy the url of the currently maximised tweet'
+                    description: 'Allow Ctrl+C to copy the url of the currently maximised tweet',
+                    dependsUpon: {
+                        id: 'vx_button',
+                        values: [true]
+                    }
                 }
             ],
             'Media Saving': [
@@ -141,14 +155,22 @@
                     category: 'image_preferences',
                     description: 'Media download button position',
                     type: 'choice',
-                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}]
+                    choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}],
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'image_button_scale',
                     category: 'image_preferences',
                     description: 'Media download button scale',
                     type: 'number',
-                    attributes: {step: '0.1'}
+                    attributes: {step: '0.1'},
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     type: 'break'
@@ -159,7 +181,11 @@
                     description: 'Media download button width (1 for default)',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media width)')),
-                    attributes: {step: '5'}
+                    attributes: {step: '5'},
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'image_button_height_value',
@@ -167,7 +193,11 @@
                     description: 'Media download button height (1 for default)',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
-                    attributes: {step: '5'}
+                    attributes: {step: '5'},
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'image_button_height_value_small',
@@ -175,7 +205,11 @@
                     description: 'Media download button height -> small images (1 for default)',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
-                    attributes: {step: '5'}
+                    attributes: {step: '5'},
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'small_image_size_threshold',
@@ -183,7 +217,11 @@
                     description: 'Height threshold in pixels for media to be considered small',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
-                    attributes: {step: '20'}
+                    attributes: {step: '20'},
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     type: 'break'
@@ -191,7 +229,11 @@
                 {
                     name: 'download_picker_on_media_page',
                     category: 'download_preferences',
-                    description: 'Show download picker for multi-media tweets in the media page'
+                    description: 'Show download picker for multi-media tweets in the media page',
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
             ],
             'Download History': [
@@ -204,6 +246,10 @@
                     name: 'download_history_prevent_download',
                     category: 'download_preferences',
                     description: 'Prevent downloading of previously downloaded items',
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    }
                 },
                 {
                     type: 'break',
@@ -222,12 +268,20 @@
                                 });
                             }
                         });
+                    },
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
                     }
                 },
                 {
                     name: 'import_download_history',
                     type: 'button',
                     button: 'Import download history from export',
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    },
                     onclick: () => {
                         document.getElementById('download_history_input').click();
                     },
@@ -300,6 +354,10 @@
                     onclick: () => {
                         document.getElementById('download_history_files_input').click();
                     },
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    },
                     init: () => {
                         const i = document.createElement('input');
                         i.type = 'file';
@@ -334,6 +392,10 @@
                     name: 'export_download_history',
                     type: 'button',
                     button: 'Export download history\nExports as {tweet id}-{media number}',
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    },
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
                         GlobalBackground.download_history_get_all().then((r) => {
@@ -348,6 +410,10 @@
                     name: 'saved_image_count',
                     type: 'button',
                     button: 'Get saved media count',
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    },
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Calculating, please wait...");
                         GlobalBackground.download_history_get_all().then((r) => {
@@ -1020,9 +1086,15 @@
             const value = Settings[obj.category][obj.name];
             if (value == null) void customPopup(`Warning: Value is ${value} for ${obj.name} in ${obj.category}`);
             func(value);
+            if (obj.valueElement) obj.valueElement.value = value;
             obj.element?.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
+
+        const style = document.createElement('style');
+        style.textContent = dependency_style_text;
+        dependency_style_text = "";
+        document.head.appendChild(style);
 
         // icon switching
         let counter = 0, altSet = GlobalSettings.extension_icon.custom;
@@ -1186,8 +1258,17 @@
         return m;
     }
 
+    /**
+     * @param {option} e
+     * @param {string} element
+     * @param {boolean} flipOrder
+     * @returns {[HTMLDivElement, HTMLElement]}
+     */
     function get_generic_setting(e, element, flipOrder) {
-        const outer = document.createElement('div'), label = document.createElement('label'), elem = document.createElement(element);
+        const outer = document.createElement('div');
+        const label = document.createElement('label');
+        const elem = document.createElement(element);
+
         outer.properties = e;
         outer.dataset.setting = '';
         e.element = outer;
@@ -1203,6 +1284,9 @@
                 if (typeof attr === 'boolean') elem[attr ? 'setAttribute' : 'removeAttribute'](attribute, '');
                 else elem.setAttribute(attribute, attr);
             }
+        }
+        if (e.dependsUpon) {
+            dependency_style_text += `body:has([id=${e.dependsUpon.id}]${(e.dependsUpon.values).map(v => `:not([value="${v}"])`).join('')}) div:has(> [id=${e.name}]){display:none!important}`;
         }
         if (flipOrder) outer.append(elem, label);
         else outer.append(label, elem);

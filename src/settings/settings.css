@@ -364,10 +364,6 @@ button {
     touch-action: none;
 }
 
-.hidden {
-    display: none;
-}
-
 .inputWrap {
     width: 100%;
     display: flex;
@@ -482,9 +478,6 @@ body:not(.mobile) div:has(> .mobile-only) {
     display: none !important;
 }
 
-/*Dynamic settings hiding*/
-div:has(> * > #vx_button:not(:checked)) > *:nth-child(n+3),
-div:has(> * > #media_download_button:not(:checked)) > *:nth-child(n+9),
-div:has(> * > #download_history_enabled:not(:checked)) > *:nth-child(n+3) {
+.hidden {
     display: none !important;
 }
