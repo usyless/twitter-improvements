@@ -80,7 +80,7 @@
          * @returns {Promise<T>}
          */
         get(id) {
-            if (Number.isNaN(+id) || +id <= 0) return Promise.reject("Invalid ID");
+            if (!Number.isFinite(+id) || +id <= 0) return Promise.reject("Invalid ID");
             return super.get(id);
         }
     }
@@ -1121,7 +1121,7 @@
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
                 const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
-                if (Number.isNaN(choice)) {
+                if (!Number.isInteger(choice)) {
                     Downloaders.download_all(choices, Helpers.eventModifiers(e),
                         GlobalSettings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
                 } else Downloaders.download_all(choices[choice], Helpers.eventModifiers(e));
