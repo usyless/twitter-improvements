@@ -84,29 +84,32 @@
                     description: 'URL prefix provider',
                     type: 'choice',
                     choices: [{name: 'VXTwitter', type: 'fixvx.com'}, {name: 'FXTwitter', type: 'fixupx.com'}, {name: 'Custom', type: 'x.com'}],
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'vx_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'custom_url',
                     category: 'vx_preferences',
                     description: 'Custom copy URL (Set prefix to \'Custom\')',
                     type: 'text',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'vx_button',
                         values: [true]
-                    }
+                    }, {
+                        id: 'url_prefix',
+                        values: ["x.com"]
+                    }]
                 },
                 {
                     name: 'vx_copy_shortcut',
                     category: 'listeners',
                     description: 'Allow Ctrl+C to copy the url of the currently maximised tweet',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'vx_button',
                         values: [true]
-                    }
+                    }]
                 }
             ],
             'Media Saving': [
@@ -150,10 +153,10 @@
                 },
                 {
                     type: 'break',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'image_button_position',
@@ -161,10 +164,10 @@
                     description: 'Media download button position',
                     type: 'choice',
                     choices: [{name: 'Top Left', type: '0'}, {name: 'Top Right', type: '1'}, {name: 'Bottom Left', type: '2'}, {name: 'Bottom right', type: '3'}],
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'image_button_scale',
@@ -172,17 +175,17 @@
                     description: 'Media download button scale',
                     type: 'number',
                     attributes: {step: '0.1'},
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     type: 'break',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'image_button_width_value',
@@ -191,10 +194,10 @@
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media width)')),
                     attributes: {step: '5'},
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'image_button_height_value',
@@ -203,10 +206,10 @@
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'},
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'image_button_height_value_small',
@@ -215,10 +218,10 @@
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('% (of Media height)')),
                     attributes: {step: '5'},
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'small_image_size_threshold',
@@ -227,26 +230,26 @@
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode('px')),
                     attributes: {step: '20'},
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     type: 'break',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'download_picker_on_media_page',
                     category: 'download_preferences',
                     description: 'Show download picker for multi-media tweets in the media page',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
-                    }
+                    }]
                 },
             ],
             'Download History': [
@@ -259,17 +262,17 @@
                     name: 'download_history_prevent_download',
                     category: 'download_preferences',
                     description: 'Prevent downloading of previously downloaded items',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     type: 'break',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'clear_download_history',
@@ -286,19 +289,19 @@
                             }
                         });
                     },
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    }
+                    }]
                 },
                 {
                     name: 'import_download_history',
                     type: 'button',
                     button: 'Import download history from export',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    },
+                    }],
                     onclick: () => {
                         document.getElementById('download_history_input').click();
                     },
@@ -371,10 +374,10 @@
                     onclick: () => {
                         document.getElementById('download_history_files_input').click();
                     },
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    },
+                    }],
                     init: () => {
                         const i = document.createElement('input');
                         i.type = 'file';
@@ -409,10 +412,10 @@
                     name: 'export_download_history',
                     type: 'button',
                     button: 'Export download history\nExports as {tweet id}-{media number}',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    },
+                    }],
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
                         GlobalBackground.download_history_get_all().then((r) => {
@@ -427,10 +430,10 @@
                     name: 'saved_image_count',
                     type: 'button',
                     button: 'Get saved media count',
-                    dependsUpon: {
+                    dependsUpon: [{
                         id: 'download_history_enabled',
                         values: [true]
-                    },
+                    }],
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Calculating, please wait...");
                         GlobalBackground.download_history_get_all().then((r) => {
@@ -1000,14 +1003,14 @@
                 select.appendChild(o);
             }
             e.valueProperty = 'value';
-            valuesToUpdate.push({obj: e, func: (v) => select.value = v});
+            valuesToUpdate.push(e);
             select.addEventListener('change', update_value);
             return outer;
         },
         text: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = "text";
-            valuesToUpdate.push({obj: e, func: (v) => input.value = v});
+            valuesToUpdate.push(e);
             e.valueProperty = 'value';
             input.addEventListener('change', update_value);
             return outer;
@@ -1022,7 +1025,7 @@
         checkbox: (e) => {
             const [outer, checkbox] = get_generic_setting(e, 'input', true);
             checkbox.setAttribute('type', 'checkbox');
-            valuesToUpdate.push({obj: e, func: (v) => checkbox.checked = v});
+            valuesToUpdate.push(e);
             e.valueProperty = 'checked';
             checkbox.addEventListener('change', update_value);
             return outer;
@@ -1030,7 +1033,7 @@
         number: (e) => {
             const [outer, input] = get_generic_setting(e, 'input');
             input.type = 'number';
-            valuesToUpdate.push({obj: e, func: (v) => input.value = v});
+            valuesToUpdate.push(e);
             e.valueProperty = 'value';
             input.addEventListener('change', async (ev) => {
                 const currentTarget = ev.currentTarget;
@@ -1068,10 +1071,10 @@
         },
         break: (e) => {
             const elem = document.createElement('br');
-            const id = elem.id = `br-id-${br_id++}`;
+            const break_id = elem.id = `br-id-${br_id++}`;
             if (e.class) elem.classList.add(...e.class);
             if (e.dependsUpon) {
-                dependency_style_text += `body:has([id=${e.dependsUpon.id}]${(e.dependsUpon.values).map(v => `:not([value="${v}"])`).join('')}) [id=${id}]{display:none!important}`;
+                dependency_style_text += `${e.dependsUpon.map(({id, values}) => `body:has([id="${id}"]${values.map(v => `:not([value="${v}"])`).join('')}) [id=${break_id}]`).join(',')}{display:none!important}`;
             }
             return elem;
         }
@@ -1103,12 +1106,11 @@
     Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise])
         .then(() => {
             const Settings = GlobalSettings;
-        for (const {obj, func} of valuesToUpdate) {
-            const value = Settings[obj.category][obj.name];
-            if (value == null) void customPopup(`Warning: Value is ${value} for ${obj.name} in ${obj.category}`);
-            func(value);
-            if (obj.valueElement) obj.valueElement.value = value;
-            obj.element?.dispatchEvent(valueLoadedEvent);
+        for (const e of valuesToUpdate) {
+            const value = Settings[e.category][e.name];
+            if (value == null) void customPopup(`Warning: Value is ${value} for ${e.name} in ${e.category}`);
+            if (e.valueElement) e.valueElement.setAttribute('value', e.valueElement.checked = e.valueElement.value = value);
+            e.element?.dispatchEvent(valueLoadedEvent);
         }
         valuesToUpdate.length = 0;
 
@@ -1259,8 +1261,9 @@
                 });
 
                 d.addEventListener('click', () => {
+                    /** @type {option} */
                     const props = setting.properties;
-                    props.valueElement[props.valueProperty] = GlobalDefaults[props.category][props.name].default;
+                    props.valueElement.setAttribute('value', props.valueElement.checked = props.valueElement.value = GlobalDefaults[props.category][props.name].default);
                     props.element.dispatchEvent(valueLoadedEvent);
                     props.valueElement.dispatchEvent(changeEvent);
                     outer.click();
@@ -1307,7 +1310,7 @@
             }
         }
         if (e.dependsUpon) {
-            dependency_style_text += `body:has([id=${e.dependsUpon.id}]${(e.dependsUpon.values).map(v => `:not([value="${v}"])`).join('')}) div:has(> [id=${e.name}]){display:none!important}`;
+            dependency_style_text += `${e.dependsUpon.map(({id, values}) => `body:has([id="${id}"]${values.map(v => `:not([value="${v}"])`).join('')}) div:has(> [id=${e.name}])`).join(',')}{display:none!important}`;
         }
         if (flipOrder) outer.append(elem, label);
         else outer.append(label, elem);
@@ -1336,7 +1339,7 @@
                     console.error(`Cant find elemement with id ${key} to update!`);
                     continue;
                 }
-                elem.checked = elem.value = keySettings[key];
+                elem.setAttribute('value', elem.checked = elem.value = keySettings[key]);
                 elem.closest('[data-setting]').properties.element.dispatchEvent(valueLoadedEvent);
             }
         }
