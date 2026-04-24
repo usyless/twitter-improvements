@@ -53,6 +53,7 @@
     }
 
     let dependency_style_text = "";
+    let br_id = 0;
 
     const valueLoadedEvent = new CustomEvent('valueLoaded');
     const changeEvent = new Event('change');
@@ -148,7 +149,11 @@
                     description: '"Download All" ignores saved files and downloads everything'
                 },
                 {
-                    type: 'break'
+                    type: 'break',
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'image_button_position',
@@ -173,7 +178,11 @@
                     }
                 },
                 {
-                    type: 'break'
+                    type: 'break',
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'image_button_width_value',
@@ -224,7 +233,11 @@
                     }
                 },
                 {
-                    type: 'break'
+                    type: 'break',
+                    dependsUpon: {
+                        id: 'media_download_button',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'download_picker_on_media_page',
@@ -253,6 +266,10 @@
                 },
                 {
                     type: 'break',
+                    dependsUpon: {
+                        id: 'download_history_enabled',
+                        values: [true]
+                    }
                 },
                 {
                     name: 'clear_download_history',
@@ -1051,7 +1068,11 @@
         },
         break: (e) => {
             const elem = document.createElement('br');
+            const id = elem.id = `br-id-${br_id++}`;
             if (e.class) elem.classList.add(...e.class);
+            if (e.dependsUpon) {
+                dependency_style_text += `body:has([id=${e.dependsUpon.id}]${(e.dependsUpon.values).map(v => `:not([value="${v}"])`).join('')}) [id=${id}]{display:none!important}`;
+            }
             return elem;
         }
     }
