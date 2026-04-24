@@ -473,22 +473,13 @@ button {
 }
 
 /*Mobile settings hiding*/
-body.mobile {
-    div:has(> div > [id^="save_directory"]),
-    div:has(> #bookmark_on_photo_page),
-    div:has(> #hover_thumbnail_timeout),
-    div:has(> #save_image) {
-        display: none !important;
-    }
+body.mobile div:has(> .desktop-only) {
+    display: none !important;
 }
 
 /*Desktop settings hiding*/
-body:not(.mobile) {
-    div:has(> #use_download_progress),
-    div:has(> #hide_bottom_bar_completely),
-    div:has(> #prevent_video_autoscroll) {
-        display: none !important;
-    }
+body:not(.mobile) div:has(> .mobile-only) {
+    display: none !important;
 }
 
 /*Dynamic settings hiding*/

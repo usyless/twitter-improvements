@@ -61,6 +61,11 @@
     const header = settingsElem.querySelector('#settings-header');
     const pageWrapper = document.querySelector('.wrapper');
 
+    const PLATFORMS = {
+        DESKTOP_ONLY: 'desktop-only',
+        MOBILE_ONLY: 'mobile-only'
+    };
+
     // Make sure category is set for updatable objects
     const /** @type {Record<string, Record<string, option[]>>} */ options = {
         'Settings': {
@@ -103,7 +108,8 @@
                 {
                     name: 'save_image',
                     category: 'contextmenu',
-                    description: 'Show image download button in right click context menu'
+                    description: 'Show image download button in right click context menu',
+                    class: [PLATFORMS.DESKTOP_ONLY]
                 },
                 {
                     name: 'hover_thumbnail_timeout',
@@ -111,7 +117,8 @@
                     description: 'Hover over download button duration to show thumbnail (negative for disabled)',
                     type: 'number',
                     post: (elem) => elem.appendChild(document.createTextNode(' seconds')),
-                    attributes: {step: '0.1'}
+                    attributes: {step: '0.1'},
+                    class: [PLATFORMS.DESKTOP_ONLY]
                 },
                 {
                     type: 'break'
@@ -355,6 +362,7 @@
                     name: 'bookmark_on_photo_page',
                     category: 'setting',
                     description: 'Show bookmark button on the enlarged photo page',
+                    class: [PLATFORMS.DESKTOP_ONLY]
                 },
                 {
                     name: 'replace_tweet_urls',
@@ -384,17 +392,20 @@
                 {
                     name: 'use_download_progress',
                     category: 'download_preferences',
-                    description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)'
+                    description: 'Show downloads on screen in queue, rather than auto downloading (Mobile exclusive)',
+                    class: [PLATFORMS.MOBILE_ONLY]
                 },
                 {
                     name: 'hide_bottom_bar_completely',
                     category: 'setting',
-                    description: 'Hide navigation bar completely when scrolling down'
+                    description: 'Hide navigation bar completely when scrolling down',
+                    class: [PLATFORMS.MOBILE_ONLY]
                 },
                 {
                     name: 'prevent_video_autoscroll',
                     category: 'setting',
-                    description: 'Prevent the video player on mobile auto-scrolling when a video ends'
+                    description: 'Prevent the video player on mobile auto-scrolling when a video ends',
+                    class: [PLATFORMS.MOBILE_ONLY]
                 },
                 {
                     type: 'break'
@@ -704,6 +715,7 @@
                 },
                 {
                     type: 'break',
+                    class: [PLATFORMS.DESKTOP_ONLY] // hide this entire category
                 },
                 {
                     name: 'save_directory_shift',
@@ -971,7 +983,11 @@
             outer.firstElementChild.after(quickPicks);
             return outer;
         },
-        break: () => document.createElement('br')
+        break: (e) => {
+            const elem = document.createElement('br');
+            if (e.class) elem.classList.add(...e.class);
+            return elem;
+        }
     }
 
     for (const category in options) {
