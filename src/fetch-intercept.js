@@ -83,7 +83,8 @@
             const mediaInfo = [];
             for (let index = 1; index <= media.length; ++index) {
                 const {media_url_https, video_info, type, expanded_url} = media[index - 1];
-                const /** @type {MediaItem} */ info = {index, save_id: `${id}-${index}`, url: '', type: 'Image',
+                /** @type {MediaItem} */
+                const info = {index, save_id: `${id}-${index}`, url: '', type: 'Image',
                     tweetURL: (username) ? expanded_url.replace(usernameReplaceRegex, usernameReplaceStr).replace("{ID}", id) : expanded_url.replace("{ID}", id)};
                 switch (type) {
                     case 'photo': {
@@ -187,6 +188,7 @@
                         const match = entry.key.match(choice_regex);
                         if (!match) continue;
                         media_tweets[1].push({
+                            index: Number(match[1]),
                             type: 'photo',
                             expanded_url: `https://x.com/lol/status/{ID}/photo/${match[1]}`,
                             media_url_https: entry.value.image_value.url
@@ -194,6 +196,8 @@
                     }
 
                     if (media_tweets[1].length > 0) {
+                        media_tweets[1].sort((a, b) => a.index - b.index);
+                        for (const tweet of media_tweets[1]) delete tweet.index;
                         result.mediaTweets.push(media_tweets);
                     }
                 }
