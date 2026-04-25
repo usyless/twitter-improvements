@@ -1087,7 +1087,8 @@
                 popup = document.createElement('div');
 
             const closestBtn = Button.closest(event.target);
-            let btnRect = closestBtn.getBoundingClientRect();
+            /** @type {DOMRect} */
+            let btnRect;
 
             let lastPopupY = 0;
             let lastPopupX = 0;
@@ -1100,22 +1101,50 @@
                 popup.style.transform = `translateX(${lastPopupX}px) translateY(${lastPopupY}px)`;
             };
 
+            /** @type {number} */
             let originalScrollY = window.scrollY;
             let fixScrollPosition = () => setPopupY(btnRect.y - (window.scrollY - originalScrollY));
+            let fixPopupX = () => setPopupX(btnRect.x);
+            const originalFixPopupX = fixPopupX;
+            const rightFixPopupX = () => setPopupX(btnRect.right - window.innerWidth);
+            const leftFixPopupX = () => setPopupX(0);
+
+            /** @type {DOMRect} */
+            let rect;
 
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
-            setPopupX(btnRect.x);
-            setPopupY(btnRect.y);
+            popup.style.top = '0px';
+
+            const resizeListener = () => {
+                btnRect = closestBtn.getBoundingClientRect();
+                rect = popup.getBoundingClientRect();
+                originalScrollY = window.scrollY;
+
+                let right = rect.right;
+
+                const hasRight = popup.getAttribute('style').includes('right:');
+
+                if (hasRight) right = rect.right + rect.width - btnRect.width;
+
+                if (right > window.innerWidth) {
+                    popup.style.removeProperty('left');
+                    popup.style.right = '0px';
+                    fixPopupX = rightFixPopupX;
+                } else {
+                    popup.style.removeProperty('right');
+                    popup.style.left = '0px';
+                    if (rect.left <= 0) fixPopupX = leftFixPopupX;
+                    else fixPopupX = originalFixPopupX;
+                }
+
+                fixPopupX();
+                fixScrollPosition();
+            };
 
             notificationEventListeners.push({
                 type: 'resize',
-                listener: () => {
-                    btnRect = closestBtn.getBoundingClientRect();
-                    originalScrollY = window.scrollY;
-                    setPopupX(btnRect.x);
-                    fixScrollPosition();
-                }
+                listener: resizeListener
             });
 
             popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
@@ -1156,8 +1185,6 @@
                     Button.handleClick(null, save_id, null);
                 }
             });
-
-            let popupHeight;
 
             { // thumbnails
                 let lastIndex;
@@ -1200,28 +1227,25 @@
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
 
-            // ensure popup has a size in the body
-            const rect = popup.getBoundingClientRect();
-
-            if (rect.left < 0) setPopupX(0);
-            else if (rect.right > window.innerWidth) setPopupX(btnRect.x - rect.width + btnRect.width);
-
-            if (rect.top < 0) setPopupY(0);
-            else if (rect.bottom > window.innerHeight) {
-                fixScrollPosition = () => setPopupY(btnRect.y + btnRect.height - rect.height - (window.scrollY - originalScrollY));
+            resizeListener();
+            resizeListener(); // twice on purpose here
+            if (rect.bottom > window.innerHeight) {
+                popup.style.removeProperty('top');
+                popup.style.bottom = '0px';
+                fixScrollPosition = () => setPopupY(btnRect.y + btnRect.height - window.innerHeight - (window.scrollY - originalScrollY));
                 fixScrollPosition();
             } else if (GlobalSettings.download_preferences.download_all_near_click) {
                 popup.firstElementChild.before(popup.lastElementChild);
             }
 
-            popup.classList.add('animate');
             notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition, options: { passive: false }});
+            popup.classList.add('animate');
 
             for (const {type, listener, options} of notificationEventListeners) {
-                listener();
                 if (options) window.addEventListener(type, listener, options);
                 else window.addEventListener(type, listener);
             }
+
             logInfo('Finished creating download choices for event:', choices, event);
         },
 
