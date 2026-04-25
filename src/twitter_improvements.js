@@ -1081,19 +1081,42 @@
             logInfo('Creating download choices for event:', choices, event);
 
             Notification.clearFullscreen();
-            const /** @type {EventListeners[]} */ notificationEventListeners = [];
+            /** @type {EventListeners[]} */
+            const notificationEventListeners = [];
             const fullscreen = document.createElement('div'),
                 popup = document.createElement('div');
 
-            const btnRect = Button.closest(event.target).getBoundingClientRect();
+            const closestBtn = Button.closest(event.target);
+            let btnRect = closestBtn.getBoundingClientRect();
 
-            const originalScrollY = window.scrollY;
-            let fixScrollPosition = () => popup.style.top = `${btnRect.y - (window.scrollY - originalScrollY)}px`;
+            let lastPopupY = 0;
+            let lastPopupX = 0;
+            const setPopupX = (x) => {
+                lastPopupX = x;
+                popup.style.transform = `translateX(${lastPopupX}px) translateY(${lastPopupY}px)`;
+            };
+            const setPopupY = (y) => {
+                lastPopupY = y;
+                popup.style.transform = `translateX(${lastPopupX}px) translateY(${lastPopupY}px)`;
+            };
+
+            let originalScrollY = window.scrollY;
+            let fixScrollPosition = () => setPopupY(btnRect.y - (window.scrollY - originalScrollY));
 
             fullscreen.classList.add('usyNotificationOuter', 'usyFullscreen');
             popup.classList.add('usyDownloadChoicePopup');
-            popup.style.left = `${btnRect.x}px`;
-            popup.style.top = `${btnRect.y}px`;
+            setPopupX(btnRect.x);
+            setPopupY(btnRect.y);
+
+            notificationEventListeners.push({
+                type: 'resize',
+                listener: () => {
+                    btnRect = closestBtn.getBoundingClientRect();
+                    originalScrollY = window.scrollY;
+                    setPopupX(btnRect.x);
+                    fixScrollPosition();
+                }
+            });
 
             popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
 
@@ -1178,31 +1201,27 @@
             document.body.appendChild(fullscreen);
 
             // ensure popup has a size in the body
-            requestAnimationFrame(() => {
-                const rect = popup.getBoundingClientRect();
-                popupHeight = rect.height;
+            const rect = popup.getBoundingClientRect();
 
-                if (rect.left < 0) popup.style.left = '0px';
-                else if (rect.right > window.innerWidth) popup.style.left = `${btnRect.x - rect.width + btnRect.width}px`;
+            if (rect.left < 0) setPopupX(0);
+            else if (rect.right > window.innerWidth) setPopupX(btnRect.x - rect.width + btnRect.width);
 
-                if (rect.top < 0) popup.style.top = '0px';
-                else if (rect.bottom > window.innerHeight) {
-                    popup.style.removeProperty('top');
-                    popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height}px`;
-                    fixScrollPosition = () => popup.style.bottom = `${window.innerHeight - btnRect.y - btnRect.height + (window.scrollY - originalScrollY)}px`;
-                } else if (GlobalSettings.download_preferences.download_all_near_click) {
-                    popup.firstElementChild.before(popup.lastElementChild);
-                }
+            if (rect.top < 0) setPopupY(0);
+            else if (rect.bottom > window.innerHeight) {
+                fixScrollPosition = () => setPopupY(btnRect.y + btnRect.height - rect.height - (window.scrollY - originalScrollY));
+                fixScrollPosition();
+            } else if (GlobalSettings.download_preferences.download_all_near_click) {
+                popup.firstElementChild.before(popup.lastElementChild);
+            }
 
-                popup.classList.add('animate');
-                notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition, options: { passive: false }});
+            popup.classList.add('animate');
+            notificationEventListeners.push({type: 'scroll', listener: fixScrollPosition, options: { passive: false }});
 
-                for (const {type, listener, options} of notificationEventListeners) {
-                    listener();
-                    if (options) window.addEventListener(type, listener, options);
-                    else window.addEventListener(type, listener);
-                }
-            });
+            for (const {type, listener, options} of notificationEventListeners) {
+                listener();
+                if (options) window.addEventListener(type, listener, options);
+                else window.addEventListener(type, listener);
+            }
             logInfo('Finished creating download choices for event:', choices, event);
         },
 
