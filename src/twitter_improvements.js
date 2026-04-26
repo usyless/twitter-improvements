@@ -1122,18 +1122,18 @@
                 originalScrollY = window.scrollY;
 
                 let right = rect.right;
-
-                const hasRight = popup.getAttribute('style').includes('right:');
+                const styleAttr = popup.getAttribute('style');
+                const hasRight = styleAttr.includes('right:');
 
                 if (hasRight) right = rect.right + rect.width - btnRect.width;
 
                 if (right > window.innerWidth) {
-                    popup.style.removeProperty('left');
-                    popup.style.right = '0px';
+                    if (styleAttr.includes('left:')) popup.style.removeProperty('left');
+                    if (!hasRight) popup.style.right = '0px';
                     fixPopupX = rightFixPopupX;
                 } else {
-                    popup.style.removeProperty('right');
-                    popup.style.left = '0px';
+                    if (hasRight) popup.style.removeProperty('right');
+                    if (!styleAttr.includes('left:')) popup.style.left = '0px';
                     if (rect.left <= 0) fixPopupX = leftFixPopupX;
                     else fixPopupX = originalFixPopupX;
                 }
