@@ -496,7 +496,6 @@
                     name: 'scroll_to_top_button',
                     category: 'listeners',
                     description: 'Show a scroll to top button on the page whenever scrolling upwards'
-
                 },
                 {
                     name: 'performance_mode',

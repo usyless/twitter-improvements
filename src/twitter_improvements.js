@@ -510,7 +510,7 @@
                         } else {
                             const observerSettings = {childList: true, subtree: true};
                             const observer = new MutationObserver((_, observer) => {
-                                const share = video.querySelector('[aria-label="Video Settings"]')?.parentElement?.parentElement;
+                                const share = video.querySelector(Selectors.video_settings_button);
                                 if (share && !video.querySelector('[usy-media]')) {
                                     button ??= Button.newButton(share.cloneNode(true), download_button_path, Image.downloadButtonCallback,
                                         "usy-media", Image.downloadButtonCallback, null,
@@ -1427,7 +1427,7 @@
                 video.currentTime = 0;
                 void video.play();
             }, {capture: true});
-        }
+        },
     };
 
     const Helpers = {

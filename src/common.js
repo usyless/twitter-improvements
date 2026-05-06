@@ -23,6 +23,10 @@
         download: ['div[usy-download]']
     };
 
+    globalThis.Selectors = {
+        video_settings_button: 'div:has(> div > [aria-label="Video Settings"]:not([usy])), div:has(> div > button:not([usy]) > div > svg > g > path[d^="M10.54 1.75h2.92l1.57 2.36c.11.17.32.25.53.21l2.53-.59"])',
+    };
+
     globalThis.GlobalBackground = {
         /** @param {saveId} id */
         download_history_has: (id) => extension.runtime.sendMessage({type: 'download_history_has', id}),
