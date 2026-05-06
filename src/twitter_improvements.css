@@ -354,10 +354,21 @@ body {
     overflow: visible;
     white-space: nowrap;
     animation: scrollButton 0.1s ease-out forwards;
+
+    &.exit {
+        animation: scrollButtonOut 0.1s ease-out forwards;
+    }
 }
 
 @keyframes scrollButton {
     0% {
+        opacity: 0;
+        left: -2em;
+    }
+}
+
+@keyframes scrollButtonOut {
+    100% {
         opacity: 0;
         left: -2em;
     }

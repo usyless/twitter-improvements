@@ -1926,6 +1926,8 @@
                         disabled = false;
                     };
 
+                    const remove = (e) => e.currentTarget.remove();
+
                     let mainTick = false;
 
                     const main = () => {
@@ -1943,7 +1945,11 @@
                                 }
                             } else {
                                 if (ticking) disabled = true;
-                                for (const elem of document.querySelectorAll('.usyScrollToTopButton')) elem.remove();
+                                for (const elem of document.querySelectorAll('.usyScrollToTopButton')) {
+                                    elem.classList.add('exit');
+                                    setTimeout(() => elem?.remove(), 100);
+                                    elem.addEventListener('animationend', remove);
+                                }
                             }
                         }
                         previousScrollY = currentScrollY;
