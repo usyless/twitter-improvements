@@ -557,35 +557,6 @@
             }
         },
 
-        /** @param {HTMLElement} thumb */
-        fixThumbnailPosition: (thumb) => {
-            requestAnimationFrame(() => {
-                // now preview is loaded, reposition if needed
-                if (thumb?.isConnected) {
-                    const {left, right, top, bottom} = thumb.getBoundingClientRect();
-                    if (left < 0) {
-                        thumb.style.right = '';
-                        thumb.classList.add('removeTransform');
-                        thumb.style.left = `0px`;
-                    } else if (right > window.innerWidth) {
-                        thumb.style.left = '';
-                        thumb.classList.add('removeTransform');
-                        thumb.style.right = '0px';
-                    }
-
-                    if (bottom > window.innerHeight) {
-                        thumb.style.top = '';
-                        thumb.classList.add('removeTransform');
-                        thumb.style.bottom = '0px';
-                    } else if (top < 0) {
-                        thumb.style.bottom = '';
-                        thumb.classList.add('removeTransform');
-                        thumb.style.top = '0px';
-                    }
-                }
-            });
-        },
-
         /**
          * @param {HTMLElement} element
          * @param {MediaItem} media
@@ -602,7 +573,7 @@
             const thumb = document.createElement((media.type === 'Video') ? 'video' : 'img');
             fullscreen.appendChild(thumb);
 
-            thumb.classList.add('usyVideoPreview', 'topBottom');
+            thumb.classList.add('usyVideoPreview');
             if (media.type === 'Video') {
                 thumb.autoplay = true;
                 thumb.muted = false;
@@ -653,28 +624,42 @@
             fullscreen.usyCloseThumb = closeThumb;
 
             thumb.addEventListener((media.type === 'Video') ? 'loadeddata' : 'load', () => {
-                requestAnimationFrame(() => {
-                    if ((thumb.isConnected) && !(controller.signal.aborted)) {
-                        if (!isAndroid && !Array.from(Helpers.allHoveringElements()).includes(eventElem)) {
-                            closeThumb();
-                            return;
-                        }
+                if (!isAndroid && !Array.from(Helpers.allHoveringElements()).includes(eventElem)) {
+                    closeThumb();
+                    return;
+                }
 
-                        const {left, width, top, bottom} = element.getBoundingClientRect();
-                        const bottomDistance = window.innerHeight - bottom;
+                const {left, width, top, bottom} = element.getBoundingClientRect();
+                const bottomDistance = window.innerHeight - bottom;
 
-                        if (bottomDistance > top) { // show on bottom
-                            thumb.style.top = `${bottom}px`;
-                            thumb.style.setProperty('--usy-max-height', `${bottomDistance}px`);
-                        } else { // show on top
-                            thumb.style.bottom = `${window.innerHeight - top}px`;
-                            thumb.style.setProperty('--usy-max-height', `${top}px`);
-                        }
-                        thumb.style.left = `${left + (width / 2)}px`;
-                        thumb.style.display = '';
-                        Image.fixThumbnailPosition(thumb);
-                    }
-                });
+                if (bottomDistance > top) { // show on bottom
+                    thumb.style.top = `${bottom}px`;
+                    thumb.style.setProperty('--usy-max-height', `${bottomDistance}px`);
+                } else { // show on top
+                    thumb.style.bottom = `${window.innerHeight - top}px`;
+                    thumb.style.setProperty('--usy-max-height', `${top}px`);
+                }
+
+                thumb.style.display = '';
+                const {width: thumbwidth} = thumb.getBoundingClientRect();
+                thumb.style.left = `${left + (width / 2) - (thumbwidth / 2)}px`;
+
+                const {left: thumbleft, right: thumbright, top: thumbtop, bottom: thumbbottom} = thumb.getBoundingClientRect();
+                if (thumbleft < 0) {
+                    thumb.style.right = '';
+                    thumb.style.left = `0px`;
+                } else if (thumbright > window.innerWidth) {
+                    thumb.style.left = '';
+                    thumb.style.right = '0px';
+                }
+
+                if (thumbbottom > window.innerHeight) {
+                    thumb.style.top = '';
+                    thumb.style.bottom = '0px';
+                } else if (thumbtop < 0) {
+                    thumb.style.bottom = '';
+                    thumb.style.top = '0px';
+                }
             }, { once: true, signal: controller.signal });
 
             thumb.addEventListener('error', closeThumb);
