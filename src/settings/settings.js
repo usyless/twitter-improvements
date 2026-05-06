@@ -493,6 +493,12 @@
                     class: [PLATFORMS.MOBILE_ONLY]
                 },
                 {
+                    name: 'scroll_to_top_button',
+                    category: 'listeners',
+                    description: 'Show a scroll to top button on the page whenever scrolling upwards'
+
+                },
+                {
                     name: 'performance_mode',
                     category: 'setting',
                     description: 'Performance mode: throttle UI updates (Makes custom elements pop in - not recommended unless you notice a severe performance hit from this extension)'

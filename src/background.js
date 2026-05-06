@@ -106,6 +106,10 @@ const defaultSettings = {
         replace_user_urls_with_media: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
+        },
+        scroll_to_top_button: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 

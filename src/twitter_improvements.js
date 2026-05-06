@@ -920,7 +920,7 @@
         },
 
         resetAll: () => {
-            for (const e of document.querySelectorAll('.usybuttonclickdiv')) e.remove();
+            for (const e of document.querySelectorAll('.usybuttonclickdiv,.usyScrollToTopButton')) e.remove();
             for (const attr of ['usy', 'usy-bookmarked', 'usy-download', 'usy-media', 'usy-noscroll']) {
                 for (const e of document.querySelectorAll(`[${attr}]`)) e.removeAttribute(attr);
             }
@@ -1566,7 +1566,22 @@
             '/search', '/hashtag', '/trending', '/account', '/profile', '/business', '/ads-get-started',
             '/help', '/tos', '/privacy', '/rules', '/cookies', '/contact', '/about', '/i', '/intent', '/share',
             '/logout', '/login', '/signup', '/welcome', '/download'
-        ])
+        ]),
+
+        showScrollToTop: (() => {
+            const listener = (e) => {
+                window.scrollTo({top: 0, left: 0, behavior: 'instant'});
+                e.currentTarget.remove();
+            }
+            return () => {
+                if (document.querySelector('.usyScrollToTopButton')) return;
+                const btn = document.createElement('div');
+                btn.classList.add('usyScrollToTopButton');
+                btn.textContent = '⬆️';
+                btn.addEventListener('click', listener);
+                document.body.appendChild(btn);
+            }
+        })()
     };
 
     const Observer = {
@@ -1897,6 +1912,51 @@
                     ChatHelpers.spaNavigate(link.href, window.history.state?.state || {});
                 },
                 options: {capture: true}
+            }],
+            scroll_to_top_button: [{
+                event: 'scroll',
+                target: () => window,
+                listener: (() => {
+                    let previousScrollY = window.scrollY;
+                    let ticking = false;
+                    let disabled = false;
+                    const wrapper = () => {
+                        if (!disabled) Helpers.showScrollToTop();
+                        ticking = false;
+                        disabled = false;
+                    };
+
+                    let mainTick = false;
+
+                    const main = () => {
+                        const currentScrollY = window.scrollY;
+                        if (currentScrollY !== 0) {
+                            if (currentScrollY <= previousScrollY) {
+                                if (!document.querySelector('.usyScrollToTopButton')) {
+                                    if (!ticking) {
+                                        setTimeout(wrapper, 250);
+                                        ticking = true;
+                                        disabled = false;
+                                    } else {
+                                        disabled = false;
+                                    }
+                                }
+                            } else {
+                                if (ticking) disabled = true;
+                                for (const elem of document.querySelectorAll('.usyScrollToTopButton')) elem.remove();
+                            }
+                        }
+                        previousScrollY = currentScrollY;
+                        mainTick = false;
+                    };
+
+                    return () => {
+                        if (!mainTick) {
+                            setTimeout(main, 250);
+                            mainTick = true;
+                        }
+                    }
+                })()
             }]
         },
 

@@ -335,3 +335,30 @@ body {
         max-height: 1000px;
     }
 }
+
+.usyScrollToTopButton {
+    position: fixed;
+    bottom: 5em;
+    left: 2em;
+    z-index: 1000;
+    cursor: pointer;
+    padding: 20px;
+    background-color: #0d9af1;
+    border: transparent 0 solid;
+    border-radius: 10px;
+    line-height: 0;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    white-space: nowrap;
+    animation: scrollButton 0.1s ease-out forwards;
+}
+
+@keyframes scrollButton {
+    0% {
+        opacity: 0;
+        left: -2em;
+    }
+}
