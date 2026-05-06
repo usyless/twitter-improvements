@@ -1172,26 +1172,35 @@ function download_history_add_all(request, sendResponse, progressCallback) {
 
         const accumulator = new Map();
 
-        if (progressCallback) {
-            let progress = 0;
-            for (const saved_image of request.saved_images) {
-                const [id_proc, num] = process_id(saved_image);
-                if (!id_proc) continue;
-                const val = (accumulator.get(id_proc) || 0) | num;
-                accumulator.set(id_proc, val);
-                objectStore.put(val, id_proc);
-                if ((++progress % 250) === 0) progressCallback({progress});
+        // prepopulate accumulator
+        objectStore.openCursor().addEventListener('success', (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                accumulator.set(cursor.key, cursor.value);
+                cursor.continue();
+            } else {
+                if (progressCallback) {
+                    let progress = 0;
+                    for (const saved_image of request.saved_images) {
+                        const [id_proc, num] = process_id(saved_image);
+                        if (!id_proc) continue;
+                        const val = (accumulator.get(id_proc) || 0) | num;
+                        accumulator.set(id_proc, val);
+                        objectStore.put(val, id_proc);
+                        if ((++progress % 250) === 0) progressCallback({progress});
+                    }
+                    progressCallback({text: 'Finished importing, waiting...'});
+                } else {
+                    for (const saved_image of request.saved_images) {
+                        const [id_proc, num] = process_id(saved_image);
+                        if (!id_proc) continue;
+                        const val = (accumulator.get(id_proc) || 0) | num;
+                        accumulator.set(id_proc, val);
+                        objectStore.put(val, id_proc);
+                    }
+                }
             }
-            progressCallback({text: 'Finished importing, waiting...'});
-        } else {
-            for (const saved_image of request.saved_images) {
-                const [id_proc, num] = process_id(saved_image);
-                if (!id_proc) continue;
-                const val = (accumulator.get(id_proc) || 0) | num;
-                accumulator.set(id_proc, val);
-                objectStore.put(val, id_proc);
-            }
-        }
+        });
     });
 }
 
