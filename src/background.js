@@ -83,6 +83,10 @@ const defaultSettings = {
         prevent_video_autoscroll: {
             default: false,
             validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
+        },
+        performance_mode: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
         }
     },
 

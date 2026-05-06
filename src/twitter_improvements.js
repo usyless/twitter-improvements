@@ -1641,7 +1641,19 @@
                 };
                 if (callbacks.length > 0) {
                     update();
-                    return update;
+                    if (GlobalSettings.setting.performance_mode) {
+                        let lastTimer;
+                        let lastTime = performance.now();
+                        return () => {
+                            clearTimeout(lastTimer);
+                            const now = performance.now();
+                            if ((now - lastTime) > 250) update();
+                            else lastTimer = setTimeout(update, 250);
+                            lastTime = now;
+                        };
+                    } else {
+                        return update;
+                    }
                 } else {
                     return Observer.disable;
                 }

@@ -493,6 +493,11 @@
                     class: [PLATFORMS.MOBILE_ONLY]
                 },
                 {
+                    name: 'performance_mode',
+                    category: 'setting',
+                    description: 'Performance mode: throttle UI updates (Makes custom elements pop in - not recommended unless you notice a severe performance hit from this extension)'
+                },
+                {
                     type: 'break'
                 },
                 {
