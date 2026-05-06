@@ -6,34 +6,6 @@ if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loa
 
 globalThis.enableIsBackgroundPage();
 
-const base91ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
-const base91BASE = BigInt(base91ALPHABET.length);
-
-/**
- * @param {string} value
- * @returns {string}
- */
-const base91Encode = (value) => {
-    let b = BigInt(value);
-    if (b === 0n) return base91ALPHABET[0];
-    let res = '';
-    while (b > 0n) {
-        res = base91ALPHABET[Number(b % base91BASE)] + res;
-        b = b / base91BASE;
-    }
-    return res;
-}
-
-/**
- * @param {string} str
- * @returns {string}
- */
-const base91Decode = (str) => {
-    let acc = 0n;
-    for (const c of str) acc = acc * base91BASE + BigInt(base91ALPHABET.indexOf(c));
-    return acc.toString(10);
-}
-
 const isAndroid = /Android/.test(navigator.userAgent);
 const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
@@ -876,8 +848,10 @@ async function migrateSettings(previousVersion) {
 
                         for (const saved_image of valid) {
                             const [id_proc, num] = process_id(saved_image);
-                            const val = (accumulator.get(id_proc) || 0) | num;
-                            accumulator.set(id_proc, val);
+                            if (!id_proc) continue;
+                            const id_num = (new BigUint64Array(id_proc))[0];
+                            const val = (accumulator.get(id_num) || 0) | num;
+                            accumulator.set(id_num, val);
                             objectStore.put(val, id_proc);
                         }
                     });
@@ -1056,11 +1030,17 @@ async function migrateSettings(previousVersion) {
 
 /**
  * @param {saveId} id
- * @returns {[string, number]}
+ * @returns {[ArrayBuffer, number]}
  */
 function process_id(id) {
-    const [id_proc, num] = id.split('-');
-    return [base91Encode(id_proc), 1 << Number(num)];
+    try {
+        const [id_proc, num] = id.split('-');
+        const num_num = Number(num);
+        if ((num_num >= 1) && (num_num <= 4)) return [(new BigUint64Array([BigInt(id_proc)])).buffer, 1 << num_num];
+        else return [0, 0];
+    } catch {
+        return [0, 0];
+    }
 }
 
 /**
@@ -1070,6 +1050,10 @@ function process_id(id) {
 function download_history_has({id}, sendResponse) {
     getHistoryDB().then((db) => {
         const [id_proc, num] = process_id(id);
+        if (!id_proc) {
+            sendResponse?.(false);
+            return;
+        }
         db.transaction('download_history', 'readonly').objectStore('download_history')
             .get(id_proc).addEventListener('success', (e) => {
                 sendResponse?.((((e.target.result || 0) & num) !== 0));
@@ -1084,6 +1068,11 @@ function download_history_add(saved_image) {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
             const [id_proc, num] = process_id(saved_image);
+            if (!id_proc) {
+                resolve();
+                return;
+            }
+
             const os = db.transaction('download_history', 'readwrite').objectStore('download_history');
             os.get(id_proc).addEventListener('success', (e) => {
                 if (((e.target.result || 0) & num) === 0) {
@@ -1107,6 +1096,11 @@ function download_history_add(saved_image) {
 function download_history_remove({id}, sendResponse) {
     getHistoryDB().then((db) => {
         const [id_proc, num] = process_id(id);
+        if (!id_proc) {
+            sendResponse?.(true);
+            return;
+        }
+
         const os = db.transaction('download_history', 'readwrite').objectStore('download_history');
         os.get(id_proc).addEventListener('success', (e) => {
             const current_value = (e.target.result || 0);
@@ -1155,8 +1149,10 @@ function download_history_add_all(request, sendResponse, progressCallback) {
             let progress = 0;
             for (const saved_image of request.saved_images) {
                 const [id_proc, num] = process_id(saved_image);
-                const val = (accumulator.get(id_proc) || 0) | num;
-                accumulator.set(id_proc, val);
+                if (!id_proc) continue;
+                const id_num = (new BigUint64Array(id_proc))[0];
+                const val = (accumulator.get(id_num) || 0) | num;
+                accumulator.set(id_num, val);
                 objectStore.put(val, id_proc);
                 if ((++progress % 250) === 0) progressCallback({progress});
             }
@@ -1164,8 +1160,10 @@ function download_history_add_all(request, sendResponse, progressCallback) {
         } else {
             for (const saved_image of request.saved_images) {
                 const [id_proc, num] = process_id(saved_image);
-                const val = (accumulator.get(id_proc) || 0) | num;
-                accumulator.set(id_proc, val);
+                if (!id_proc) continue;
+                const id_num = (new BigUint64Array(id_proc))[0];
+                const val = (accumulator.get(id_num) || 0) | num;
+                accumulator.set(id_num, val);
                 objectStore.put(val, id_proc);
             }
         }
@@ -1180,7 +1178,7 @@ function download_history_get_all(_, sendResponse) {
             .openCursor().addEventListener('success', (e) => {
             const cursor = e.target.result;
             if (cursor) {
-                const key = base91Decode(cursor.key);
+                const key = (new BigUint64Array(cursor.key))[0].toString(10);
                 const value = cursor.value;
                 for (let i = 1; i <= 4; ++i) if ((value & (1 << i)) !== 0) valid.push(`${key}-${i}`);
                 cursor.continue();
