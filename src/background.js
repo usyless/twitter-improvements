@@ -6,6 +6,34 @@ if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loa
 
 globalThis.enableIsBackgroundPage();
 
+const base91ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
+const base91BASE = BigInt(base91ALPHABET.length);
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+const base91Encode = (value) => {
+    let b = BigInt(value);
+    if (b === 0n) return base91ALPHABET[0];
+    let res = '';
+    while (b > 0n) {
+        res = base91ALPHABET[Number(b % base91BASE)] + res;
+        b = b / base91BASE;
+    }
+    return res;
+}
+
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+const base91Decode = (str) => {
+    let acc = 0n;
+    for (const c of str) acc = acc * base91BASE + BigInt(base91ALPHABET.indexOf(c));
+    return acc.toString(10);
+}
+
 const isAndroid = /Android/.test(navigator.userAgent);
 const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
 
@@ -829,6 +857,33 @@ function saveImage(url, sourceURL) {
 /** @param {string} previousVersion */
 async function migrateSettings(previousVersion) {
     const migrations = [
+        ['1.7.8', () => new Promise((resolve) => {
+            getHistoryDB().then((db) => {
+                const transaction = db.transaction('download_history', 'readwrite');
+                const objectStore = transaction.objectStore('download_history');
+
+                transaction.addEventListener('complete', resolve);
+
+                objectStore.getAllKeys().addEventListener('success', (e) => {
+                    const valid = [];
+                    for (const /** @type {saveId} */ saveId of e.target.result) { // old db system
+                        const [tweetId, tweetNum] = saveId.split('-');
+                        if (tweetId && tweetNum) valid.push(saveId);
+                    }
+
+                    objectStore.clear().addEventListener('success', () => {
+                        const accumulator = new Map();
+
+                        for (const saved_image of valid) {
+                            const [id_proc, num] = process_id(saved_image);
+                            const val = (accumulator.get(id_proc) || 0) | num;
+                            accumulator.set(id_proc, val);
+                            objectStore.put(val, id_proc);
+                        }
+                    });
+                });
+            })
+        })],
         ['1.6.8', async () => {
             /** @type {Settings} */
             const s = await extension.storage.local.get('download_preferences');
@@ -1001,23 +1056,45 @@ async function migrateSettings(previousVersion) {
 
 /**
  * @param {saveId} id
- * @param {function(any): any} sendResponse
+ * @returns {[string, number]}
+ */
+function process_id(id) {
+    const [id_proc, num] = id.split('-');
+    return [base91Encode(id_proc), 1 << Number(num)];
+}
+
+/**
+ * @param {saveId} id
+ * @param {function(any): any} [sendResponse]
  */
 function download_history_has({id}, sendResponse) {
     getHistoryDB().then((db) => {
+        const [id_proc, num] = process_id(id);
         db.transaction('download_history', 'readonly').objectStore('download_history')
-            .get(id).addEventListener('success', (e) => sendResponse(e.target.result != null));
+            .get(id_proc).addEventListener('success', (e) => {
+                sendResponse?.((((e.target.result || 0) & num) !== 0));
+        });
     });
 }
 
-/** @param {saveId} saved_image */
+/**
+ * @param {saveId} saved_image
+ */
 function download_history_add(saved_image) {
     return new Promise((resolve) => {
         getHistoryDB().then((db) => {
-            db.transaction('download_history', 'readwrite').objectStore('download_history')
-                .put(true, saved_image).addEventListener('success', () => {
-                send_to_all_tabs({type: 'history_change_add', id: saved_image});
-                resolve();
+            const [id_proc, num] = process_id(saved_image);
+            const os = db.transaction('download_history', 'readwrite').objectStore('download_history');
+            os.get(id_proc).addEventListener('success', (e) => {
+                if (((e.target.result || 0) & num) === 0) {
+                    os.put((e.target.result || 0) | num, id_proc).addEventListener('success', () => {
+                        send_to_all_tabs({type: 'history_change_add', id: saved_image});
+                        resolve();
+                    });
+                } else {
+                    // send_to_all_tabs({type: 'history_change_add', id: saved_image});
+                    resolve();
+                }
             });
         });
     });
@@ -1029,10 +1106,25 @@ function download_history_add(saved_image) {
  */
 function download_history_remove({id}, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction('download_history', 'readwrite').objectStore('download_history')
-            .delete(id).addEventListener('success', () => {
-                send_to_all_tabs({type: 'history_change_remove', id});
+        const [id_proc, num] = process_id(id);
+        const os = db.transaction('download_history', 'readwrite').objectStore('download_history');
+        os.get(id_proc).addEventListener('success', (e) => {
+            const current_value = (e.target.result || 0);
+            if ((current_value & num) !== 0) {
+                let success;
+                if ((current_value & ~num) === 0) {
+                    success = os.delete(id_proc);
+                } else {
+                    success = os.put(current_value & ~num, id_proc);
+                }
+                success.addEventListener('success', () => {
+                    send_to_all_tabs({type: 'history_change_remove', id});
+                    sendResponse?.(true);
+                });
+            } else {
+                // send_to_all_tabs({type: 'history_change_remove', id});
                 sendResponse?.(true);
+            }
         });
     });
 }
@@ -1057,32 +1149,45 @@ function download_history_add_all(request, sendResponse, progressCallback) {
             sendResponse?.(true);
         });
 
+        const accumulator = new Map();
+
         if (progressCallback) {
             let progress = 0;
             for (const saved_image of request.saved_images) {
-                objectStore.put(true, saved_image);
+                const [id_proc, num] = process_id(saved_image);
+                const val = (accumulator.get(id_proc) || 0) | num;
+                accumulator.set(id_proc, val);
+                objectStore.put(val, id_proc);
                 if ((++progress % 250) === 0) progressCallback({progress});
             }
             progressCallback({text: 'Finished importing, waiting...'});
         } else {
-            for (const saved_image of request.saved_images) objectStore.put(true, saved_image);
+            for (const saved_image of request.saved_images) {
+                const [id_proc, num] = process_id(saved_image);
+                const val = (accumulator.get(id_proc) || 0) | num;
+                accumulator.set(id_proc, val);
+                objectStore.put(val, id_proc);
+            }
         }
     });
 }
 
 function download_history_get_all(_, sendResponse) {
     getHistoryDB().then((db) => {
-        db.transaction('download_history', 'readonly').objectStore('download_history')
-            .getAllKeys().addEventListener('success', (e) => {
-                const valid = [];
-                for (const /** @type {saveId} */ saveId of e.target.result) {
-                    const [tweetId, tweetNum] = saveId.split('-');
-                    if (tweetId && tweetNum) valid.push(saveId);
-                    else download_history_remove({id: saveId});
-                }
+        const valid = [];
 
+        db.transaction('download_history', 'readonly').objectStore('download_history')
+            .openCursor().addEventListener('success', (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+                const key = base91Decode(cursor.key);
+                const value = cursor.value;
+                for (let i = 1; i <= 4; ++i) if ((value & (1 << i)) !== 0) valid.push(`${key}-${i}`);
+                cursor.continue();
+            } else {
                 sendResponse(valid);
-        })
+            }
+        });
     });
 }
 
