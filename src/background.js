@@ -563,6 +563,7 @@ extension.storage.onChanged.addListener(onSettingsChangeListener);
 const requestMap = {
     save_media: download_media,
     download_history_has: download_history_has,
+    download_history_has_all: download_history_has_all,
     download_history_remove: download_history_remove,
     download_history_clear: download_history_clear,
     download_history_add: ({id}, sendResponse) => {
@@ -1088,6 +1089,49 @@ function download_history_has({id}, sendResponse) {
         db.transaction('download_history', 'readonly').objectStore('download_history')
             .get(id_proc).addEventListener('success', (e) => {
                 sendResponse?.((((e.target.result || 0) & num) !== 0));
+        });
+    });
+}
+
+/**
+ * @param {saveId[]} ids
+ * @param {function(any): any} [sendResponse]
+ */
+function download_history_has_all({ids}, sendResponse) {
+    if (ids.length === 0) {
+        sendResponse?.(false);
+        return;
+    }
+
+    const baseIds = ids.map(process_id);
+    const firstId = baseIds[0][0];
+    if (!firstId) {
+        sendResponse?.(false);
+        return;
+    }
+    for (const [id, _] of baseIds) {
+        if (id !== firstId) {
+            sendResponse?.(false);
+            return;
+        }
+    }
+
+    getHistoryDB().then((db) => {
+        db.transaction('download_history', 'readonly').objectStore('download_history')
+            .get(firstId).addEventListener('success', (e) => {
+                const result = e.target.result || 0;
+                if (result === 0) {
+                    sendResponse?.(false);
+                    return;
+                }
+
+                for (const [_, num] of baseIds) {
+                    if ((result & num) === 0) {
+                        sendResponse?.(false);
+                        return;
+                    }
+                }
+                sendResponse?.(true);
         });
     });
 }

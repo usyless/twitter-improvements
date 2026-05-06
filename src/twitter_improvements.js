@@ -265,7 +265,7 @@
          */
         downloadUpdateMarked: async (media, buttons) => {
             // all saved
-            if ((await Promise.all(media.map(({save_id}) => GlobalBackground.download_history_has(save_id)))).every(Boolean)) {
+            if (await GlobalBackground.download_history_has_all(media.map(({save_id}) => save_id))) {
                 for (const button of buttons) Button.mark(button);
             } else {
                 for (const button of buttons) Button.unmark(button);

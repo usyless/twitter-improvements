@@ -26,6 +26,8 @@
     globalThis.GlobalBackground = {
         /** @param {saveId} id */
         download_history_has: (id) => extension.runtime.sendMessage({type: 'download_history_has', id}),
+        /** @param {saveId[]} ids */
+        download_history_has_all: (ids) => extension.runtime.sendMessage({type: 'download_history_has_all', ids}),
         /** @param {saveId} id */
         download_history_remove: (id) => extension.runtime.sendMessage({type: 'download_history_remove', id}),
         /** @param {saveId} id */
