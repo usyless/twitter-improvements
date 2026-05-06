@@ -1571,6 +1571,7 @@
 
     const Observer = {
         /** @type {(MutationObserver | null)} */ observer: null,
+        lastTimer: null,
 
         /** @type {Record<string, [string, function(HTMLElement): *, ((url: string) => boolean)?][]>} */ callbackMappings: {
             vx_button: [['article:not([usy])', Tweet.addVXButton]],
@@ -1642,14 +1643,16 @@
                 if (callbacks.length > 0) {
                     update();
                     if (GlobalSettings.setting.performance_mode) {
-                        let lastTimer;
-                        let lastTime = performance.now();
+                        let ticking = false;
+                        const updateWrapper = () => {
+                            update();
+                            ticking = false;
+                        }
                         return () => {
-                            clearTimeout(lastTimer);
-                            const now = performance.now();
-                            if ((now - lastTime) > 250) update();
-                            else lastTimer = setTimeout(update, 250);
-                            lastTime = now;
+                            if (!ticking) {
+                                Observer.lastTimer = setTimeout(updateWrapper, 250);
+                                ticking = true;
+                            }
                         };
                     } else {
                         return update;
@@ -1665,6 +1668,7 @@
 
         disable: () => {
             logInfo('Disabling main observer loop');
+            clearTimeout(Observer.lastTimer);
             Observer.observer?.disconnect();
             Observer.observer = null;
         }
