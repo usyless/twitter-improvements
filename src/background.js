@@ -8,6 +8,8 @@ globalThis.enableIsBackgroundPage();
 
 const base91ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
 const base91BASE = BigInt(base91ALPHABET.length);
+const base91LOOKUP = new Array(base91ALPHABET.length);
+for (let i = 0; i < base91ALPHABET.length; i++) base91LOOKUP[base91ALPHABET.charCodeAt(i)] = BigInt(i);
 
 /**
  * @param {string} value
@@ -19,7 +21,7 @@ const base91Encode = (value) => {
     let res = '';
     while (b > 0n) {
         res = base91ALPHABET[Number(b % base91BASE)] + res;
-        b = b / base91BASE;
+        b /= base91BASE;
     }
     return res;
 }
@@ -30,7 +32,8 @@ const base91Encode = (value) => {
  */
 const base91Decode = (str) => {
     let acc = 0n;
-    for (const c of str) acc = acc * base91BASE + BigInt(base91ALPHABET.indexOf(c));
+    const size = str.length;
+    for (let i = 0; i < size; ++i) acc = acc * base91BASE + base91LOOKUP[str.charCodeAt(i)];
     return acc.toString(10);
 }
 
