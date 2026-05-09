@@ -2,7 +2,7 @@
     globalThis.chromeMode = false;
     // set browser to chrome if not in firefox
     /** @type {typeof browser} */
-    globalThis.extension = typeof browser !== 'undefined' ? browser : (() => {
+    globalThis.extension = (Number(browser.runtime.getManifest().manifest_version) === 2) ? browser : (() => {
         globalThis.chromeMode = true;
         return chrome;
     })();

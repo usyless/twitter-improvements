@@ -1,7 +1,9 @@
 (() => {
     'use strict';
 
-    document.getElementById('versionDisplay').textContent += extension?.runtime?.getManifest?.()?.version;
+    (async () => {
+        document.getElementById('versionDisplay').textContent += extension.runtime.getManifest().version || "Unknown";
+    })();
 
     GlobalBackground.get_android().then((r) => {
         if (r) document.body.classList.add('mobile');
