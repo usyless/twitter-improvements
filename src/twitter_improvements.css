@@ -185,6 +185,7 @@ body {
     min-width: 10em;
     box-shadow: rgba(255, 255, 255, 0.2) 0 0 15px, rgba(255, 255, 255, 0.15) 0 0 3px 1px;
     opacity: 0;
+    transform: translateX(var(--usy-x, 0px)) translateY(var(--usy-y, 0px));
 
     &.animate {
         animation: usyProgressIn 1s ease-out forwards;

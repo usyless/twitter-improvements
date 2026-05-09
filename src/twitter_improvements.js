@@ -1079,11 +1079,11 @@
             let lastPopupX = 0;
             const setPopupX = (x) => {
                 lastPopupX = x;
-                popup.style.transform = `translateX(${lastPopupX}px) translateY(${lastPopupY}px)`;
+                popup.style.setProperty('--usy-x', `${lastPopupX}px`);
             };
             const setPopupY = (y) => {
                 lastPopupY = y;
-                popup.style.transform = `translateX(${lastPopupX}px) translateY(${lastPopupY}px)`;
+                popup.style.setProperty('--usy-y', `${lastPopupY}px`);
             };
 
             /** @type {number} */
