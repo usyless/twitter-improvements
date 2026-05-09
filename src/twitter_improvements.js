@@ -1913,57 +1913,71 @@
                 },
                 options: {capture: true}
             }],
-            scroll_to_top_button: [{
-                event: 'scroll',
-                target: () => window,
-                listener: (() => {
-                    let previousScrollY = window.scrollY;
-                    let ticking = false;
-                    let disabled = false;
-                    const wrapper = () => {
-                        if (!disabled) Helpers.showScrollToTop();
-                        ticking = false;
-                        disabled = false;
-                    };
+            scroll_to_top_button: (() => {
+                let previousScrollY = window.scrollY;
+                let ticking = false;
+                let disabled = false;
 
-                    const remove = (e) => e.currentTarget.remove();
+                const remove = (e) => e.currentTarget.remove();
+                const removeElements = () => {
+                    for (const elem of document.querySelectorAll('.usyScrollToTopButton')) {
+                        elem.classList.add('exit');
+                        setTimeout(() => elem?.remove(), 100);
+                        elem.addEventListener('animationend', remove);
+                    }
+                };
 
-                    let mainTick = false;
+                return [{
+                    event: 'scroll',
+                    target: () => window,
+                    listener: (() => {
+                        const wrapper = () => {
+                            if (!disabled) Helpers.showScrollToTop();
+                            ticking = false;
+                            disabled = false;
+                        };
+                        let mainTick = false;
 
-                    const main = () => {
-                        const currentScrollY = window.scrollY;
-                        if (currentScrollY !== 0) {
-                            if (currentScrollY <= previousScrollY) {
-                                if (!document.querySelector('.usyScrollToTopButton')) {
-                                    if (!ticking) {
-                                        setTimeout(wrapper, 250);
-                                        ticking = true;
-                                        disabled = false;
-                                    } else {
-                                        disabled = false;
+                        const main = () => {
+                            const currentScrollY = window.scrollY;
+                            if (currentScrollY !== 0) {
+                                if (currentScrollY <= previousScrollY) {
+                                    if (!document.querySelector('.usyScrollToTopButton')) {
+                                        if (!ticking) {
+                                            setTimeout(wrapper, 250);
+                                            ticking = true;
+                                            disabled = false;
+                                        } else {
+                                            disabled = false;
+                                        }
                                     }
-                                }
-                            } else {
-                                if (ticking) disabled = true;
-                                for (const elem of document.querySelectorAll('.usyScrollToTopButton')) {
-                                    elem.classList.add('exit');
-                                    setTimeout(() => elem?.remove(), 100);
-                                    elem.addEventListener('animationend', remove);
+                                } else {
+                                    if (ticking) disabled = true;
+                                    removeElements();
                                 }
                             }
-                        }
-                        previousScrollY = currentScrollY;
-                        mainTick = false;
-                    };
+                            previousScrollY = currentScrollY;
+                            mainTick = false;
+                        };
 
-                    return () => {
-                        if (!mainTick) {
-                            setTimeout(main, 250);
-                            mainTick = true;
+                        return () => {
+                            if (!mainTick) {
+                                setTimeout(main, 250);
+                                mainTick = true;
+                            }
                         }
-                    }
-                })()
-            }]
+                    })()
+                },
+                    {
+                        event: 'popstate',
+                        target: () => window,
+                        listener: () => {
+                            disabled = true;
+                            removeElements();
+                        },
+                        options: {capture: true}
+                    }];
+            })(),
         },
 
         start: () => {
