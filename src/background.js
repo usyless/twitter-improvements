@@ -846,7 +846,7 @@ function formatFilename(parts, save_format) {
 const USER_CANCELED = ["download canceled by the user", "user_canceled"];
 
 /**
- * @param {string} error
+ * @param {string | {message: string}} error
  * @returns {Promise<boolean>}
  */
 async function checkErrorAllowed(error) {
