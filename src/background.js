@@ -802,22 +802,22 @@ function dateTimeFromTweetId(id) {
     return new Date(Number((BigInt(id) >> 22n) + 1288834974657n));
 }
 
+const formatCustomDate_pad = (num) => String(num).padStart(2, '0');
+
 /**
  * @param {Date} date
  * @param {string} formatStr
  * @returns {string}
  */
 function formatCustomDate(date, formatStr) {
-    const pad = (num) => String(num).padStart(2, '0');
-
     const tokens = {
         'YYYY': date.getUTCFullYear(),
         'YY': String(date.getUTCFullYear()).slice(-2),
-        'MM': pad(date.getUTCMonth() + 1),
-        'DD': pad(date.getUTCDate()),
-        'HH': pad(date.getUTCHours()),
-        'mm': pad(date.getUTCMinutes()),
-        'ss': pad(date.getUTCSeconds())
+        'MM': formatCustomDate_pad(date.getUTCMonth() + 1),
+        'DD': formatCustomDate_pad(date.getUTCDate()),
+        'HH': formatCustomDate_pad(date.getUTCHours()),
+        'mm': formatCustomDate_pad(date.getUTCMinutes()),
+        'ss': formatCustomDate_pad(date.getUTCSeconds())
     };
 
     return formatStr.replace(/YYYY|YY|MM|DD|HH|mm|ss/g, (match) => tokens[match]);
