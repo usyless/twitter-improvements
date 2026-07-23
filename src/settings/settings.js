@@ -866,7 +866,13 @@
                     category: 'download_preferences',
                     description: 'Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
                     type: 'quickPick',
-                    quickPicks: [['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'], ['extension', 'FILE EXTENSION'], ['mediaFilename', 'ORIGINAL MEDIA FILENAME (from media source url)']],
+                    quickPicks: [
+                        ['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'],
+                        ['extension', 'FILE EXTENSION'],
+                        ['mediaFilename', 'ORIGINAL MEDIA FILENAME (from media source url)'],
+                        ['dateTime', 'DATETIME (ISO Formatted)'],
+                        ['dateTime:YYYY_YY/MM/DD/HH__mm+ss', 'DATETIME (Custom format - all available formats in quick pick)']
+                    ],
                     post: (elem) => {
                         const inputWrap = document.createElement('div');
                         inputWrap.classList.add('inputWrap');

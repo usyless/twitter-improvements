@@ -795,18 +795,52 @@ function formatPartsForStorage(parts) {
 }
 
 /**
+ * @param {tweetId} id
+ * @returns {Date}
+ */
+function dateTimeFromTweetId(id) {
+    return new Date(Number((BigInt(id) >> 22n) + 1288834974657n));
+}
+
+/**
+ * @param {Date} date
+ * @param {string} formatStr
+ * @returns {string}
+ */
+function formatCustomDate(date, formatStr) {
+    const pad = (num) => String(num).padStart(2, '0');
+
+    const tokens = {
+        'YYYY': date.getUTCFullYear(),
+        'YY': String(date.getUTCFullYear()).slice(-2),
+        'MM': pad(date.getUTCMonth() + 1),
+        'DD': pad(date.getUTCDate()),
+        'HH': pad(date.getUTCHours()),
+        'mm': pad(date.getUTCMinutes()),
+        'ss': pad(date.getUTCSeconds())
+    };
+
+    return formatStr.replace(/YYYY|YY|MM|DD|HH|mm|ss/g, (match) => tokens[match]);
+}
+
+/**
  * @param {NameParts} parts
  * @param {string} save_format
  * @returns {string}
  */
 function formatFilename(parts, save_format) {
+    const dateObj = dateTimeFromTweetId(parts.tweetId);
+
     return save_format
-            .replaceAll('{username}', parts.username)
-            .replaceAll('{tweetId}', parts.tweetId)
-            .replaceAll('{tweetNum}', parts.tweetNum ?? '')
-            .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
-            .replaceAll('{extension}', parts.extension ?? '') +
-        (parts.extension ? `.${parts.extension}` : '');
+        .replaceAll('{username}', parts.username)
+        .replaceAll('{tweetId}', parts.tweetId)
+        .replaceAll('{tweetNum}', parts.tweetNum ?? '')
+        .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
+        .replaceAll('{extension}', parts.extension ?? '')
+        .replaceAll('{dateTime}', dateObj.toISOString())
+        .replace(/\{dateTime:([^}]+)}/g, (_, customFormat) => {
+            return formatCustomDate(dateObj, customFormat);
+        }) + (parts.extension ? `.${parts.extension}` : '');
 }
 
 const USER_CANCELED = ["download canceled by the user", "user_canceled"];
