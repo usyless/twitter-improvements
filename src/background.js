@@ -761,7 +761,7 @@ function send_to_all_tabs(message) {
 
 /**
  * @param {string} url
- * @returns {Omit<NameParts, 'extension', 'mediaFilename'>}
+ * @returns {Pick<NameParts, 'username' | 'tweetId' | 'tweetNum'>}
  */
 function getNamePartsGeneric(url) {
     const parts = url.split("/");
