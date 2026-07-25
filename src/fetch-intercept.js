@@ -31,7 +31,11 @@
                 && (xhr.responseType === 'text' || xhr.responseType === '')
                 && xhr.getResponseHeader('Content-Type')?.includes('application/json')
             ) {
-                postNewData(findTweets(JSON.parse(xhr.responseText)));
+                try {
+                    postNewData(findTweets(JSON.parse(xhr.responseText)));
+                } catch (e) {
+                    console.error("Error in intercepted request handling: ", e);
+                }
             }
         });
         return originalSend.call(this, body);
