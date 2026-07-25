@@ -1250,7 +1250,7 @@ function download_history_clear(_, sendResponse) {
 }
 
 function download_history_add_all(request, sendResponse, progressCallback) {
-    getHistoryDB().then((db) => {
+    getHistoryDB().then(async (db) => {
         const transaction = db.transaction('download_history', 'readwrite');
         const objectStore = transaction.objectStore('download_history');
 
@@ -1259,56 +1259,72 @@ function download_history_add_all(request, sendResponse, progressCallback) {
             sendResponse?.(true);
         });
 
-        const accumulator = new Map();
+        const [keys, values] = await Promise.all([
+            new Promise(res => objectStore.getAllKeys().onsuccess = e => res(e.target.result)),
+            new Promise(res => objectStore.getAll().onsuccess = e => res(e.target.result))
+        ]);
 
-        // prepopulate accumulator
-        objectStore.openCursor().addEventListener('success', (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                accumulator.set(cursor.key, cursor.value);
-                cursor.continue();
-            } else {
-                if (progressCallback) {
-                    let progress = 0;
-                    for (const saved_image of request.saved_images) {
-                        const [id_proc, num] = process_id(saved_image);
-                        if (!id_proc) continue;
-                        const val = (accumulator.get(id_proc) || 0) | num;
-                        accumulator.set(id_proc, val);
-                        objectStore.put(val, id_proc);
-                        if ((++progress % 250) === 0) progressCallback({progress});
-                    }
-                    progressCallback({text: 'Finished importing, waiting...'});
-                } else {
-                    for (const saved_image of request.saved_images) {
-                        const [id_proc, num] = process_id(saved_image);
-                        if (!id_proc) continue;
-                        const val = (accumulator.get(id_proc) || 0) | num;
-                        accumulator.set(id_proc, val);
-                        objectStore.put(val, id_proc);
-                    }
-                }
+        const accumulator = new Map();
+        const keys_len = keys.length;
+        for (let i = 0; i < keys_len; ++i) accumulator.set(keys[i], values[i]);
+
+        const dirtyKeys = new Set();
+
+        for (const saved_image of request.saved_images) {
+            const [id_proc, num] = process_id(saved_image);
+            if (!id_proc) continue;
+
+            const oldVal = accumulator.get(id_proc) || 0;
+            const newVal = oldVal | num;
+
+            if (newVal !== oldVal) {
+                accumulator.set(id_proc, newVal);
+                dirtyKeys.add(id_proc);
             }
-        });
+        }
+
+        let progress = 0;
+        for (const id_proc of dirtyKeys) {
+            objectStore.put(accumulator.get(id_proc), id_proc);
+
+            if (progressCallback && ((++progress % 1000) === 0)) {
+                progressCallback({ progress });
+            }
+        }
+
+        if (progressCallback) {
+            progressCallback({ text: 'Finished importing, waiting...' });
+        }
     });
 }
 
 function download_history_get_all(_, sendResponse) {
-    getHistoryDB().then((db) => {
-        const valid = [];
+    getHistoryDB().then(async (db) => {
+        const store = db.transaction('download_history', 'readonly').objectStore('download_history');
 
-        db.transaction('download_history', 'readonly').objectStore('download_history')
-            .openCursor().addEventListener('success', (e) => {
-            const cursor = e.target.result;
-            if (cursor) {
-                const key = base91Decode(cursor.key);
-                const value = cursor.value;
-                for (let i = 1; i <= 4; ++i) if ((value & (1 << i)) !== 0) valid.push(`${key}-${i}`);
-                cursor.continue();
-            } else {
-                sendResponse(valid);
+        try {
+            const [keys, values] = await Promise.all([
+                new Promise(res => store.getAllKeys().onsuccess = e => res(e.target.result)),
+                new Promise(res => store.getAll().onsuccess = e => res(e.target.result))
+            ]);
+
+            const valid = [];
+            const len = keys.length;
+
+            for (let i = 0; i < len; ++i) {
+                const key = base91Decode(keys[i]);
+                const value = values[i];
+
+                if (value & 2 /* (1 << 1) */) valid.push(`${key}-1`);
+                if (value & 4 /* (1 << 2) */) valid.push(`${key}-2`);
+                if (value & 8 /* (1 << 3) */) valid.push(`${key}-3`);
+                if (value & 16 /* (1 << 4) */) valid.push(`${key}-4`);
             }
-        });
+
+            sendResponse(valid);
+        } catch {
+            sendResponse([]);
+        }
     });
 }
 
