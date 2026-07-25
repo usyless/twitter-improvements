@@ -18,7 +18,7 @@ const base91CHAR_CODES = new Uint8Array(
 );
 
 const base91BYTE_BUFFER = new Uint8Array(10);
-const asciiDecoder = new TextDecoder('ascii');
+const asciiDecoder = new TextDecoder('ascii', {fatal: false});
 /**
  * @param {string} value
  * @returns {string}
