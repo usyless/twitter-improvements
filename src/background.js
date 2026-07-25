@@ -903,7 +903,7 @@ function saveImage(url, sourceURL) {
 /** @param {string} previousVersion */
 async function migrateSettings(previousVersion) {
     const migrations = [
-        ['1.7.8', () => new Promise((resolve) => {
+        ['1.7.8', () => new Promise((resolve, reject) => {
             getHistoryDB().then((db) => {
                 const transaction = db.transaction('download_history', 'readwrite');
                 const objectStore = transaction.objectStore('download_history');
@@ -929,7 +929,7 @@ async function migrateSettings(previousVersion) {
                         }
                     });
                 });
-            })
+            }).catch(reject);
         })],
         ['1.6.8', async () => {
             /** @type {Settings} */
