@@ -7,23 +7,33 @@ if (typeof globalThis.chromeMode === 'undefined') { // is chrome, common not loa
 globalThis.enableIsBackgroundPage();
 
 const base91ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-./:;<=>?@[]^_`{|}~";
-const base91BASE = BigInt(base91ALPHABET.length);
-const base91LOOKUP = new Array(base91ALPHABET.length);
-for (let i = 0; i < base91ALPHABET.length; i++) base91LOOKUP[base91ALPHABET.charCodeAt(i)] = BigInt(i);
+// const base91BASE = BigInt(base91ALPHABET.length); -> THIS IS 91n
+const base91LOOKUP = new Uint8Array(256);
+for (let i = 0; i < base91ALPHABET.length; i++) {
+    base91LOOKUP[base91ALPHABET.charCodeAt(i)] = i;
+}
 
+const base91CHAR_CODES = new Uint8Array(
+    base91ALPHABET.split('').map(char => char.charCodeAt(0))
+);
+
+const base91BYTE_BUFFER = new Uint8Array(10);
+const asciiDecoder = new TextDecoder('ascii');
 /**
  * @param {string} value
  * @returns {string}
  */
 const base91Encode = (value) => {
     let b = BigInt(value);
-    if (b === 0n) return base91ALPHABET[0];
-    let res = '';
+    if (b === 0n) return "0";
+
+    let index = 10;
     while (b > 0n) {
-        res = base91ALPHABET[Number(b % base91BASE)] + res;
-        b /= base91BASE;
+        base91BYTE_BUFFER[--index] = base91CHAR_CODES[Number(b % 91n)];
+        b /= 91n;
     }
-    return res;
+
+    return asciiDecoder.decode(base91BYTE_BUFFER.subarray(index, 10));
 }
 
 /**
@@ -33,7 +43,9 @@ const base91Encode = (value) => {
 const base91Decode = (str) => {
     let acc = 0n;
     const size = str.length;
-    for (let i = 0; i < size; ++i) acc = acc * base91BASE + base91LOOKUP[str.charCodeAt(i)];
+
+    for (let i = 0; i < size; ++i) acc = acc * 91n + BigInt(base91LOOKUP[str.charCodeAt(i)]);
+
     return acc.toString(10);
 }
 
@@ -1110,9 +1122,9 @@ function process_id(id) {
         const [id_proc, num] = id.split('-');
         const num_num = Number(num);
         if ((num_num >= 1) && (num_num <= 4)) return [base91Encode(id_proc), 1 << num_num];
-        else return [0, 0];
+        else return ["", 0];
     } catch {
-        return [0, 0];
+        return ["", 0];
     }
 }
 
