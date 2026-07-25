@@ -143,11 +143,35 @@
         onReady: getReadyObject(),
     }
 
+    globalThis.emptyFunction = () => {};
+
+    // updated in the native onMessageListener
+    globalThis.GlobalLogging = {
+        logInfo: (...a) => console.log(...a),
+        logError: (...a) => console.error(...a),
+
+        setup: () => {
+            if (GlobalSettings.logging.info) globalThis.logInfo = GlobalLogging.logInfo;
+            else globalThis.logInfo = emptyFunction;
+            if (GlobalSettings.logging.error) globalThis.logError = GlobalLogging.logError;
+            else globalThis.logError = emptyFunction;
+        },
+
+        onReady: getReadyObject(),
+    };
+
+    // enabled by default, must be explicitly turned off when settings load
+    globalThis.logInfo = GlobalLogging.logInfo;
+    globalThis.logError = GlobalLogging.logError;
+
     GlobalDefaults.load().then(GlobalDefaults.onReady.setReady).catch(() => {
         console.log('Unable to load global defaults, if this is from the background page you can ignore it')
     });
 
-    GlobalSettings.load().then(GlobalSettings.onReady.setReady).catch(() => {
+    GlobalSettings.load().then(GlobalSettings.onReady.setReady).then(() => {
+        GlobalLogging.setup();
+        GlobalLogging.onReady.setReady();
+    }).catch(() => {
         console.log('Unable to load global settings, if this is from the background page you can ignore it')
     });
 
@@ -158,6 +182,9 @@
     const onMessageListener = (message) => {
         if (message.type === 'settings_update') {
             GlobalSettings.loadFrom(message.settings);
+
+            if (Object.hasOwn(message.changes, 'logging')) GlobalLogging.setup();
+
             GlobalSettings.onUpdate.fireListeners(message.changes);
         }
     };

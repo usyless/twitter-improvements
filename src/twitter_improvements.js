@@ -1,11 +1,6 @@
 (() => {
     'use strict';
 
-    const emptyFunction = () => {};
-
-    let logInfo = emptyFunction;
-    let logError = emptyFunction;
-
     /** @template F, T */
     class Cache {
         /** @type {Map<F, T>} */
@@ -1997,25 +1992,14 @@
         }
     };
 
-    const Logging = {
-        logInfo: (...a) => console.log(...a),
-        logError: (...a) => console.error(...a),
-
-        setup: () => {
-            if (GlobalSettings.logging.info) logInfo = Logging.logInfo;
-            else logInfo = emptyFunction;
-            if (GlobalSettings.logging.error) logError = Logging.logError;
-            else logError = emptyFunction;
-        }
-    };
-
     const start = () => {
-        Logging.setup();
         Observer.start();
         Listeners.start();
     }
 
-    Promise.all([GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise, loadAndroid(), GlobalTabId.onReady.promise]).then(start);
+    Promise.all([
+        GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise,
+        loadAndroid(), GlobalTabId.onReady.promise, GlobalLogging.onReady.promise]).then(start);
 
     GlobalSettings.onUpdate.addListener((changes) => {
         // only need to reload for vx setting change
@@ -2024,7 +2008,6 @@
         else if (Object.hasOwn(changes, 'image_preferences') || Object.hasOwn(changes, 'download_preferences')) Image.resetAll();
 
         if (Object.hasOwn(changes, 'listeners')) Listeners.start();
-        if (Object.hasOwn(changes, 'logging')) Logging.setup();
     });
 
     extension.runtime.onMessage.addListener((message) => {
