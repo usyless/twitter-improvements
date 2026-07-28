@@ -22,6 +22,7 @@
             'div[data-testid="GrokDrawer"]',
             'a[href^="/i/imagine"]',
             'a[href^="https://grok.com/imagine"]',
+            'a[href^="/i/grok-redirect"]'
         ], st: HideType.DISPLAY},
         hide_jobs: {s: ['a[href="/jobs"]'], st: HideType.DISPLAY},
         hide_lists: {s: ['a[href$="/lists"]'], st: HideType.DISPLAY},
