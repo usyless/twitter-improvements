@@ -437,9 +437,9 @@
                     }],
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Calculating, please wait...");
-                        GlobalBackground.download_history_get_all().then((r) => {
+                        GlobalBackground.download_history_count().then((r) => {
                             removeOverlay();
-                            void customPopup(`You have downloaded approximately ${r.length} unique media`);
+                            void customPopup(`You have downloaded approximately ${r} unique media`);
                         });
                     }
                 }

@@ -58,8 +58,13 @@
         get_tab_id: () => extension.runtime.sendMessage({type: 'get_tab_id'}),
 
         // for the settings page
+        /** @returns {Promise<void>} */
         clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
+        /** @returns {Promise<Array<saveId>>} */
         download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
+        /** @returns {Promise<Number>} */
+        download_history_count: () => extension.runtime.sendMessage({type: 'download_history_count'}),
+        /** @returns {Promise<boolean>} */
         validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
     };
 

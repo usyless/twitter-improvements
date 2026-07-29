@@ -592,6 +592,7 @@ const requestMap = {
     },
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
+    download_history_count: download_history_count,
 
     get_settings: (_, sendResponse) => {
         Settings.getSettings().then(() => {
@@ -1336,6 +1337,31 @@ function download_history_get_all(_, sendResponse) {
             sendResponse(valid);
         } catch {
             sendResponse([]);
+        }
+    });
+}
+
+function download_history_count(_, sendResponse) {
+    getHistoryDB().then(async (db) => {
+        const store = db.transaction('download_history', 'readonly').objectStore('download_history');
+
+        try {
+            const values = new Promise(res => store.getAll().onsuccess = e => res(e.target.result))
+            let valid = 0
+            const len = values.length;
+
+            for (let i = 0; i < len; ++i) {
+                const value = values[i];
+
+                if (value & 2 /* (1 << 1) */) ++valid;
+                if (value & 4 /* (1 << 2) */) ++valid;
+                if (value & 8 /* (1 << 3) */) ++valid;
+                if (value & 16 /* (1 << 4) */) ++valid;
+            }
+
+            sendResponse(valid);
+        } catch {
+            sendResponse(0);
         }
     });
 }
