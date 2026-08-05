@@ -1311,6 +1311,25 @@ function download_history_add_all(request, sendResponse, progressCallback) {
     });
 }
 
+const SUFFIX_LOOKUP = [
+    [],                      // 0: 0000
+    ['-1'],                  // 1: 0001
+    ['-2'],                  // 2: 0010
+    ['-1', '-2'],            // 3: 0011
+    ['-3'],                  // 4: 0100
+    ['-1', '-3'],            // 5: 0101
+    ['-2', '-3'],            // 6: 0110
+    ['-1', '-2', '-3'],      // 7: 0111
+    ['-4'],                  // 8: 1000
+    ['-1', '-4'],            // 9: 1001
+    ['-2', '-4'],            // 10: 1010
+    ['-1', '-2', '-4'],      // 11: 1011
+    ['-3', '-4'],            // 12: 1100
+    ['-1', '-3', '-4'],      // 13: 1101
+    ['-2', '-3', '-4'],      // 14: 1110
+    ['-1', '-2', '-3', '-4'] // 15: 1111
+];
+
 function download_history_get_all(_, sendResponse) {
     getHistoryDB().then(async (db) => {
         const store = db.transaction('download_history', 'readonly').objectStore('download_history');
@@ -1325,13 +1344,11 @@ function download_history_get_all(_, sendResponse) {
             const len = keys.length;
 
             for (let i = 0; i < len; ++i) {
+                const mask = (values[i] & 30) >> 1;
+                if (mask === 0) continue;
                 const key = base91Decode(keys[i]);
-                const value = values[i];
 
-                if (value & 2 /* (1 << 1) */) valid.push(`${key}-1`);
-                if (value & 4 /* (1 << 2) */) valid.push(`${key}-2`);
-                if (value & 8 /* (1 << 3) */) valid.push(`${key}-3`);
-                if (value & 16 /* (1 << 4) */) valid.push(`${key}-4`);
+                for (const s of SUFFIX_LOOKUP[mask]) valid.push(key + s);
             }
 
             sendResponse(valid);
