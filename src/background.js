@@ -1341,22 +1341,18 @@ function download_history_get_all(_, sendResponse) {
     });
 }
 
+const BIT_COUNT_LOOKUP = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 function download_history_count(_, sendResponse) {
     getHistoryDB().then(async (db) => {
         const store = db.transaction('download_history', 'readonly').objectStore('download_history');
 
         try {
-            const values = new Promise(res => store.getAll().onsuccess = e => res(e.target.result))
+            const values = await new Promise(res => store.getAll().onsuccess = e => res(e.target.result))
             let valid = 0
             const len = values.length;
 
             for (let i = 0; i < len; ++i) {
-                const value = values[i];
-
-                if (value & 2 /* (1 << 1) */) ++valid;
-                if (value & 4 /* (1 << 2) */) ++valid;
-                if (value & 8 /* (1 << 3) */) ++valid;
-                if (value & 16 /* (1 << 4) */) ++valid;
+                valid += BIT_COUNT_LOOKUP[(values[i] & 30) >> 1];
             }
 
             sendResponse(valid);
