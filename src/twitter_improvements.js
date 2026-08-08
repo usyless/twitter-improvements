@@ -853,7 +853,11 @@
         },
         getTranslationSuffix: () => {
             const {vx_append_translation} = GlobalSettings.vx_preferences;
-            return vx_append_translation;
+            if (vx_append_translation === 'none') {
+                return '';
+            } else {
+                return vx_append_translation;
+            }
         }
     };
 

@@ -144,6 +144,13 @@ const defaultSettings = {
             default: '',
             validate: CONSTRAINTS.STRING
         },
+        vx_append_translation: {
+            default: '',
+            validate: CONSTRAINTS.VALUES('sq', 'am', 'ar', 'hy', 'az', 'bn', 'be', 'bi', 'bs', 'bg', 'my', 'ca', 'zh', 'hr', 'cs', 'da', 'dv', 'nl', 'en', 
+                'et', 'fi', 'fr', 'ka', 'de', 'el', 'he', 'hi', 'hu', 'is', 'id', 'it', 'ja', 'kk', 'km', 'rw', 'ko', 'ky', 'lo', 'lv', 'lb', 'mk', 'mg', 
+                'ms', 'mt', 'mn', 'ne', 'no', 'ps', 'fa', 'pl', 'pt', 'ro', 'ru', 'sm', 'sr', 'si', 'sk', 'sl', 'so', 'es', 'sw', 'sv', 'tg', 'th', 'ti', 
+                'to', 'tr', 'tk', 'uk', 'ur', 'uz', 'vi')
+        },
     },
 
     image_preferences: {
