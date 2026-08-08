@@ -844,12 +844,16 @@
 
     const URLS = { // URL modification functions
         vxIfy: (url) => {
-            return `https://${URLS.getPrefix()}/${url.substring(14)}`;
+            return `https://${URLS.getPrefix()}/${url.substring(14)}/${URLS.getTranslationSuffix()}`;
         },
 
         getPrefix: () => {
             const {url_prefix, custom_url} = GlobalSettings.vx_preferences;
             return (url_prefix === 'x.com') ? custom_url : url_prefix;
+        },
+        getTranslationSuffix: () => {
+            const {vx_append_translation} = GlobalSettings.vx_preferences;
+            return vx_append_translation;
         }
     };
 
