@@ -844,7 +844,7 @@
 
     const URLS = { // URL modification functions
         vxIfy: (url) => {
-            return `https://${URLS.getPrefix()}/${url.substring(14)}/${URLS.getTranslationSuffix()}`;
+            return `https://${URLS.getPrefix()}/${url.substring(14)}${URLS.getTranslationSuffix()}`;
         },
 
         getPrefix: () => {
@@ -853,10 +853,10 @@
         },
         getTranslationSuffix: () => {
             const {vx_append_translation} = GlobalSettings.vx_preferences;
-            if (vx_append_translation === 'none') {
+            if (vx_append_translation === '') {
                 return '';
             } else {
-                return vx_append_translation;
+                return `/${vx_append_translation}`;
             }
         }
     };
