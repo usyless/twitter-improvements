@@ -807,6 +807,11 @@
                     description: '"Communities" button',
                 },
                 {
+                    name: 'hide_connect_people',
+                    category: 'style',
+                    description: '"Follow" button',
+                },
+                {
                     name: 'hide_articles_sidebar',
                     category: 'style',
                     description: '"Articles" button',

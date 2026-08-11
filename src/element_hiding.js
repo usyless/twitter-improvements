@@ -28,6 +28,7 @@
         hide_jobs: {s: ['a[href="/jobs"]'], st: HideType.DISPLAY},
         hide_lists: {s: ['a[href$="/lists"]'], st: HideType.DISPLAY},
         hide_communities: {s: ['a[href$="/communities"]'], st: HideType.DISPLAY},
+        hide_connect_people: {s: ['a[href="/i/connect_people"]'], st: HideType.DISPLAY},
         hide_premium: {s: [
             'a[href="/i/premium_sign_up"]',
             'aside[aria-label*="Premium"]',
