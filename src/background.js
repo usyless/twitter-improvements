@@ -871,7 +871,7 @@ function formatFilename(parts, save_format) {
         .replaceAll('{tweetNum}', parts.tweetNum ?? '')
         .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
         .replaceAll('{extension}', parts.extension ?? '')
-        .replaceAll('{dateTime}', dateObj.toISOString().replaceAll(':', '-'))
+        .replaceAll('{dateTime}', formatCustomDate(dateObj, 'YYYY-MM-DD_HH-mm-ss'))
         .replace(/\{dateTime:([^}]+)}/g, (_, customFormat) => {
             return formatCustomDate(dateObj, customFormat);
         }));

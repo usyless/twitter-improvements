@@ -968,8 +968,8 @@
                         ['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'],
                         ['extension', 'FILE EXTENSION'],
                         ['mediaFilename', 'ORIGINAL MEDIA FILENAME (from media source url)'],
-                        ['dateTime', 'DATETIME (ISO Formatted)'],
-                        ['dateTime:YYYY_YY/MM/DD/HH__mm+ss', 'DATETIME (Custom format - all available formats in quick pick)']
+                        ['dateTime', 'DATETIME (Formatted as YYYY-MM-DD_HH-mm-ss)'],
+                        ['dateTime:YYYY_YY-MM-DD-HH__mm+ss', 'DATETIME (Custom format - all available formats in quick pick)']
                     ],
                     post: (elem) => {
                         const inputWrap = document.createElement('div');
