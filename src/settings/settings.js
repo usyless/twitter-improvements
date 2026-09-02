@@ -239,6 +239,14 @@
                 },
                 {
                     type: 'break',
+                },
+                {
+                    name: 'disable_cancelled_download_notification',
+                    category: 'download_preferences',
+                    description: "Don't show the download error when cancelling a download from save as"
+                },
+                {
+                    type: 'break',
                     dependsUpon: [{
                         id: 'media_download_button',
                         values: [true]
@@ -1088,14 +1096,6 @@
                     description: 'URL Copy',
                 }
             ],
-
-            'Hidden Download Error Notifications': [
-                {
-                    name: 'disable_cancelled_download_notification',
-                    category: 'download_preferences',
-                    description: 'Cancelled download from save as'
-                }
-            ]
         },
     }
 
