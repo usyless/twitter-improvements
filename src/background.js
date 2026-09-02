@@ -848,6 +848,16 @@ function formatCustomDate(date, formatStr) {
 }
 
 /**
+ * @param {string} filename
+ * @returns {string}
+ */
+function sanitiseFilename(filename) {
+    return filename
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '-')
+        .replace(/[\s.]+$/, '');
+}
+
+/**
  * @param {NameParts} parts
  * @param {string} save_format
  * @returns {string}
@@ -855,16 +865,18 @@ function formatCustomDate(date, formatStr) {
 function formatFilename(parts, save_format) {
     const dateObj = dateTimeFromTweetId(parts.tweetId);
 
-    return save_format
+    const sanitizedBase = sanitiseFilename(save_format
         .replaceAll('{username}', parts.username)
         .replaceAll('{tweetId}', parts.tweetId)
         .replaceAll('{tweetNum}', parts.tweetNum ?? '')
         .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
         .replaceAll('{extension}', parts.extension ?? '')
-        .replaceAll('{dateTime}', dateObj.toISOString())
+        .replaceAll('{dateTime}', dateObj.toISOString().replaceAll(':', '-'))
         .replace(/\{dateTime:([^}]+)}/g, (_, customFormat) => {
             return formatCustomDate(dateObj, customFormat);
-        }) + (parts.extension ? `.${parts.extension}` : '');
+        }));
+
+    return parts.extension ? `${sanitizedBase}.${parts.extension}` : sanitizedBase;
 }
 
 const USER_CANCELED = ["download canceled by the user", "user_canceled"];
