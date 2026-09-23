@@ -1568,7 +1568,7 @@
             '/notifications', '/home', '/explore', '/settings', '/lists', '/communities',
             '/search', '/hashtag', '/trending', '/account', '/profile', '/business', '/ads-get-started',
             '/help', '/tos', '/privacy', '/rules', '/cookies', '/contact', '/about', '/i', '/intent', '/share',
-            '/logout', '/login', '/signup', '/welcome', '/download'
+            '/logout', '/login', '/signup', '/welcome', '/download', '/follower_requests'
         ]),
 
         showScrollToTop: (() => {
