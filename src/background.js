@@ -725,10 +725,11 @@ extension.downloads?.onChanged?.addListener?.(({error, state, id}) => {
  * @param {string} filename
  * @param {EventModifiers} [modifiers]
  * @param {MediaItem} [media]
+ * @param {NameParts} [parts]
  * @param {number} [tabId]
  * @return {Promise<number>}
  */
-function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media}={}, tabId) {
+function download(url, filename, modifiers={ctrl: false, shift: false, alt: false}, {media, parts}={}, tabId) {
     if (isAndroid && !isEdgeAndroid) {
         sendToTab({ type: 'download', url, filename, media, modifiers }, tabId);
         return Promise.resolve(-1);
@@ -739,13 +740,20 @@ function download(url, filename, modifiers={ctrl: false, shift: false, alt: fals
                 save_directory, save_directory_shift, save_directory_ctrl, save_directory_alt
             } = Settings.download_preferences;
 
-            const [directory, save_as] = (modifiers.shift) ? [save_directory_shift, save_as_prompt_shift]
+            const [rawDirectory, save_as] = (modifiers.shift) ? [save_directory_shift, save_as_prompt_shift]
                 : (modifiers.ctrl) ? [save_directory_ctrl, save_as_prompt_ctrl]
                     : (modifiers.alt) ? [save_directory_alt, save_as_prompt_alt] : [save_directory, save_as_prompt];
 
+            const directory = (rawDirectory && parts) ? formatTemplate(parts, rawDirectory) : (rawDirectory || '');
+            let fullPath = sanitisePath((directory?.length > 0 ? `${directory}/` : '') + filename);
+            if (!fullPath || fullPath.endsWith('/')) {
+                fullPath = (fullPath || '') + (parts?.tweetId ? `${parts.tweetId}.${parts?.extension || ''}` : filename || 'download');
+                fullPath = sanitisePath(fullPath);
+            }
+
             return extension.downloads.download({
                 url, saveAs: (save_as === 'on') ? true : (save_as === 'off') ? false : undefined,
-                filename: (directory?.length > 0 ? `${directory}${directory.endsWith('/') ? '' : '/'}` : '') + filename
+                filename: fullPath
             });
         });
     }
@@ -823,7 +831,12 @@ function formatPartsForStorage(parts) {
  * @returns {Date}
  */
 function dateTimeFromTweetId(id) {
-    return new Date(Number((BigInt(id) >> 22n) + 1288834974657n));
+    try {
+        if (!id) return new Date();
+        return new Date(Number((BigInt(id) >> 22n) + 1288834974657n));
+    } catch {
+        return new Date();
+    }
 }
 
 const formatCustomDate_pad = (num) => String(num).padStart(2, '0');
@@ -848,13 +861,60 @@ function formatCustomDate(date, formatStr) {
 }
 
 /**
- * @param {string} filename
+ * Sanitises an individual path segment (folder name or file name).
+ * @param {string} segment
  * @returns {string}
  */
-function sanitiseFilename(filename) {
-    return filename
+function sanitisePathSegment(segment) {
+    return segment
         .replace(/[<>:"/\\|?*\x00-\x1F]/g, '-')
+        .replace(/^\.+$/, (m) => '-'.repeat(m.length))
+        .trim()
         .replace(/[\s.]+$/, '');
+}
+
+/**
+ * Sanitises a relative path, preserving forward slashes for folder structure.
+ * @param {string} path
+ * @returns {string}
+ */
+function sanitisePath(path) {
+    if (!path) return '';
+    const normalized = path.replace(/\\/g, '/');
+    const segments = normalized.split('/');
+    const sanitizedSegments = [];
+
+    for (let i = 0; i < segments.length; ++i) {
+        const cleaned = sanitisePathSegment(segments[i]);
+        if (cleaned.length > 0) {
+            sanitizedSegments.push(cleaned);
+        }
+    }
+
+    return sanitizedSegments.join('/');
+}
+
+/**
+ * Formats a template string using tweet/media parts.
+ * @param {NameParts} parts
+ * @param {string} template
+ * @returns {string}
+ */
+function formatTemplate(parts, template) {
+    if (!template) return '';
+    const dateObj = dateTimeFromTweetId(parts?.tweetId);
+
+    return template
+        .replaceAll('{username}', parts?.username ?? '')
+        .replaceAll('{tweetId}', parts?.tweetId ?? '')
+        .replaceAll('{tweetNum}', parts?.tweetNum ?? '')
+        .replaceAll('{mediaFilename}', parts?.mediaFilename ?? '')
+        .replaceAll('{imageId}', parts?.mediaFilename ?? '')
+        .replaceAll('{extension}', parts?.extension ?? '')
+        .replaceAll('{dateTime}', formatCustomDate(dateObj, 'YYYY-MM-DD_HH-mm-ss'))
+        .replace(/\{dateTime:([^}]+)}/g, (_, customFormat) => {
+            return formatCustomDate(dateObj, customFormat);
+        });
 }
 
 /**
@@ -863,20 +923,10 @@ function sanitiseFilename(filename) {
  * @returns {string}
  */
 function formatFilename(parts, save_format) {
-    const dateObj = dateTimeFromTweetId(parts.tweetId);
-
-    const sanitizedBase = sanitiseFilename(save_format
-        .replaceAll('{username}', parts.username)
-        .replaceAll('{tweetId}', parts.tweetId)
-        .replaceAll('{tweetNum}', parts.tweetNum ?? '')
-        .replaceAll('{mediaFilename}', parts.mediaFilename ?? '')
-        .replaceAll('{extension}', parts.extension ?? '')
-        .replaceAll('{dateTime}', formatCustomDate(dateObj, 'YYYY-MM-DD_HH-mm-ss'))
-        .replace(/\{dateTime:([^}]+)}/g, (_, customFormat) => {
-            return formatCustomDate(dateObj, customFormat);
-        }));
-
-    return parts.extension ? `${sanitizedBase}.${parts.extension}` : sanitizedBase;
+    const formatted = formatTemplate(parts, save_format);
+    const withExt = parts?.extension ? `${formatted}.${parts.extension}` : formatted;
+    const sanitised = sanitisePath(withExt);
+    return sanitised || (parts?.tweetId ? `${parts.tweetId}.${parts?.extension || ''}` : 'download');
 }
 
 const USER_CANCELED = ["download canceled by the user", "user_canceled"];
@@ -908,7 +958,7 @@ function download_media({media, modifiers, tabId}, sendResponse) {
             if (download_history_enabled) void download_history_add(m.save_id);
             const onError = (error) => download_history_remove({id: m.save_id},
                 () => checkErrorAllowed(error).then((r) => r && sendToTab({type: 'error', message: `Failed to download with error ${error}`, media: m, modifiers}, tabId)));
-            download(m.url, formatFilename(parts, save_format), modifiers, {media: m}, tabId)
+            download(m.url, formatFilename(parts, save_format), modifiers, {media: m, parts}, tabId)
                 .then((downloadId) => {
                     if (downloadId === undefined) onError("Failed to start download");
                     else if (downloadId === -1) void 0; // android, ignore it

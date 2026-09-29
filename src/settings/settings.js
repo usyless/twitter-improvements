@@ -898,7 +898,7 @@
                 {
                     name: 'save_directory',
                     category: 'download_preferences',
-                    description: 'Relative file save directory',
+                    description: 'Relative file save directory (supports all filename templates, e.g. {username}, {dateTime})',
                     type: 'text',
                 },
                 {
@@ -915,7 +915,7 @@
                 {
                     name: 'save_directory_shift',
                     category: 'download_preferences',
-                    description: 'Holding shift: Relative file save directory',
+                    description: 'Holding shift: Relative file save directory (supports all filename templates)',
                     type: 'text',
                 },
                 {
@@ -931,7 +931,7 @@
                 {
                     name: 'save_directory_ctrl',
                     category: 'download_preferences',
-                    description: 'Holding ctrl: Relative file save directory',
+                    description: 'Holding ctrl: Relative file save directory (supports all filename templates)',
                     type: 'text',
                 },
                 {
@@ -947,7 +947,7 @@
                 {
                     name: 'save_directory_alt',
                     category: 'download_preferences',
-                    description: 'Holding alt: Relative file save directory',
+                    description: 'Holding alt: Relative file save directory (supports all filename templates)',
                     type: 'text',
                 },
                 {
@@ -962,7 +962,7 @@
                 {
                     name: 'save_format',
                     category: 'download_preferences',
-                    description: 'Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
+                    description: 'File naming format (supports "/" for subfolders). Changing this might break image reversing! (Make sure to keep the Tweet ID present)',
                     type: 'quickPick',
                     quickPicks: [
                         ['username', 'USERNAME'], ['tweetId', 'TWEET ID'], ['tweetNum', 'IMAGE NUMBER'],
@@ -976,7 +976,7 @@
                         inputWrap.classList.add('inputWrap');
                         inputWrap.append(elem.querySelector('input'), document.createTextNode('.{extension}'));
 
-                        elem.firstElementChild.after(document.createTextNode('If you want to keep saved image importing working, put the IMAGE NUMBER after TWEET ID, separating it by a character\nQuick Picks: '));
+                        elem.firstElementChild.after(document.createTextNode('You can use "/" to organize downloads into subfolders (e.g. {username}/[twitter]...)\nIf you want to keep saved image importing working, put the IMAGE NUMBER after TWEET ID, separating it by a character\nQuick Picks: '));
                         elem.appendChild(inputWrap);
                     }
                 }
