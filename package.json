@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^143.0.0",
-    "usy-extension-builder": "github:/usyless/usy-extension-builder.git#main"
+    "usy-extension-builder": "github:usyless/usy-extension-builder#035c2a69bafeec09d393dfd525590c2da2121ac0"
   },
   "extensionManifestConfig": {
     "firefox": {
