@@ -820,6 +820,11 @@
                     description: '"Follow" button',
                 },
                 {
+                    name: 'hide_calls',
+                    category: 'style',
+                    description: '"Calls" button',
+                },
+                {
                     name: 'hide_articles_sidebar',
                     category: 'style',
                     description: '"Articles" button',
