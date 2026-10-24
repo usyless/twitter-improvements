@@ -99,6 +99,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
         },
+        button_haptics: {
+            default: true,
+            validate: CONSTRAINTS.ALL_OF(CONSTRAINTS.BOOLEAN, CONSTRAINTS.MOBILE)
+        },
         performance_mode: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN

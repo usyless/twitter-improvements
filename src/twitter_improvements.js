@@ -130,7 +130,10 @@
                     const notif = Notification.create('Already downloaded\nClick here to save anyway', 'save_media_duplicate');
                     if (notif) {
                         notif.style.cursor = 'pointer';
-                        notif.addEventListener('click', Downloaders.download_all.bind(null, media, modifiers, {override: true}));
+                        notif.addEventListener('click', () => {
+                            Button.triggerHaptics();
+                            Downloaders.download_all(media, modifiers, {override: true});
+                        });
                     }
                     return;
                 }
@@ -862,6 +865,14 @@
     };
 
     const Button = { // Button functions
+        triggerHaptics: () => {
+            if (GlobalSettings.setting?.button_haptics && isAndroid && ('vibrate' in navigator)) {
+                try {
+                    navigator.vibrate(20);
+                } catch {}
+            }
+        },
+
         /**
          * @param {HTMLElement} shareButton
          * @param {string | null} [path]
@@ -883,6 +894,7 @@
             if (path) shareButton.querySelector('path').setAttribute("d", path);
             shareButton.addEventListener('pointerover', Button.onhover.bind(null, button.firstElementChild));
             shareButton.addEventListener('pointerout', Button.stophover.bind(null, button.firstElementChild, button.firstElementChild.style.color));
+            shareButton.addEventListener('click', Button.triggerHaptics);
             shareButton.addEventListener('click', clickCallback);
             shareButton.addEventListener('click', Button.stopAllEvents);
             if (rightClickCallback) {
@@ -1022,6 +1034,7 @@
             cancelChoice.textContent = 'Cancel';
 
             const removeElement = () => {
+                Button.triggerHaptics();
                 if (outer.children.length === 2) outer.remove();
                 else inner.remove();
             }
@@ -1046,6 +1059,7 @@
                 clear.textContent = 'Clear all errors';
                 clear.style.cursor = 'pointer';
                 clear.addEventListener('click', () => {
+                    Button.triggerHaptics();
                     outer.remove();
                 });
 
@@ -1160,7 +1174,9 @@
             }
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
-                const choice = +e.target.closest('.usyDownloadChoiceButton')?.dataset.index - 1;
+                const choiceBtn = e.target.closest('.usyDownloadChoiceButton');
+                if (choiceBtn) Button.triggerHaptics();
+                const choice = +choiceBtn?.dataset.index - 1;
                 if (!Number.isInteger(choice)) {
                     Downloaders.download_all(choices, Helpers.eventModifiers(e),
                         GlobalSettings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
@@ -1199,6 +1215,7 @@
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
+                        Button.triggerHaptics();
                         lastIndex = null;
                         showThumbnail();
                     }
@@ -1291,6 +1308,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     e.stopImmediatePropagation();
+                    Button.triggerHaptics();
                     textBox.textContent = (outer.classList.toggle('usyNotificationOuterCollapsed')) ?
                         'Show download queue' : 'Hide download queue';
                 });
@@ -1308,6 +1326,7 @@
                     progressBar.style.width = '100%';
                     inner.style.cursor = 'pointer';
                     inner.addEventListener('click', () => {
+                        Button.triggerHaptics();
                         resolve();
                         if (outer.children.length === 2) outer.remove();
                         else inner.remove();
@@ -1340,6 +1359,7 @@
                     cancelChoice.textContent = 'Cancel';
 
                     const removeElement = () => {
+                        Button.triggerHaptics();
                         if (outer.children.length === 2) outer.remove();
                         else inner.remove();
                     }
@@ -1573,6 +1593,7 @@
 
         showScrollToTop: (() => {
             const listener = (e) => {
+                Button.triggerHaptics();
                 window.scrollTo({top: 0, left: 0, behavior: 'instant'});
                 e.currentTarget.remove();
             }
