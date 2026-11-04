@@ -861,11 +861,6 @@
                     description: '"Verified Orgs" button',
                 },
                 {
-                    name: 'hide_monetization',
-                    category: 'style',
-                    description: '"Monetization" button',
-                },
-                {
                     name: 'hide_ads_button',
                     category: 'style',
                     description: '"Ads" button',

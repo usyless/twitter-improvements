@@ -39,10 +39,6 @@
             'a[href="/i/premium-business"]'
         ], st: HideType.DISPLAY},
         hide_verified_orgs: {s: ['a[href="/i/verified-orgs-signup"]'], st: HideType.DISPLAY},
-        hide_monetization: {s: [
-            'a[href="/settings/monetization"]',
-            'a[href="/i/monetization"]'
-        ], st: HideType.DISPLAY},
         hide_ads_button: {s: ['a[href*="https://ads.x.com"]'], st: HideType.DISPLAY},
         hide_todays_news: {s: [
             'div:has(> [data-testid="news_sidebar"])',
