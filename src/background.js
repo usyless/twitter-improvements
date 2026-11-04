@@ -358,10 +358,6 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
-        hide_monetization: {
-            default: false,
-            validate: CONSTRAINTS.BOOLEAN
-        },
         hide_ads_button: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
