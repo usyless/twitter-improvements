@@ -334,6 +334,10 @@ const defaultSettings = {
             default: false,
             validate: CONSTRAINTS.BOOLEAN
         },
+        hide_money: {
+            default: false,
+            validate: CONSTRAINTS.BOOLEAN
+        },
         hide_create_your_space: {
             default: false,
             validate: CONSTRAINTS.BOOLEAN

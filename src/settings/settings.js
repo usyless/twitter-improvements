@@ -831,6 +831,11 @@
                     description: '"Calls" button',
                 },
                 {
+                    name: 'hide_money',
+                    category: 'style',
+                    description: '"Money" button',
+                },
+                {
                     name: 'hide_articles_sidebar',
                     category: 'style',
                     description: '"Articles" button',
