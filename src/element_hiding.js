@@ -5,6 +5,7 @@
         DISPLAY: '{display:none!important;}',
         UNSET_DISPLAY: '{display:initial!important;}',
         VISIBILITY: '{visibility:hidden!important;pointer-events:none!important;}',
+        ONE_WIDTH: '{max-width:1px!important;min-width:1px!important;width:1px!important;opacity:0!important;pointer-events:none!important;}'
     };
 
     // Naming dependent on style
@@ -77,7 +78,10 @@
             'div[aria-label="Home timeline"] > div:not(:last-child):has(> div > div[data-testid^="UserAvatar-Container"]) + div'
         ], st: HideType.DISPLAY},
         hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: HideType.DISPLAY},
-        hide_subscribe_buttons: {s: ['button[aria-label^="Subscribe to "]'], st: HideType.VISIBILITY},
+        hide_subscribe_buttons: {s: [
+            'div[style]:has(> button[aria-label^="Subscribe to "])',
+            'button[aria-label^="Subscribe to "]'
+        ], st: HideType.ONE_WIDTH},
 
         hide_tweet_view_count: {s: CommonSelectors.views, st: HideType.VISIBILITY},
         hide_tweet_share_button: {s: CommonSelectors.share, st: HideType.VISIBILITY},
