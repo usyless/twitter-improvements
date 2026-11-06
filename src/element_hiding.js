@@ -25,6 +25,7 @@
             'a[href^="https://grok.com/imagine"]',
             'a[href^="/i/grok-redirect"]',
             'div.css-g5y9jx.r-1777fci.r-1wzrnnt:has(> button)',
+            '[data-testid=toolBar] [role=presentation]:has(> div > div > button[data-testid=grokImgGen])',
         ], st: HideType.DISPLAY},
         hide_jobs: {s: ['a[href="/jobs"]'], st: HideType.DISPLAY},
         hide_lists: {s: ['a[href$="/lists"]'], st: HideType.DISPLAY},
