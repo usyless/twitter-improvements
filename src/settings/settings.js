@@ -1002,7 +1002,7 @@
                     noDefaultListener: true,
                     type: 'quickPick',
                     quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download'], ['copy', '📋 Copy link']],
-                    class: ['usyHidden'],
+                    class: ['hidden'],
                     post: (elem) => {
                         const quickPicks = elem.querySelector('.quickPicks');
                         elem.addEventListener('valueLoaded', () => {
