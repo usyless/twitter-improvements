@@ -496,7 +496,8 @@ const Settings = { // Setting handling
             }
 
             for (const setting in storage) {
-                if ((!Object.hasOwn(defaultSettings, setting))
+                if (setting === 'tmp' ||
+                    (!Object.hasOwn(defaultSettings, setting))
                     || (typeof storage[setting] !== 'object')
                     || ((typeof storage[setting] === 'object') && (Object.keys(storage[setting]).length <= 0))) {
                     updateStorage = true;
