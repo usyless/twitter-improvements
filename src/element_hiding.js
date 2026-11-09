@@ -8,6 +8,9 @@
         ONE_WIDTH: '{max-width:1px!important;min-width:1px!important;width:1px!important;opacity:0!important;pointer-events:none!important;}'
     };
 
+    // Old UI: #react-root <selector>
+    // New UI: :not(#react-root) <selector>
+
     // Naming dependent on style
     const SelectorMap = {
         hide_notifications: {s: ['a[href="/notifications"]'], st: HideType.DISPLAY},
@@ -63,7 +66,9 @@
             '[aria-label="Timeline: Your Home Timeline"] div:has(> div > div > a[href^="/i/connect_people"]) + div',
             '[data-testid="whoToFollowSspAd"]',
         ], st: HideType.DISPLAY},
-        hide_relevant_people: {s: ['div:has(> [aria-label="Relevant people"])'], st: HideType.DISPLAY},
+        hide_relevant_people: {s: [
+            'div:has(> [aria-label="Relevant people"])'
+        ], st: HideType.DISPLAY},
         hide_create_your_space: {s: ['a[href="/i/spaces/start"]'], st: HideType.DISPLAY},
         hide_articles_sidebar: {s: ['a[href="/compose/articles"]'], st: HideType.DISPLAY},
         hide_post_button: {s: ['div:has(> a[href="/compose/post"]):not([data-testid="Dropdown"])'], st: HideType.DISPLAY},
@@ -78,7 +83,10 @@
             'div[aria-label="Home timeline"] > div:not(:last-child):has(> div > div[data-testid^="UserAvatar-Container"])',
             'div[aria-label="Home timeline"] > div:not(:last-child):has(> div > div[data-testid^="UserAvatar-Container"]) + div'
         ], st: HideType.DISPLAY},
-        hide_sidebar_footer: {s: ['div:has(> [aria-label="Footer"])'], st: HideType.DISPLAY},
+        hide_sidebar_footer: {s: [
+            '#react-root div:has(> [aria-label="Footer"])',
+            ':not(#react-root) [aria-label="Footer"]'
+        ], st: HideType.DISPLAY},
         hide_subscribe_buttons: {s: [
             'div[style]:has(> button[aria-label^="Subscribe to "])',
             'button[aria-label^="Subscribe to "]'
