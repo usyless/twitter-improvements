@@ -8,16 +8,34 @@
     })();
 
     globalThis.CommonSelectors = {
-        views: ['div:has(> a[href$="/analytics"])', 'div:has(> button[aria-label="View post analytics"])'],
-        share: [
-            'div:has(> div > button[aria-label="Share post"]:not([usy]))',
-            'div:has(> div > button > div > div > svg > g > path[d^="M17 4c-1.1 0-2 .9-2 2 0 .33.08.65.22.92C15.56 7.56"])',
-            'div:has(> div > button > div > div > svg > g > path[d^="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12"])',
+        views: [
+            ':not(#react-root) [data-engagement-action="generic"]:has(> [aria-label="View count"])', // new ui
+            ':not(#react-root) [data-engagement-action="generic"]:has(> button:only-child > span:only-child > svg > use[href="#icon-bar-chart"])', // new ui
+            '#react-root div:has(> a[href$="/analytics"])',
+            '#react-root div:has(> button[aria-label="View post analytics"])'
         ],
-        replies: ['div:has(> button[data-testid="reply"])'],
-        retweets: ['div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'],
-        likes: ['div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'],
-        bookmark: ['div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'],
+        share: [
+            ':not(#react-root) [data-engagement-action="share"]', // new ui
+            '#react-root div:has(> div > button[aria-label="Share post"]:not([usy]))',
+            '#react-root div:has(> div > button > div > div > svg > g > path[d^="M17 4c-1.1 0-2 .9-2 2 0 .33.08.65.22.92C15.56 7.56"])',
+            '#react-root div:has(> div > button > div > div > svg > g > path[d^="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12"])',
+        ],
+        replies: [
+            ':not(#react-root) [data-engagement-action="reply"]', // new ui
+            '#react-root div:has(> button[data-testid="reply"])'
+        ],
+        retweets: [
+            ':not(#react-root) [data-engagement-action="retweet"]', // new ui
+            '#react-root div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'
+        ],
+        likes: [
+            ':not(#react-root) [data-engagement-action="like"]', // new ui
+            '#react-root div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'
+        ],
+        bookmark: [
+            ':not(#react-root) div:has(> [data-engagement-action="bookmark"])', // new ui
+            '#react-root div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'
+        ],
 
         copy: ['div[usy-copy]'],
         download: ['div[usy-download]']

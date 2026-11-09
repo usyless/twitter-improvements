@@ -1000,7 +1000,7 @@
                 {
                     name: 'tweet_button_positions',
                     category: 'style',
-                    description: 'Rearrange the button positions by dragging them to the desired positions. (Hidden buttons still affect placement) ⚠️ This is temporarily (partially) broken with the new ui ⚠️',
+                    description: 'Rearrange the button positions by dragging them to the desired positions. (Hidden buttons still affect placement) ⚠️ This is temporarily disabled with the new ui ⚠️',
                     noDefaultListener: true,
                     type: 'quickPick',
                     quickPicks: [['replies', '💭 Reply'], ['retweets', '🔁 Retweet'], ['likes', '❤️ Likes'], ['views', '📈 Views'], ['bookmark', '🔖 Bookmark'], ['share', '⬆️ Share'], ['download', '⬇️ Download'], ['copy', '📋 Copy link']],

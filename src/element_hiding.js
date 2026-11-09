@@ -137,7 +137,7 @@
         // Apply button ordering if exists
         const result = enabled.tweet_button_positions.match(/{([^}]+)}/g).map(match => match.replace(/[{}]/g, ''));
         for (let i = 0; i < result.length; ++i) {
-            for (const s of CommonSelectors[result[i]] ?? []) style += `${s}{order:${i}!important}`;
+            for (const s of CommonSelectors[result[i]] ?? []) style += `#react-root ${s}{order:${i}!important}`; // TODO: disables this with the new ui
         }
 
         if (style.length > 0) {
