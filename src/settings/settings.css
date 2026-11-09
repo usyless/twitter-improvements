@@ -481,3 +481,8 @@ body:not(.mobile) div:has(> .mobile-only) {
 .hidden {
     display: none !important;
 }
+
+.warning-text {
+    text-align: center;
+    font-weight: bold;
+}

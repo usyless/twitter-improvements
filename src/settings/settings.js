@@ -627,6 +627,7 @@
                     button: 'Export Settings',
                     onclick: () => {
                         getStorage().then((r) => {
+                            if (r?.tmp) delete r?.tmp;
                             const url = URL.createObjectURL(new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' }));
                             download(url, 'twitterimprovements.json');
                             URL.revokeObjectURL(url);
@@ -654,6 +655,7 @@
                                 .then(async (r) => {
                                     i.value = ''; // fix for double identical file inputs
                                     const j = JSON.parse(r);
+                                    if (j?.tmp) delete j?.tmp;
                                     // order important here
                                     await clearStorage();
                                     await setStorage(j);
