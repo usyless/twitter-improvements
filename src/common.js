@@ -141,6 +141,14 @@
         onReady: getReadyObject(),
     };
 
+    // This is only really temporary
+    globalThis.GlobalTmpSettings = {
+        load: async () => {
+            globalThis.GlobalTmpSettings.tmp = (await extension.storage.local.get(['tmp']))?.tmp || {};
+        },
+        onReady: getReadyObject(),
+    };
+
     globalThis.GlobalTabId = {
         load: async () => {
             GlobalTabId.value = await GlobalBackground.get_tab_id();
@@ -179,6 +187,8 @@
     }).catch(() => {
         console.log('Unable to load global settings, if this is from the background page you can ignore it')
     });
+
+    GlobalTmpSettings.load().then(GlobalTmpSettings.onReady.setReady);
 
     GlobalTabId.load().then(GlobalTabId.onReady.setReady).catch(() => {
         console.log('Unable to load global tab id, if this is from the background page you can ignore it')

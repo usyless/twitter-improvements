@@ -96,6 +96,8 @@
 
     let ACCENT_COLOUR;
 
+    let NEW_UI = false;
+
     const vx_button_path = "M 18.36 5.64 c -1.95 -1.96 -5.11 -1.96 -7.07 0 l -1.41 1.41 l -1.42 -1.41 l 1.42 -1.42 c 2.73 -2.73 7.16 -2.73 9.9 0 c 2.73 2.74 2.73 7.17 0 9.9 l -1.42 1.42 l -1.41 -1.42 l 1.41 -1.41 c 1.96 -1.96 1.96 -5.12 0 -7.07 z m -2.12 3.53 z m -12.02 0.71 l 1.42 -1.42 l 1.41 1.42 l -1.41 1.41 c -1.96 1.96 -1.96 5.12 0 7.07 c 1.95 1.96 5.11 1.96 7.07 0 l 1.41 -1.41 l 1.42 1.41 l -1.42 1.42 c -2.73 2.73 -7.16 2.73 -9.9 0 c -2.73 -2.74 -2.73 -7.17 0 -9.9 z m 1 5 l 1.2728 -1.2728 l 2.9698 1.2728 l -1.4142 -2.8284 l 1.2728 -1.2728 l 2.2627 6.2225 l -6.364 -2.1213 m 4.9497 -4.9497 l 3.182 1.0607 l 1.0607 3.182 l 1.2728 -1.2728 l -0.7071 -2.1213 l 2.1213 0.7071 l 1.2728 -1.2728 l -3.182 -1.0607 l -1.0607 -3.182 l -1.2728 1.2728 l 0.7071 2.1213 l -2.1213 -0.7071 l -1.2728 1.2728",
         download_button_path = "M 12 17.41 l -5.7 -5.7 l 1.41 -1.42 L 11 13.59 V 4 h 2 V 13.59 l 3.3 -3.3 l 1.41 1.42 L 12 17.41 zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z",
         thumbnail_path = "M2 2C0 2 0 2 0 4v6c0 2 0 2 2 2H12c2 0 2 0 2-2V4c0-2 0-2-2-2H2ZM2 3H12c1 0 1 0 1 1v6c0 1 0 1-1 1H2c-1 0-1 0-1-1V4C1 3 1 3 2 3Zm0 7L4.264 5.01c.432-.978.812-.939 1.43-.038L9 10Zm8-6a1 1 0 000 4 1 1 0 000-4Z";
@@ -1071,6 +1073,61 @@
             }
         },
 
+        /**
+         * @param {string} text
+         */
+        informationalError: (text) => {
+            const outer = document.querySelector('.usyErrorNotificationOuter')
+                || document.createElement('div');
+            const inner = document.createElement('div');
+            outer.classList.add('usyNotificationOuter', 'usyErrorNotificationOuter');
+            inner.classList.add('usyNotificationInner', 'usyErrorNotificationInner');
+            const innerText = document.createElement('div');
+            const innerChoices = document.createElement('div');
+            const okChoice = document.createElement('div');
+
+            innerText.textContent = text;
+            innerChoices.style.cursor = 'pointer';
+
+            okChoice.textContent = 'Ok';
+
+            const removeElement = () => {
+                Button.triggerHaptics();
+                if (outer.children.length === 2) outer.remove();
+                else inner.remove();
+            }
+
+            okChoice.addEventListener('click', async () => {
+                removeElement();
+                void extension.storage.local.set({
+                    tmp: {
+                        new_ui_message_accepted: true,
+                        ...(((await extension.storage.local.get(['tmp'])) || {})?.tmp || {})
+                    }
+                });
+            });
+
+            innerChoices.append(okChoice);
+            inner.append(innerText, innerChoices);
+
+            if (!outer.isConnected) {
+                const clear = document.createElement('div');
+                clear.classList.add('usyNotificationInner', 'usyErrorNotificationInner', 'usyErrorNotificationClear');
+                clear.textContent = 'Clear all errors';
+                clear.style.cursor = 'pointer';
+                clear.addEventListener('click', () => {
+                    Button.triggerHaptics();
+                    outer.remove();
+                });
+
+                outer.append(inner, clear);
+
+                document.body.appendChild(outer);
+            } else {
+                outer.lastElementChild.before(inner);
+            }
+        },
+
         clearFullscreen: () => {
             document.querySelectorAll('div.usyNotificationOuter.usyFullscreen').forEach((e) => e.remove());
         },
@@ -1642,6 +1699,7 @@
             const callbackMappings = Observer.callbackMappings;
             const observerSettings = {subtree: true, childList: true};
             let lastReactRoot;
+            let new_ui_message_displayed = false;
             const getCallback = () => {
                 /** @type {[string, function(HTMLElement): *][]} */
                 const callbacks = [];
@@ -1660,6 +1718,16 @@
                 const update = () => {
                     if (!(lastReactRoot?.isConnected)) {
                         lastReactRoot = document.getElementById('react-root');
+                        NEW_UI = false;
+                        if (!lastReactRoot) {
+                            lastReactRoot = document.querySelector('div:has(> div > main)');
+                            if (lastReactRoot) NEW_UI = true;
+                        }
+                    }
+
+                    if (NEW_UI && !new_ui_message_displayed && !GlobalTmpSettings.tmp?.new_ui_message_accepted) {
+                        new_ui_message_displayed = true;
+                        Notification.informationalError('You may be on the new UI revision! As the extension developer, I unfortunately do not have this yet, so features may be broken/not working until i recieve it. But don\'t worry, as soon as I recieve it I will update the extension. Thanks');
                     }
 
                     if (lastReactRoot) {
@@ -2027,7 +2095,7 @@
     }
 
     Promise.all([
-        GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise,
+        GlobalDefaults.onReady.promise, GlobalSettings.onReady.promise, GlobalTmpSettings.onReady.promise,
         loadAndroid(), GlobalTabId.onReady.promise, GlobalLogging.onReady.promise]).then(start);
 
     GlobalSettings.onUpdate.addListener((changes) => {
