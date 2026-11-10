@@ -342,7 +342,12 @@
          * @returns {string}
          */
         url: (article) => {
-            for (const a of article.querySelectorAll('a')) if (a.querySelector('time')) return a.href.replace(/\/history$/, "");
+            // TODO: update
+            if (NEW_UI) {
+                for (const a of article.querySelectorAll('a:only-child:not(:has(*))[href]')) if (a.textContent.includes('·')) return a.href.split('?')[0];
+            } else {
+                for (const a of article.querySelectorAll('a')) if (a.querySelector('time')) return a.href.replace(/\/history$/, "");
+            }
             throw new TypeError("No URL Found");
         },
 
@@ -760,7 +765,8 @@
          * @returns {string}
          */
         respectiveURL: (image) => {
-            let urlElem = image.closest('[href]');
+            // TODO: fix this
+            let urlElem = NEW_UI ? image.parentElement?.parentElement?.parentElement?.parentElement?.querySelector('[href]') : image.closest('[href]');
             let url = urlElem?.href;
 
             const isInChat = url?.includes?.('/i/');
@@ -889,11 +895,21 @@
             shareButton = shareButton.cloneNode(true);
             shareButton.classList.add('usybuttonclickdiv');
             shareButton.setAttribute(attribute, "");
-            const button = shareButton.querySelector('button');
+            // TODO: update later
+            const button = NEW_UI ? shareButton : shareButton.querySelector('button');
             button.setAttribute('usy', '');
             button.disabled = false;
             button.classList.remove('r-icoktb'); // private tweet buttons more visible
-            if (path) shareButton.querySelector('path').setAttribute("d", path);
+            if (path) {
+                if (NEW_UI) {
+                    const use = shareButton.querySelector('use');
+                    if (use) {
+                        const path = document.createElementNS(use.namespaceURI, 'path');
+                        use.replaceWith(path);
+                    }
+                }
+                shareButton.querySelector('path').setAttribute("d", path);
+            }
             shareButton.addEventListener('pointerover', Button.onhover.bind(null, button.firstElementChild));
             shareButton.addEventListener('pointerout', Button.stophover.bind(null, button.firstElementChild, button.firstElementChild.style.color));
             shareButton.addEventListener('click', Button.triggerHaptics);
