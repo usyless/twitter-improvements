@@ -26,15 +26,21 @@
         ],
         retweets: [
             ':not(#react-root) [data-engagement-action="retweet"]', // new ui
-            '#react-root div:has(> button[data-testid="retweet"])', 'div:has(> button[data-testid="unretweet"])'
+            ':not(#react-root) [data-engagement-action="unretweet"]', // new ui
+            '#react-root div:has(> button[data-testid="retweet"])',
+            '#react-root div:has(> button[data-testid="unretweet"])'
         ],
         likes: [
             ':not(#react-root) [data-engagement-action="like"]', // new ui
-            '#react-root div:has(> button[data-testid="like"])', 'div:has(> button[data-testid="unlike"])'
+            ':not(#react-root) [data-engagement-action="unlike"]', // new ui
+            '#react-root div:has(> button[data-testid="like"])',
+            '#react-root div:has(> button[data-testid="unlike"])'
         ],
         bookmark: [
             ':not(#react-root) div:has(> [data-engagement-action="bookmark"])', // new ui
-            '#react-root div:has(> button[data-testid="bookmark"])', 'div:has(> button[data-testid="removeBookmark"])'
+            ':not(#react-root) div:has(> [data-engagement-action="removeBookmark"])', // new ui
+            '#react-root div:has(> button[data-testid="bookmark"])',
+            '#react-root div:has(> button[data-testid="removeBookmark"])'
         ],
 
         copy: ['div[usy-copy]'],
