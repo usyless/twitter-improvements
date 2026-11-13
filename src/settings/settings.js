@@ -479,7 +479,7 @@
                         i.hidden = true;
                         i.multiple = true;
                         i.accept = 'image/*, video/*';
-                        const validNums = new Set(Array.from({ length: 16 }, (_, idx) => idx + 1));
+                        const validNums = new Set(Array.from({ length: 20 }, (_, idx) => idx + 1));
                         i.addEventListener('change', () => {
                             const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const saved_images = [];

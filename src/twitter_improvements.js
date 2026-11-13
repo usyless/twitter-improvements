@@ -815,7 +815,7 @@
             const save_id = ev.currentTarget.getAttribute('ti-id')
                 ?? ev.currentTarget.getAttribute('ti-id-vague');
             const split = save_id.split('-');
-            // - 1 is because indexes are 1-16
+            // - 1 is because indexes are 1-20
             const media = MediaCache.cache.get(split[0]);
 
             if (!media) {

@@ -1195,7 +1195,7 @@ async function migrateSettings(previousVersion) {
     }
 }
 
-const MAX_MEDIA_INDEX = 16;
+const MAX_MEDIA_INDEX = 20;
 const MEDIA_BITMASK = ((1 << MAX_MEDIA_INDEX) - 1) << 1;
 
 /**
@@ -1469,7 +1469,8 @@ function download_history_count(_, sendResponse) {
                 valid += BIT_COUNT_LOOKUP[mask & 15]
                     + BIT_COUNT_LOOKUP[(mask >> 4) & 15]
                     + BIT_COUNT_LOOKUP[(mask >> 8) & 15]
-                    + BIT_COUNT_LOOKUP[(mask >> 12) & 15];
+                    + BIT_COUNT_LOOKUP[(mask >> 12) & 15]
+                    + BIT_COUNT_LOOKUP[(mask >> 16) & 15];
             }
 
             sendResponse(valid);
