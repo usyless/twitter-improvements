@@ -1222,7 +1222,9 @@
                 listener: resizeListener
             });
 
-            popup.style.backgroundColor = window.getComputedStyle(document.body).backgroundColor;
+            const bgColor = window.getComputedStyle(document.body).backgroundColor;
+            popup.style.backgroundColor = bgColor;
+            popup.style.setProperty('--usy-bg', bgColor);
 
             let closeThumbnail;
             fullscreen.addEventListener('click', () => {
@@ -1234,6 +1236,17 @@
                 closeThumbnail?.closeThumb?.();
             });
 
+            const isScrollable = choices.length > 5;
+            const choiceParent = isScrollable ? document.createElement('div') : popup;
+            let listWrapper;
+            if (isScrollable) {
+                listWrapper = document.createElement('div');
+                listWrapper.classList.add('usyDownloadChoiceListWrapper');
+                choiceParent.classList.add('usyDownloadChoiceList');
+                listWrapper.appendChild(choiceParent);
+                popup.appendChild(listWrapper);
+            }
+
             for (const {index, type, save_id} of choices) {
                 const btn = Notification.getChoiceButton(`${type} ${index}`, true);
                 btn.dataset.index = index.toString();
@@ -1243,13 +1256,17 @@
                     GlobalBackground.download_history_has(save_id).then((r) => r && Button.mark(btn));
                 }
 
-                popup.appendChild(btn);
+                choiceParent.appendChild(btn);
             }
             popup.appendChild(Notification.getChoiceButton('Download All'));
             popup.addEventListener('click', (e) => {
                 const choiceBtn = e.target.closest('.usyDownloadChoiceButton');
-                if (choiceBtn) Button.triggerHaptics();
-                const choice = +choiceBtn?.dataset.index - 1;
+                if (!choiceBtn) {
+                    e.stopPropagation();
+                    return;
+                }
+                Button.triggerHaptics();
+                const choice = +choiceBtn.dataset.index - 1;
                 if (!Number.isInteger(choice)) {
                     Downloaders.download_all(choices, Helpers.eventModifiers(e),
                         GlobalSettings.download_preferences.download_all_override_saved ? {override: true} : {softOverride: true});
@@ -1304,6 +1321,20 @@
 
             fullscreen.appendChild(popup);
             document.body.appendChild(fullscreen);
+
+            if (isScrollable) {
+                const fifth = choiceParent.children[4];
+                if (fifth) {
+                    choiceParent.style.maxHeight = `${fifth.offsetTop + (fifth.offsetHeight / 2)}px`;
+                }
+                const updateScrollBlur = () => {
+                    const { scrollTop, scrollHeight, clientHeight } = choiceParent;
+                    listWrapper.classList.toggle('usyCanScrollUp', scrollTop > 1);
+                    listWrapper.classList.toggle('usyCanScrollDown', scrollTop + clientHeight < scrollHeight - 1);
+                };
+                choiceParent.addEventListener('scroll', updateScrollBlur, { passive: true });
+                updateScrollBlur();
+            }
 
             resizeListener();
             resizeListener(); // twice on purpose here

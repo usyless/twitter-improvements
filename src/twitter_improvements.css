@@ -193,6 +193,61 @@ body {
     }
 }
 
+.usyDownloadChoiceListWrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.usyDownloadChoiceList {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
+}
+
+.usyDownloadChoiceListWrapper::before,
+.usyDownloadChoiceListWrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 28px;
+    pointer-events: none;
+    z-index: 1002;
+    opacity: 0;
+    transition: opacity 150ms ease-in-out;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.usyDownloadChoiceListWrapper::before {
+    top: 0;
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--usy-bg, #000000) 70%, transparent) 0%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 35%, transparent 100%);
+}
+
+.usyDownloadChoiceListWrapper::after {
+    bottom: 0;
+    background: linear-gradient(to top, color-mix(in srgb, var(--usy-bg, #000000) 70%, transparent) 0%, transparent 100%);
+    mask-image: linear-gradient(to top, black 0%, black 35%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 35%, transparent 100%);
+}
+
+.usyDownloadChoiceListWrapper.usyCanScrollUp::before,
+.usyDownloadChoiceListWrapper.usyCanScrollDown::after {
+    opacity: 1;
+}
+
+.usyDownloadChoiceListWrapper + .usyDownloadChoiceButton,
+.usyDownloadChoiceButton + .usyDownloadChoiceListWrapper {
+    border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
 .usybuttonclickdiv[usy-media] {
     &:not(.usy-inline) {
         position: absolute;
@@ -289,6 +344,7 @@ body {
     padding: 10px;
     z-index: 999;
     width: 100%;
+    flex-shrink: 0;
     box-sizing: border-box;
     transition: 200ms ease-in-out;
 
