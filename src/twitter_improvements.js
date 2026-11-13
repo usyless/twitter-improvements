@@ -778,7 +778,7 @@
                 const li = image.closest('li');
                 if (li) {
                     const valid = li.parentElement.querySelectorAll('li:not(:has(img[alt="placeholder"])), video');
-                    url = `${url.slice(0, -1)}${Array.from(valid).indexOf(li) + 1}`;
+                    url = url.replace(/(\/(?:photo|video)\/)\d+([?#].*)?$/, `$1${Array.from(valid).indexOf(li) + 1}`);
                 }
             } else if (url && isInChat) { // is chat? and who knows what else
                 url = `${url.split('?')[0]}/photo/${Array.from(urlElem.querySelectorAll('img:not([alt="user avatar"]), video')).indexOf(image) + 1}`;
@@ -815,7 +815,7 @@
             const save_id = ev.currentTarget.getAttribute('ti-id')
                 ?? ev.currentTarget.getAttribute('ti-id-vague');
             const split = save_id.split('-');
-            // - 1 is because indexes are 1-4
+            // - 1 is because indexes are 1-16
             const media = MediaCache.cache.get(split[0]);
 
             if (!media) {

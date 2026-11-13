@@ -1195,6 +1195,9 @@ async function migrateSettings(previousVersion) {
     }
 }
 
+const MAX_MEDIA_INDEX = 16;
+const MEDIA_BITMASK = ((1 << MAX_MEDIA_INDEX) - 1) << 1;
+
 /**
  * @param {saveId} id
  * @returns {[string, number]}
@@ -1203,7 +1206,9 @@ function process_id(id) {
     try {
         const [id_proc, num] = id.split('-');
         const num_num = Number(num);
-        if ((num_num >= 1) && (num_num <= 4)) return [base91Encode(id_proc), 1 << num_num];
+        if (id_proc && Number.isInteger(num_num) && (num_num >= 1) && (num_num <= MAX_MEDIA_INDEX)) {
+            return [base91Encode(id_proc), 1 << num_num];
+        }
         else return ["", 0];
     } catch {
         return ["", 0];
@@ -1411,6 +1416,8 @@ const SUFFIX_LOOKUP = [
     ['-1', '-2', '-3', '-4'] // 15: 1111
 ];
 
+const SUFFIXES = Array.from({ length: MAX_MEDIA_INDEX }, (_, i) => `-${i + 1}`);
+
 function download_history_get_all(_, sendResponse) {
     getHistoryDB().then(async (db) => {
         const store = db.transaction('download_history', 'readonly').objectStore('download_history');
@@ -1425,11 +1432,19 @@ function download_history_get_all(_, sendResponse) {
             const len = keys.length;
 
             for (let i = 0; i < len; ++i) {
-                const mask = (values[i] & 30) >> 1;
+                let mask = (values[i] & MEDIA_BITMASK) >> 1;
                 if (mask === 0) continue;
                 const key = base91Decode(keys[i]);
 
-                for (const s of SUFFIX_LOOKUP[mask]) valid.push(key + s);
+                if (mask < 16) {
+                    for (const s of SUFFIX_LOOKUP[mask]) valid.push(key + s);
+                } else {
+                    while (mask !== 0) {
+                        const bit = 31 - Math.clz32(mask & -mask);
+                        valid.push(key + SUFFIXES[bit]);
+                        mask &= mask - 1;
+                    }
+                }
             }
 
             sendResponse(valid);
@@ -1450,7 +1465,11 @@ function download_history_count(_, sendResponse) {
             const len = values.length;
 
             for (let i = 0; i < len; ++i) {
-                valid += BIT_COUNT_LOOKUP[(values[i] & 30) >> 1];
+                const mask = (values[i] & MEDIA_BITMASK) >> 1;
+                valid += BIT_COUNT_LOOKUP[mask & 15]
+                    + BIT_COUNT_LOOKUP[(mask >> 4) & 15]
+                    + BIT_COUNT_LOOKUP[(mask >> 8) & 15]
+                    + BIT_COUNT_LOOKUP[(mask >> 12) & 15];
             }
 
             sendResponse(valid);

@@ -479,7 +479,7 @@
                         i.hidden = true;
                         i.multiple = true;
                         i.accept = 'image/*, video/*';
-                        const validNums = new Set([1, 2, 3, 4]);
+                        const validNums = new Set(Array.from({ length: 16 }, (_, idx) => idx + 1));
                         i.addEventListener('change', () => {
                             const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
                             const saved_images = [];
@@ -487,7 +487,7 @@
                                 const id = name.match(/\d+/g)?.reduce((longest, current) => current.length > longest.length ? current : longest, '') ?? '';
                                 if (id.length > 10) {
                                     const num = name.slice(name.indexOf(id) + id.length).match(/\d+/);
-                                    if (validNums.has(+num)) saved_images.push(`${id}-${num}`);
+                                    if (validNums.has(+num)) saved_images.push(`${id}-${+num}`);
                                 }
                             }
                             const length = saved_images.length;
