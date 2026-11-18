@@ -36,18 +36,37 @@ const base91Encode = (value) => {
     return asciiDecoder.decode(base91BYTE_BUFFER.subarray(index, 10));
 }
 
+const BASE91_POW8 = 4702525276151521n; // 91n ** 8n
+
+/**
+ * @param {string} str
+ * @returns {bigint}
+ */
+const base91DecodeBigInt = (str) => {
+    const size = str.length;
+    if (size <= 8) {
+        let acc = 0;
+        for (let i = 0; i < size; ++i) acc = acc * 91 + base91LOOKUP[str.charCodeAt(i)];
+        return BigInt(acc);
+    }
+    if (size <= 16) {
+        const split = size - 8;
+        let hi = 0;
+        for (let i = 0; i < split; ++i) hi = hi * 91 + base91LOOKUP[str.charCodeAt(i)];
+        let lo = 0;
+        for (let i = split; i < size; ++i) lo = lo * 91 + base91LOOKUP[str.charCodeAt(i)];
+        return BigInt(hi) * BASE91_POW8 + BigInt(lo);
+    }
+    let acc = 0n;
+    for (let i = 0; i < size; ++i) acc = acc * 91n + BigInt(base91LOOKUP[str.charCodeAt(i)]);
+    return acc;
+}
+
 /**
  * @param {string} str
  * @returns {string}
  */
-const base91Decode = (str) => {
-    let acc = 0n;
-    const size = str.length;
-
-    for (let i = 0; i < size; ++i) acc = acc * 91n + BigInt(base91LOOKUP[str.charCodeAt(i)]);
-
-    return acc.toString(10);
-}
+const base91Decode = (str) => base91DecodeBigInt(str).toString(10);
 
 const isAndroid = /Android/.test(navigator.userAgent);
 const isEdgeAndroid = /EdgA\//.test(navigator.userAgent);
@@ -611,6 +630,8 @@ const requestMap = {
     },
     download_history_add_all: download_history_add_all,
     download_history_get_all: download_history_get_all,
+    download_history_export_binary: download_history_export_binary,
+    download_history_export_text: download_history_export_text,
     download_history_count: download_history_count,
 
     get_settings: (_, sendResponse) => {
@@ -642,7 +663,8 @@ const requestMap = {
 const requestMapPorts = {
     /** @type {function(extension.runtime.Port): void} */ download_history_add_all: (port) => {
         port.onMessage.addListener((request) => {
-            download_history_add_all(request, () => {
+            download_history_add_all(request, (ok) => {
+                if (ok === false) port.postMessage({ error: true });
                 port.disconnect();
             }, (message) => {
                 port.postMessage(message);
@@ -1195,7 +1217,7 @@ async function migrateSettings(previousVersion) {
     }
 }
 
-const MAX_MEDIA_INDEX = 20;
+const MAX_MEDIA_INDEX = HISTORY_FORMAT.MAX_MEDIA_INDEX;
 const MEDIA_BITMASK = ((1 << MAX_MEDIA_INDEX) - 1) << 1;
 
 /**
@@ -1348,6 +1370,171 @@ function download_history_clear(_, sendResponse) {
     })
 }
 
+/**
+ * @param {Map<string, number>} accumulator
+ * @param {Set<string>} dirtyKeys
+ * @param {string} id_proc
+ * @param {number} mask
+ */
+function mergeHistoryMask(accumulator, dirtyKeys, id_proc, mask) {
+    if (!id_proc || mask === 0) return;
+    const oldVal = accumulator.get(id_proc) || 0;
+    const newVal = oldVal | mask;
+    if (newVal !== oldVal) {
+        accumulator.set(id_proc, newVal);
+        dirtyKeys.add(id_proc);
+    }
+}
+
+/**
+ * Parses a v2 binary history buffer (header + 12-byte tweetId/mask records) into the accumulator.
+ * @param {Uint8Array} bytes
+ * @param {Map<string, number>} accumulator
+ * @param {Set<string>} dirtyKeys
+ */
+function addV2BufferToAccumulator(bytes, accumulator, dirtyKeys) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const headerSize = HISTORY_FORMAT.HEADER_SIZE;
+    const recSize = HISTORY_FORMAT.V2_RECORD_SIZE;
+    const max = bytes.byteLength - ((bytes.byteLength - headerSize) % recSize);
+
+    for (let offset = headerSize; offset < max; offset += recSize) {
+        const mask = (view.getUint32(offset + 8, true) << 1) & MEDIA_BITMASK;
+        if (mask === 0) continue;
+        mergeHistoryMask(accumulator, dirtyKeys, base91Encode(view.getBigUint64(offset, true)), mask);
+    }
+}
+
+/**
+ * Parses a v1 binary history buffer (9-byte tweetId/index records) into the accumulator.
+ * @param {Uint8Array} bytes
+ * @param {Map<string, number>} accumulator
+ * @param {Set<string>} dirtyKeys
+ */
+function addV1BufferToAccumulator(bytes, accumulator, dirtyKeys) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const recSize = HISTORY_FORMAT.V1_RECORD_SIZE;
+    const max = bytes.byteLength - (bytes.byteLength % recSize);
+    let lastTweetId = -1n;
+    let lastIdProc = '';
+
+    for (let offset = 0; offset < max; offset += recSize) {
+        const num = view.getUint8(offset + 8);
+        if (num < 1 || num > MAX_MEDIA_INDEX) continue;
+
+        const tweetId = view.getBigUint64(offset, true);
+        let id_proc;
+        if (tweetId === lastTweetId) {
+            id_proc = lastIdProc;
+        } else {
+            id_proc = base91Encode(tweetId);
+            lastTweetId = tweetId;
+            lastIdProc = id_proc;
+        }
+        mergeHistoryMask(accumulator, dirtyKeys, id_proc, 1 << num);
+    }
+}
+
+/**
+ * Parses whitespace-delimited "{tweetId}-{index}" ASCII bytes directly without string splitting.
+ * @param {Uint8Array} bytes
+ * @param {Map<string, number>} accumulator
+ * @param {Set<string>} dirtyKeys
+ */
+function addTextBufferToAccumulator(bytes, accumulator, dirtyKeys) {
+    const len = bytes.length;
+    let i = (len >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+    let lastTweetId = -1n;
+    let lastIdProc = '';
+
+    while (i < len) {
+        while (i < len && bytes[i] <= 32) ++i;
+        if (i >= len) break;
+
+        let tweetId = 0n;
+        let chunk = 0;
+        let chunkMul = 1;
+        let hasId = false;
+
+        while (i < len) {
+            const b = bytes[i];
+            if (b >= 48 && b <= 57) {
+                chunk = chunk * 10 + (b - 48);
+                chunkMul *= 10;
+                hasId = true;
+                if (chunkMul === 1000000000) {
+                    tweetId = tweetId * 1000000000n + BigInt(chunk);
+                    chunk = 0;
+                    chunkMul = 1;
+                }
+                ++i;
+            } else {
+                break;
+            }
+        }
+
+        if (!hasId || i >= len || bytes[i] !== 45) {
+            while (i < len && bytes[i] > 32) ++i;
+            continue;
+        }
+        ++i;
+
+        if (chunkMul > 1) {
+            tweetId = tweetId * BigInt(chunkMul) + BigInt(chunk);
+        }
+
+        let num = 0;
+        let hasNum = false;
+        while (i < len) {
+            const b = bytes[i];
+            if (b >= 48 && b <= 57) {
+                if (num <= MAX_MEDIA_INDEX) num = num * 10 + (b - 48);
+                hasNum = true;
+                ++i;
+            } else {
+                break;
+            }
+        }
+
+        if (i < len && bytes[i] > 32) {
+            while (i < len && bytes[i] > 32) ++i;
+            continue;
+        }
+
+        if (hasNum && num >= 1 && num <= MAX_MEDIA_INDEX) {
+            let id_proc;
+            if (tweetId === lastTweetId) {
+                id_proc = lastIdProc;
+            } else {
+                id_proc = base91Encode(tweetId);
+                lastTweetId = tweetId;
+                lastIdProc = id_proc;
+            }
+            mergeHistoryMask(accumulator, dirtyKeys, id_proc, 1 << num);
+        }
+    }
+}
+
+/**
+ * Reads all keys and values from the download_history object store in parallel.
+ * @param {IDBObjectStore} store
+ * @returns {Promise<[string[], number[]]>}
+ */
+function readAllHistory(store) {
+    return Promise.all([
+        new Promise((res, rej) => {
+            const req = store.getAllKeys();
+            req.onsuccess = e => res(e.target.result);
+            req.onerror = e => rej(e.target.error);
+        }),
+        new Promise((res, rej) => {
+            const req = store.getAll();
+            req.onsuccess = e => res(e.target.result);
+            req.onerror = e => rej(e.target.error);
+        })
+    ]);
+}
+
 function download_history_add_all(request, sendResponse, progressCallback) {
     getHistoryDB().then(async (db) => {
         const transaction = db.transaction('download_history', 'readwrite');
@@ -1357,11 +1544,10 @@ function download_history_add_all(request, sendResponse, progressCallback) {
             send_to_all_tabs({type: 'history_change'});
             sendResponse?.(true);
         });
+        transaction.addEventListener('error', () => sendResponse?.(false));
+        transaction.addEventListener('abort', () => sendResponse?.(false));
 
-        const [keys, values] = await Promise.all([
-            new Promise(res => objectStore.getAllKeys().onsuccess = e => res(e.target.result)),
-            new Promise(res => objectStore.getAll().onsuccess = e => res(e.target.result))
-        ]);
+        const [keys, values] = await readAllHistory(objectStore);
 
         const accumulator = new Map();
         const keys_len = keys.length;
@@ -1369,32 +1555,33 @@ function download_history_add_all(request, sendResponse, progressCallback) {
 
         const dirtyKeys = new Set();
 
-        for (const saved_image of request.saved_images) {
-            const [id_proc, num] = process_id(saved_image);
-            if (!id_proc) continue;
-
-            const oldVal = accumulator.get(id_proc) || 0;
-            const newVal = oldVal | num;
-
-            if (newVal !== oldVal) {
-                accumulator.set(id_proc, newVal);
-                dirtyKeys.add(id_proc);
+        if (request.format === 'v2') {
+            addV2BufferToAccumulator(decodeBytesFromIPC(request.data), accumulator, dirtyKeys);
+        } else if (request.format === 'v1') {
+            addV1BufferToAccumulator(decodeBytesFromIPC(request.data), accumulator, dirtyKeys);
+        } else if (request.format === 'text') {
+            addTextBufferToAccumulator(decodeBytesFromIPC(request.data), accumulator, dirtyKeys);
+        } else if (request.saved_images) {
+            for (const saved_image of request.saved_images) {
+                const [id_proc, num] = process_id(saved_image);
+                mergeHistoryMask(accumulator, dirtyKeys, id_proc, num);
             }
         }
 
+        const total = dirtyKeys.size;
         let progress = 0;
         for (const id_proc of dirtyKeys) {
             objectStore.put(accumulator.get(id_proc), id_proc);
 
             if (progressCallback && ((++progress % 1000) === 0)) {
-                progressCallback({ progress });
+                progressCallback({ progress, total });
             }
         }
 
         if (progressCallback) {
             progressCallback({ text: 'Finished importing, waiting...' });
         }
-    });
+    }).catch(() => sendResponse?.(false));
 }
 
 const SUFFIX_LOOKUP = [
@@ -1418,38 +1605,100 @@ const SUFFIX_LOOKUP = [
 
 const SUFFIXES = Array.from({ length: MAX_MEDIA_INDEX }, (_, i) => `-${i + 1}`);
 
+/**
+ * Expands DB key/bitmask pairs into "{tweetId}-{index}" strings.
+ * @param {string[]} keys
+ * @param {number[]} values
+ * @returns {string[]}
+ */
+function collectHistoryStrings(keys, values) {
+    const valid = [];
+    const len = keys.length;
+
+    for (let i = 0; i < len; ++i) {
+        let mask = (values[i] & MEDIA_BITMASK) >> 1;
+        if (mask === 0) continue;
+        const key = base91Decode(keys[i]);
+
+        if (mask < 16) {
+            for (const s of SUFFIX_LOOKUP[mask]) valid.push(key + s);
+        } else {
+            while (mask !== 0) {
+                const bit = 31 - Math.clz32(mask & -mask);
+                valid.push(key + SUFFIXES[bit]);
+                mask &= mask - 1;
+            }
+        }
+    }
+
+    return valid;
+}
+
 function download_history_get_all(_, sendResponse) {
     getHistoryDB().then(async (db) => {
         const store = db.transaction('download_history', 'readonly').objectStore('download_history');
 
         try {
-            const [keys, values] = await Promise.all([
-                new Promise(res => store.getAllKeys().onsuccess = e => res(e.target.result)),
-                new Promise(res => store.getAll().onsuccess = e => res(e.target.result))
-            ]);
-
-            const valid = [];
-            const len = keys.length;
-
-            for (let i = 0; i < len; ++i) {
-                let mask = (values[i] & MEDIA_BITMASK) >> 1;
-                if (mask === 0) continue;
-                const key = base91Decode(keys[i]);
-
-                if (mask < 16) {
-                    for (const s of SUFFIX_LOOKUP[mask]) valid.push(key + s);
-                } else {
-                    while (mask !== 0) {
-                        const bit = 31 - Math.clz32(mask & -mask);
-                        valid.push(key + SUFFIXES[bit]);
-                        mask &= mask - 1;
-                    }
-                }
-            }
-
-            sendResponse(valid);
+            const [keys, values] = await readAllHistory(store);
+            sendResponse(collectHistoryStrings(keys, values));
         } catch {
             sendResponse([]);
+        }
+    });
+}
+
+function download_history_export_text(_, sendResponse) {
+    getHistoryDB().then(async (db) => {
+        const store = db.transaction('download_history', 'readonly').objectStore('download_history');
+
+        try {
+            const [keys, values] = await readAllHistory(store);
+            sendResponse(collectHistoryStrings(keys, values).join(' '));
+        } catch {
+            sendResponse('');
+        }
+    });
+}
+
+function download_history_export_binary(_, sendResponse) {
+    getHistoryDB().then(async (db) => {
+        const store = db.transaction('download_history', 'readonly').objectStore('download_history');
+
+        try {
+            const [keys, values] = await readAllHistory(store);
+            const len = keys.length;
+            const headerSize = HISTORY_FORMAT.HEADER_SIZE;
+            const recSize = HISTORY_FORMAT.V2_RECORD_SIZE;
+            const out = new Uint8Array(headerSize + len * recSize);
+            const view = new DataView(out.buffer);
+
+            out.set(HISTORY_FORMAT.MAGIC, 0);
+            view.setUint16(6, HISTORY_FORMAT.VERSION, true);
+
+            let offset = headerSize;
+            for (let i = 0; i < len; ++i) {
+                const mask = (values[i] & MEDIA_BITMASK) >>> 1;
+                if (mask === 0) continue;
+                const tweetId = base91DecodeBigInt(keys[i]);
+                if (tweetId > 0xFFFFFFFFFFFFFFFFn) continue;
+                view.setBigUint64(offset, tweetId, true);
+                view.setUint32(offset + 8, mask, true);
+                offset += recSize;
+            }
+
+            let payload = (offset === out.byteLength) ? out : out.subarray(0, offset);
+            let gzipped = false;
+            if ('CompressionStream' in globalThis) {
+                const compressed = await new Response(
+                    new Blob([payload]).stream().pipeThrough(new CompressionStream('gzip'))
+                ).arrayBuffer();
+                payload = new Uint8Array(compressed);
+                gzipped = true;
+            }
+
+            sendResponse({ data: encodeBytesForIPC(payload), gzipped });
+        } catch {
+            sendResponse({ error: true });
         }
     });
 }

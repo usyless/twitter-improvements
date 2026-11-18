@@ -10,11 +10,15 @@
     });
 
     const BackgroundPorts = {
-        download_history_add_all: (saved_images, progressCallback) => new Promise((resolve) => {
+        download_history_add_all: (payload, progressCallback) => new Promise((resolve, reject) => {
             const port = extension.runtime.connect({ name: 'download_history_add_all' });
-            port.onMessage.addListener(progressCallback);
-            port.onDisconnect.addListener(resolve);
-            port.postMessage({ saved_images });
+            let failed = false;
+            port.onMessage.addListener((msg) => {
+                if (msg?.error) failed = true;
+                else progressCallback(msg);
+            });
+            port.onDisconnect.addListener(() => (failed ? reject(new Error('Import failed')) : resolve()));
+            port.postMessage(Array.isArray(payload) ? { saved_images: payload } : payload);
         })
     }
 
@@ -404,58 +408,29 @@
                         i.type = 'file';
                         i.id = 'download_history_input';
                         i.hidden = true;
-                        i.accept = '.twitterimprovements,.twitterimprovementsbin,.twitterimprovementsgz';
-                        i.addEventListener('change', () => {
+                        i.accept = '.twitterimprovements,.twitterimprovementsbin,.twitterimprovementsbin2,.twitterimprovementsgz,.twitterimprovementsgz2';
+                        i.addEventListener('change', async () => {
                             const file = i.files[0];
                             if (!file) return;
 
                             const {removeOverlay, progressCallback} = makeScreenOverlay("Importing, please wait...", true);
-                            const onFinish = () => {
+                            try {
+                                const {format, bytes, total: fallbackTotal} = await parseHistoryImportFile(file);
+                                if (format !== 'empty') {
+                                    await BackgroundPorts.download_history_add_all(
+                                        { format, data: encodeBytesForIPC(bytes) },
+                                        ({progress, total, text}) => {
+                                            progressCallback(progress, total || fallbackTotal, text);
+                                        }
+                                    );
+                                }
                                 removeOverlay();
                                 i.value = ''; // fix for double identical file inputs
                                 void customPopup('Successfully imported!');
-                            }
-                            const isGz = file.name.endsWith('.twitterimprovementsgz');
-                            const isBinary = file.name.endsWith('.twitterimprovementsbin');
-                            if (isGz || isBinary) {
-                                /** @param {ArrayBuffer} buffer */
-                                const onBuffer = (buffer) => {
-                                    const ids = [];
-                                    const view = new DataView(buffer);
-                                    const max = view.byteLength;
-
-                                    for (let offset = 0; offset < max; offset += 9) {
-                                        ids.push(`${view.getBigUint64(offset, true)}-${view.getUint8(offset + 8)}`)
-                                    }
-
-                                    const length = ids.length;
-                                    return BackgroundPorts.download_history_add_all(ids, ({progress, text}) => {
-                                        progressCallback(progress, length, text);
-                                    });
-                                }
-                                if (isBinary) file.arrayBuffer().then(onBuffer).then(onFinish);
-                                else if (isGz) {
-                                    if (!('DecompressionStream' in window)) {
-                                        removeOverlay();
-                                        i.value = '';
-                                        void customPopup('Failed to import! File is compressed but no decompression available.');
-                                        return;
-                                    }
-                                    new Response(file.stream().pipeThrough(new DecompressionStream("gzip")))
-                                        .arrayBuffer().then(onBuffer).then(onFinish).catch(() => {
-                                            removeOverlay();
-                                            i.value = '';
-                                            void customPopup('Failed to import! Bad file.');
-                                    });
-                                }
-                            } else {
-                                file.text().then((r) => {
-                                    const split = r.split(' ');
-                                    const length = split.length;
-                                    return BackgroundPorts.download_history_add_all(split, ({progress, text}) => {
-                                        progressCallback(progress, length, text);
-                                    });
-                                }).then(onFinish);
+                            } catch (err) {
+                                removeOverlay();
+                                i.value = '';
+                                void customPopup(err?.message?.startsWith('Failed to import!') ? err.message : 'Failed to import! Bad file.');
                             }
                         });
                         document.body.appendChild(i);
@@ -491,8 +466,8 @@
                                 }
                             }
                             const length = saved_images.length;
-                            BackgroundPorts.download_history_add_all(saved_images, ({progress, text}) => {
-                                progressCallback(progress, length, text);
+                            BackgroundPorts.download_history_add_all(saved_images, ({progress, total, text}) => {
+                                progressCallback(progress, total || length, text);
                             }).then(() => {
                                 removeOverlay();
                                 i.value = ''; // fix for double identical file inputs
@@ -512,9 +487,9 @@
                     }],
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
-                        GlobalBackground.download_history_get_all().then((r) => {
+                        GlobalBackground.download_history_export_text().then((r) => {
                             removeOverlay();
-                            const url = URL.createObjectURL(new Blob([r.join(' ')], { type: 'application/octet-stream' }));
+                            const url = URL.createObjectURL(new Blob([r], { type: 'application/octet-stream' }));
                             download(url, 'export.twitterimprovements');
                             URL.revokeObjectURL(url);
                         });
@@ -675,44 +650,16 @@
                     button: 'Export download history\n(Binary - for a smaller file size)',
                     onclick: () => {
                         const {removeOverlay} = makeScreenOverlay("Exporting, please wait...");
-                        GlobalBackground.download_history_get_all().then((r) => {
-                            const buffers = [];
-                            for (const /** @type {saveId} */ saveId of r) {
-                                const [tweetId, tweetNum] = saveId.split('-');
-                                if (tweetId && tweetNum) {
-                                    const buffer = new ArrayBuffer(9);
-                                    const view = new DataView(buffer);
-
-                                    view.setBigUint64(0, BigInt(tweetId), true);
-                                    view.setUint8(8, +tweetNum);
-                                    buffers.push(buffer);
-                                }
+                        GlobalBackground.download_history_export_binary().then((res) => {
+                            removeOverlay();
+                            if (!res || res.error) {
+                                void customPopup('Failed to export download history.');
+                                return;
                             }
-
-                            const buffer = new Uint8Array(buffers.length * 9);
-                            let offset = 0;
-                            for (const buf of buffers) {
-                                buffer.set(new Uint8Array(buf), offset);
-                                offset += 9;
-                            }
-
-                            const downloadBlob = (blob, gz = true) => {
-                                removeOverlay();
-                                const url = URL.createObjectURL(blob);
-                                download(url, 'export.twitterimprovements' + ((gz) ? 'gz' : 'bin'));
-                                URL.revokeObjectURL(url);
-                            }
-
-                            const blob = new Blob([buffer], { type: 'application/octet-stream' });
-                            if ('CompressionStream' in window) {
-                                new Response(
-                                    blob.stream().pipeThrough(new CompressionStream('gzip')), {
-                                        headers: { 'Content-Type': 'application/octet-stream' }
-                                    }
-                                ).blob().then(downloadBlob);
-                            } else {
-                                downloadBlob(blob, false);
-                            }
+                            const bytes = decodeBytesFromIPC(res.data);
+                            const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+                            download(url, 'export.twitterimprovements' + (res.gzipped ? 'gz2' : 'bin2'));
+                            URL.revokeObjectURL(url);
                         });
                     }
                 },
@@ -1476,6 +1423,95 @@
 
     function getStorage(data) {
         return extension.storage.local.get(data);
+    }
+
+    /**
+     * Checks whether a buffer contains valid ASCII "{tweetId}-{index}" text export data.
+     * @param {Uint8Array} bytes
+     * @returns {boolean}
+     */
+    function isTextHistoryBuffer(bytes) {
+        const len = bytes.length;
+        let i = (len >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+        let hasDigit = false;
+        let hasDash = false;
+        for (; i < len; ++i) {
+            const b = bytes[i];
+            if (b >= 48 && b <= 57) {
+                hasDigit = true;
+            } else if (b === 45) {
+                hasDash = true;
+            } else if (b !== 32 && b !== 9 && b !== 10 && b !== 13) {
+                return false;
+            }
+        }
+        return !hasDigit || hasDash;
+    }
+
+    /**
+     * Checks whether a buffer matches legacy v1 binary layout (9-byte tweetId + index records).
+     * @param {Uint8Array} bytes
+     * @returns {boolean}
+     */
+    function isV1BinaryBuffer(bytes) {
+        const recSize = HISTORY_FORMAT.V1_RECORD_SIZE;
+        if (bytes.length === 0 || (bytes.length % recSize) !== 0) return false;
+        const maxIndex = HISTORY_FORMAT.MAX_MEDIA_INDEX;
+        for (let offset = 8; offset < bytes.length; offset += recSize) {
+            const num = bytes[offset];
+            if (num < 1 || num > maxIndex) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Reads an exported download history file and detects its format from magic bytes/content.
+     * @param {File} file
+     * @returns {Promise<{format: 'empty' | 'v2' | 'v1' | 'text', bytes: Uint8Array, total: number}>}
+     */
+    async function parseHistoryImportFile(file) {
+        const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+        const isGzip = head.length >= 2 && head[0] === HISTORY_FORMAT.GZIP_MAGIC_0 && head[1] === HISTORY_FORMAT.GZIP_MAGIC_1;
+
+        let buffer;
+        if (isGzip) {
+            if (!('DecompressionStream' in window)) {
+                throw new Error('Failed to import! File is compressed but no decompression available.');
+            }
+            try {
+                buffer = await new Response(file.stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+            } catch {
+                throw new Error('Failed to import! Bad file.');
+            }
+        } else {
+            buffer = await file.arrayBuffer();
+        }
+
+        const bytes = new Uint8Array(buffer);
+        if (bytes.length === 0) return { format: 'empty', bytes, total: 0 };
+
+        if (hasHistoryMagic(bytes)) {
+            const view = new DataView(buffer);
+            const version = view.getUint16(6, true);
+            if (version !== HISTORY_FORMAT.VERSION) {
+                throw new Error(`Failed to import! Unsupported file version (${version}).`);
+            }
+            const payloadLen = bytes.length - HISTORY_FORMAT.HEADER_SIZE;
+            if ((payloadLen % HISTORY_FORMAT.V2_RECORD_SIZE) !== 0) {
+                throw new Error('Failed to import! Bad file.');
+            }
+            return { format: 'v2', bytes, total: payloadLen / HISTORY_FORMAT.V2_RECORD_SIZE };
+        }
+
+        if (isTextHistoryBuffer(bytes)) {
+            return { format: 'text', bytes, total: 0 };
+        }
+
+        if (isV1BinaryBuffer(bytes)) {
+            return { format: 'v1', bytes, total: bytes.length / HISTORY_FORMAT.V1_RECORD_SIZE };
+        }
+
+        throw new Error('Failed to import! Bad file.');
     }
 
     function download(url, filename) {

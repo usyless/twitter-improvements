@@ -86,10 +86,72 @@
         clear_download_history: () => extension.runtime.sendMessage({type: 'download_history_clear'}),
         /** @returns {Promise<Array<saveId>>} */
         download_history_get_all: () => extension.runtime.sendMessage({type: 'download_history_get_all'}),
+        /** @returns {Promise<{data: string | Uint8Array, gzipped: boolean}>} */
+        download_history_export_binary: () => extension.runtime.sendMessage({type: 'download_history_export_binary'}),
+        /** @returns {Promise<string>} */
+        download_history_export_text: () => extension.runtime.sendMessage({type: 'download_history_export_text'}),
         /** @returns {Promise<Number>} */
         download_history_count: () => extension.runtime.sendMessage({type: 'download_history_count'}),
         /** @returns {Promise<boolean>} */
         validate_setting: (category, setting, value) => extension.runtime.sendMessage({type: 'validate_setting', category, setting, value})
+    };
+
+    const HISTORY_MAGIC = [0x54, 0x57, 0x49, 0x4D, 0x50, 0x00]; // "TWIMP\0"
+    globalThis.HISTORY_FORMAT = {
+        MAGIC: HISTORY_MAGIC,
+        VERSION: 2,
+        HEADER_SIZE: 8,
+        V2_RECORD_SIZE: 12,
+        V1_RECORD_SIZE: 9,
+        MAX_MEDIA_INDEX: 20,
+        GZIP_MAGIC_0: 0x1F,
+        GZIP_MAGIC_1: 0x8B,
+    };
+
+    /**
+     * @param {Uint8Array} bytes
+     * @returns {string | Uint8Array}
+     */
+    globalThis.encodeBytesForIPC = (bytes) => {
+        if (!chromeMode) {
+            return (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength) ? bytes : bytes.slice();
+        }
+        let binary = '';
+        const chunkSize = 0x4000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+    };
+
+    /**
+     * @param {string | Uint8Array | ArrayBuffer} payload
+     * @returns {Uint8Array}
+     */
+    globalThis.decodeBytesFromIPC = (payload) => {
+        if (typeof payload === 'string') {
+            const binary = atob(payload);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; ++i) bytes[i] = binary.charCodeAt(i);
+            return bytes;
+        }
+        if (ArrayBuffer.isView(payload)) {
+            return new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
+        }
+        return new Uint8Array(payload);
+    };
+
+    /**
+     * @param {Uint8Array} bytes
+     * @returns {boolean}
+     */
+    globalThis.hasHistoryMagic = (bytes) => {
+        if (bytes.length < HISTORY_FORMAT.HEADER_SIZE) return false;
+        for (let i = 0; i < HISTORY_MAGIC.length; ++i) {
+            if (bytes[i] !== HISTORY_MAGIC[i]) return false;
+        }
+        return true;
     };
 
     /** @typedef {{
