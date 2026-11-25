@@ -1767,6 +1767,8 @@
                         lastReactRoot = document.getElementById('react-root');
                         NEW_UI = false;
                         if (!lastReactRoot) {
+                            // also a valid way to check the new ui
+                            // const isNewUI = Boolean(document.documentElement.dataset.appVersion);
                             lastReactRoot = document.querySelector('div:has(> div > main)');
                             if (lastReactRoot) NEW_UI = true;
                         }
